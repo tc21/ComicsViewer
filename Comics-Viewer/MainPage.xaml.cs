@@ -33,26 +33,6 @@ namespace ComicsViewer {
             this.InitializeComponent();
         }
 
-        #region Navigation
-
-        private async void NavigationView_Loaded(object _, RoutedEventArgs e) {
-            /* Note: The app currently doesn't support multiple pages, but it one day might. */
-            if (!ProfileManager.Initialized) {
-                await ProfileManager.Initialize();
-            }
-
-            var profileName = Defaults.SettingsAccessor.LastProfile;
-            if (!ProfileManager.LoadedProfiles.Contains(profileName)) {
-                if (ProfileManager.LoadedProfiles.Count == 0) {
-                    throw new ApplicationLogicException("The application in its current state only allows using pre-made profiles.");
-                }
-
-                profileName = ProfileManager.LoadedProfiles[0];
-            }
-
-            await this.SwitchToProfile(profileName);
-        }
-
         private async Task SwitchToProfile(string profileName) {
             if (!ProfileManager.LoadedProfiles.Contains(profileName)) {
                 throw new ApplicationLogicException("The application should not allow the user to switch to a non-existent profile.");
@@ -81,6 +61,28 @@ namespace ComicsViewer {
 
             this.SelectedNavigationTag = this.ProfileNavigationViewItem.Tag.ToString();
             this.NavigateToTab(this.SelectedNavigationTag, new EntranceNavigationTransitionInfo());
+
+            this.NavigationView.SelectedItem = this.ProfileNavigationViewItem;
+        }
+
+        #region Navigation
+
+        private async void NavigationView_Loaded(object _, RoutedEventArgs e) {
+            /* Note: The app currently doesn't support multiple pages, but it one day might. */
+            if (!ProfileManager.Initialized) {
+                await ProfileManager.Initialize();
+            }
+
+            var profileName = Defaults.SettingsAccessor.LastProfile;
+            if (!ProfileManager.LoadedProfiles.Contains(profileName)) {
+                if (ProfileManager.LoadedProfiles.Count == 0) {
+                    throw new ApplicationLogicException("The application in its current state only allows using pre-made profiles.");
+                }
+
+                profileName = ProfileManager.LoadedProfiles[0];
+            }
+
+            await this.SwitchToProfile(profileName);
         }
 
         /* Internally tracking navigation tag that doesn't need to be exposed to the view model */

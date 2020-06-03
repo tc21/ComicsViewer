@@ -31,6 +31,8 @@
                 TextChanged="AutoSuggestBox_TextChanged"
                 QuerySubmitted="AutoSuggestBox_QuerySubmitted"
                 SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                CornerRadius="0"
+                BorderThickness="0"
                 />
         </muxc:NavigationView.AutoSuggestBox>
 
