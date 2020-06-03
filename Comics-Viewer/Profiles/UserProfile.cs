@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Windows.Storage;
+
+namespace ComicsViewer.Profiles {
+    public class UserProfile {
+        // fields to be serialized
+        public string Name { get; set; }
+        public int ImageHeight { get; set; } = 240;
+        public int ImageWidth { get; set; } = 240;
+        public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
+        public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
+
+        // generated properties
+        internal string DatabaseFileName => Defaults.DatabaseFileNameForProfile(this);
+
+        // static values and methods
+        internal static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+
+        internal static async Task<UserProfile> Deserialize(Stream input) {
+            return await JsonSerializer.DeserializeAsync<UserProfile>(input);
+        }
+
+        internal static async Task Serialize(UserProfile profile, Stream output) {
+            await JsonSerializer.SerializeAsync(output, profile);
+        }
+
+        // Profile helper methods
+        internal async Task<IEnumerable<StorageFile>> FilesForComicAtPath(string path) {
+            var folder = await StorageFolder.GetFolderFromPathAsync(path);
+            var files = await folder.GetFilesAsync();
+
+            return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
+        }
+
+        /// <summary>
+        /// returns null if this comic contains no files
+        /// </summary>
+        internal async Task<StorageFile> FirstFileForComicAtPath(string path) {
+            foreach (var file in await this.FilesForComicAtPath(path)) {
+                return file;
+            }
+
+            return null;
+        }
+    }
+}
