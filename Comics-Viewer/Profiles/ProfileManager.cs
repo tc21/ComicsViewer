@@ -14,7 +14,7 @@ namespace ComicsViewer.Profiles {
 
 
         internal static bool Initialized { get; private set; } = false;
-        internal static readonly IList<string> LoadedProfiles = new List<string>();
+        internal static readonly List<string> LoadedProfiles = new List<string>();
 
         /// <summary>
         /// To be called when the application loads. Loads existing profiles from the application data folder, 
@@ -51,20 +51,6 @@ namespace ComicsViewer.Profiles {
             using (var stream = await file.OpenStreamForReadAsync()) {
                 return await UserProfile.Deserialize(stream);
             }
-        }
-
-        internal static async Task<UserProfile> LoadDefaultProfile() {
-            if (LoadedProfiles.Contains(Defaults.SettingsAccessor.LastProfile)) {
-                return await LoadProfile(Defaults.SettingsAccessor.LastProfile);
-            }
-
-            if (LoadedProfiles.Count > 0) {
-                return await LoadProfile(LoadedProfiles[0]);
-            }
-
-            throw new ApplicationLogicException("The application in its current state only allows using pre-made profiles.");
-
-            return CreateProfile();
         }
 
         /// <summary>

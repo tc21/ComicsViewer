@@ -5,25 +5,25 @@
     xmlns:local="using:ComicsViewer.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
+    RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <muxc:NavigationView Name="NavigationView"
+                         PaneDisplayMode="Top"
+                         IsSettingsVisible="False"
+                         Loaded="NavigationView_Loaded"
+                         ItemInvoked="NavigationView_ItemInvoked"
+                         BackRequested="NavigationView_BackRequested">
+        <muxc:NavigationView.MenuItems>
+            <!-- ProfileNavigationViewItem's Content is a placeholder -->
+            <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />
+            <muxc:NavigationViewItem Tag="categories" Content="Categories" />
+            <muxc:NavigationViewItem Tag="authors" Content="Authors" />
+            <muxc:NavigationViewItem Tag="tags" Content="Tags" />
+        </muxc:NavigationView.MenuItems>
 
-    <!-- TODO: Implement search, sidebar and settings -->
-    <NavigationView Name="NavigationView"
-                    PaneDisplayMode="Top"
-                    IsSettingsVisible="False"
-                    
-                    Loaded="NavigationView_Loaded"
-                    ItemInvoked="NavigationView_ItemInvoked"
-                    BackRequested="NavigationView_BackRequested">
-        <NavigationView.MenuItems>
-            <NavigationViewItem x:Name="DefaultNavigationViewItem" Tag="comics" Content="Comics" />
-            <NavigationViewItem Tag="categories" Content="Categories" />
-            <NavigationViewItem Tag="authors" Content="Authors" />
-            <NavigationViewItem Tag="tags" Content="Tags" />
-        </NavigationView.MenuItems>
-
-        <NavigationView.AutoSuggestBox>
+        <muxc:NavigationView.AutoSuggestBox>
             <AutoSuggestBox 
                 QueryIcon="Find"
                 MinWidth="200"
@@ -32,11 +32,9 @@
                 QuerySubmitted="AutoSuggestBox_QuerySubmitted"
                 SuggestionChosen="AutoSuggestBox_SuggestionChosen"
                 />
-        </NavigationView.AutoSuggestBox>
+        </muxc:NavigationView.AutoSuggestBox>
 
         <Frame x:Name="ContentFrame" 
                NavigationFailed="ContentFrame_NavigationFailed" />
-    </NavigationView>
-
-
+    </muxc:NavigationView>
 </Page>

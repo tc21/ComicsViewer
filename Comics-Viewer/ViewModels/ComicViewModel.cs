@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ComicsViewer.ViewModels {
-    class ComicViewModel : ViewModel {
+    public class ComicViewModel : ViewModel {
         /* semi-manually managed properties */
         public List<ComicItem> ComicItems { get; private set; }
         private void SetComicItems(List<ComicItem> items) {
@@ -39,7 +39,6 @@ namespace ComicsViewer.ViewModels {
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
         internal ComicViewModel(UserProfile profile, IEnumerable<ComicItem> comicItems, string pageType) : base(profile) {
-
             this.ComicItems = comicItems.ToList();
             this.PageType = pageType;
 

@@ -18,7 +18,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ComicsViewer {
     public sealed partial class ComicItemGrid : Page {
-        internal ComicViewModel ViewModel;
+        public ComicViewModel ViewModel;
         public ComicItemGrid() {
             this.InitializeComponent();
         }

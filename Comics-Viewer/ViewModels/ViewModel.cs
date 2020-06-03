@@ -11,10 +11,8 @@ namespace ComicsViewer.ViewModels {
     /// <summary>
     /// The view model from which every view model inherits. Because every Page needs its own viewmodel, 
     /// all containing the same application state, we do that in this class, and make every view model inherit from this.
-    /// 
-    /// This class should not contain any non-static state.
     /// </summary>
-    class ViewModel : INotifyPropertyChanged {
+    public class ViewModel : INotifyPropertyChanged {
         /* static properties */
         public string[] SortSelectors => Sorting.SortSelectorNames;
         public int ImageHeight => this.Profile.ImageHeight;
