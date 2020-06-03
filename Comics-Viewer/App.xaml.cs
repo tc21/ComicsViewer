@@ -25,23 +25,21 @@ namespace ComicsViewer
 
         /*
          * TODOS:
-         * - Working search box
+         * - Working search box auto-completion
          * - Right click to open, new page with selected, etc.
          * - Expansion panel on single click i.e. the entire reason for this rewrite
          * - Which in turn will enable subworks and alternative works
          * - (Optional) Reimplement the original sidebar?
-         * - Properly layout the sort order box
-         * - Supporting opening stuff properly, rathor than telling Windows to open the first file 
          * - Allow for importing libraries between this version and the WPF version
+         * - Supporting opening stuff properly, rathor than telling Windows to open the first file 
          *   (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
          * - We will likely have to rely on the above two links to enable Python-based extensions.
          * - (Low priority for now, since we have the WPF version) allow writing to the database and all the features that come with it
          * 
          * Feature Requests:
-         * - When clicking a navigation header, if we are already on that page, instead of loading a new copy of the page, scroll to the top
          * - Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)
          * - Reimplement the faded colors of the WPF version, ideally as a togglable setting
-         * - To enable the above feature, we will need a settings pane for App-level (instead of and in addition to profile-level) settings.
+         * - To enable the above feature, we will need a settings pane for App-level (instead of / in addition to profile-level) settings.
          * - To enable progress tracking, we will probably need to implement a UWP-based image viewer too.
          *   This time we probably won't have to make it general-purpose.
          * - Ideally, we should be able to browse search results by category/author/tag too, but this is low priority.

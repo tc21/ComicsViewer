@@ -137,7 +137,7 @@ namespace ComicsViewer {
         private void NavigateToTab(string tag, NavigationTransitionInfo transitionInfo) {
             this.navigationDepth = 0;
 
-            var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForPage(null, tag));
+            var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForPage(this.activeSearch, tag));
             this.ContentFrame.Navigate(typeof(ComicItemGridTopLevelContainer), navigationArguments, transitionInfo);
         }
 
@@ -149,12 +149,8 @@ namespace ComicsViewer {
         /// Called when a search is updated. Refreshes the current top-level tab to apply the search by re-navigating to it.
         /// </summary>
         /// <param name="search">Filter function representing the search.</param>
-        private void ReloadCurrentTabWithSearch(Func<Comic, bool> search) {
-            this.navigationDepth = 0;
-
-            var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForPage(search, this.activeContent.ViewModel.PageType));
-            this.ContentFrame.Navigate(typeof(ComicItemGridTopLevelContainer), navigationArguments);
-        }
+        private void ReloadCurrentTab()
+             => this.NavigateToTab(this.activeContent.ViewModel.PageType);
 
         /// <summary>
         /// Called when the user clicks a ComicNavigationItem
@@ -227,6 +223,8 @@ namespace ComicsViewer {
             sender.Text = (string)args.SelectedItem;
         }
 
+        private Func<Comic, bool> activeSearch = null;
+
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
             // TODO: submit the search
             var search = Search.Compile(sender.Text);
@@ -235,9 +233,12 @@ namespace ComicsViewer {
                 return;
             }
 
-            // remove focus from the search box
+            this.activeSearch = search;
+
+            // remove focus from the search box (partially to indicate that the search succeeded)
             this.activeContent.Focus(FocusState.Pointer);
-            this.ReloadCurrentTabWithSearch(search);
+
+            this.ReloadCurrentTab();
         }
 
         #endregion
