@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using TC.Experimental.Database;
-using TC.Experimental.Database.MicrosoftSqliteExtension;
+using TC.Database;
+using TC.Database.MicrosoftSqlite;
 
 namespace ComicsLibrary.SQL {
     public class ComicsDatabaseConnection {
@@ -35,7 +35,7 @@ namespace ComicsLibrary.SQL {
         private const string key_progress_comicid = "comicid";
         private const string key_progress = "progress";
 
-        private SqliteDatabaseConnection connection;
+        private readonly SqliteDatabaseConnection connection;
 
         public ComicsDatabaseConnection(SqliteDatabaseConnection connection) {
             this.connection = connection;
@@ -67,7 +67,7 @@ namespace ComicsLibrary.SQL {
             var category = reader.GetString(key_category);
             var metadata = await this.ComicMetadataFromRow(reader);
 
-            var comic = new Comic(path: path, title: title, author: author, category: category, metadata: metadata);
+            var comic = new Comic(path, title: title, author: author, category: category, metadata: metadata);
             return comic;
         }
 
@@ -92,15 +92,14 @@ namespace ComicsLibrary.SQL {
             var tags = new List<string>();
             var sql = $"SELECT {key_xref_tag_id} FROM {table_tags_xref} WHERE {key_xref_comic_id} = {comicid}";
 
-            using (var command = this.connection.CreateCommand(sql)) {
-                using (var reader = await command.ExecuteReaderAsync()) {
-                    while (await reader.ReadAsync()) {
-                        var tagid = reader.GetInt32(0);
-                        tags.Add(await this.GetTag(tagid));
-                    }
-                }
-            }
+            using var command = this.connection.CreateCommand(sql);
+            using var reader = await command.ExecuteReaderAsync();
 
+            while (await reader.ReadAsync()) {
+                var tagid = reader.GetInt32(0);
+                tags.Add(await this.GetTag(tagid));
+            }
+        
             return tags;
         }
 

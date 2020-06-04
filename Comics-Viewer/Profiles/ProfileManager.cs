@@ -8,6 +8,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable
+
 namespace ComicsViewer.Profiles {
     static class ProfileManager {
         const string ProfileFileNameExtension = ".profile.json";
@@ -30,9 +32,8 @@ namespace ComicsViewer.Profiles {
             foreach (var file in files) {
                 if (file.Name.EndsWith(ProfileFileNameExtension)) {
                     try {
-                        using (var stream = await file.OpenStreamForReadAsync()) {
-                            _ = UserProfile.Deserialize(stream);
-                        }
+                        using var stream = await file.OpenStreamForReadAsync();
+                        _ = UserProfile.Deserialize(stream);
                         LoadedProfiles.Add(file.Name.TruncateEnd(ProfileFileNameExtension.Length));
                     } catch (JsonException) {
                         // do nothing
@@ -48,9 +49,8 @@ namespace ComicsViewer.Profiles {
 
             var profileFolder = await Defaults.GetProfileFolder();
             var file = await profileFolder.GetFileAsync(name + ProfileFileNameExtension);
-            using (var stream = await file.OpenStreamForReadAsync()) {
-                return await UserProfile.Deserialize(stream);
-            }
+            using var stream = await file.OpenStreamForReadAsync();
+            return await UserProfile.Deserialize(stream);
         }
 
         /// <summary>
@@ -85,9 +85,8 @@ namespace ComicsViewer.Profiles {
                 file = await profileFolder.CreateFileAsync(fileName);
             }
 
-            using (var stream = await file.OpenStreamForWriteAsync()) {
-                await UserProfile.Serialize(profile, stream);
-            }
+            using var stream = await file.OpenStreamForWriteAsync();
+            await UserProfile.Serialize(profile, stream);
         }
     }
 }

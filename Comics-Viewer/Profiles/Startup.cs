@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.System;
 
+#nullable enable
+
 namespace ComicsViewer.Profiles {
     public enum StartupApplicationType {
         OpenFirstFile

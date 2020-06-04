@@ -7,10 +7,12 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable 
+
 namespace ComicsViewer.Profiles {
     public class UserProfile {
         // fields to be serialized
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
         public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
@@ -41,7 +43,7 @@ namespace ComicsViewer.Profiles {
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        internal async Task<StorageFile> FirstFileForComicAtPath(string path) {
+        internal async Task<StorageFile?> FirstFileForComicAtPath(string path) {
             foreach (var file in await this.FilesForComicAtPath(path)) {
                 return file;
             }

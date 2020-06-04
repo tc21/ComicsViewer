@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer {
     static class Search {
         /* Note: This can be optimized a lot by relying on the cached data in ComicStore. We'll see if it comes to it */
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
-        static Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
+        static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
             { "title", (comic) => comic.Title },
             { "author", (comic) => comic.Author },
             { "category", (comic) => comic.Category },
@@ -21,7 +23,10 @@ namespace ComicsViewer {
             return comic.UniqueIdentifier;
         }
 
-        static internal Func<Comic, bool> Compile(string searchTerm) {
+        /// <summary>
+        /// Returns null when compilation failed
+        /// </summary>
+        static internal Func<Comic, bool>? Compile(string searchTerm) {
             var requiredSearches = new List<Func<Comic, bool>>();
 
             List<Tuple<string, string>> tokens;
@@ -52,6 +57,7 @@ namespace ComicsViewer {
         }
 
         static internal List<string> GetSearchSuggestions(string incompleteSearchTerm) {
+            // TODO
             return new List<string>();
         }
 

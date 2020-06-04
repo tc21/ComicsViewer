@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable
+
 namespace ComicsViewer {
     static class Defaults {
         static readonly IDictionary<string, object> defaultSettings = new Dictionary<string, object> {
@@ -40,6 +42,10 @@ namespace ComicsViewer {
         }
 
         internal static void WriteSetting<T>(string key, T value) {
+            if (value == null) {
+                throw new ApplicationLogicException("WriteSetting cannot accept null arguments.");
+            }
+
             WriteSetting(key, value, typeof(T));
         }
 

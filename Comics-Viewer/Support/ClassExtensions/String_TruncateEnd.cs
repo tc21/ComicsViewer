@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ClassExtensions {
     public static class String_TruncateEnd {
         public static string TruncateEnd(this string s, int length) {

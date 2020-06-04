@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     /// <summary>
     /// The view model from which every view model inherits. Because every Page needs its own viewmodel, 
@@ -28,8 +30,7 @@ namespace ComicsViewer.ViewModels {
         #region INotifyPropertyChanged Implementation
 
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        internal void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+        internal void OnPropertyChanged([CallerMemberName] string propertyName = "") {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 

@@ -15,10 +15,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
+#nullable enable
 
 namespace ComicsViewer {
     public sealed partial class ComicItemGrid : Page {
-        public ComicViewModel ViewModel;
+        public ComicViewModel? ViewModel;
         public ComicItemGrid() {
             this.InitializeComponent();
         }
@@ -30,7 +31,7 @@ namespace ComicsViewer {
 
             foreach (var item in grid.SelectedItems) {
                 if (item is ComicWorkItem comicWorkItem) {
-                    await Startup.OpenComic(comicWorkItem.Comic, this.ViewModel.Profile);
+                    await Startup.OpenComic(comicWorkItem.Comic, this.ViewModel!.Profile);
                 }
 
                 if (item is ComicNavigationItem comicNavigationItem) {
@@ -40,19 +41,19 @@ namespace ComicsViewer {
         }
 
         void RequestNavigationInto(ComicNavigationItem item) {
-            this.RequestingNavigation(this, new RequestingNavigationEventArgs {
+            this.RequestingNavigation?.Invoke(this, new RequestingNavigationEventArgs {
                 NavigationItem = item,
                 NavigationType = RequestingNavigationType.Into
             });
         }
 
         internal delegate void RequestingNavigationEventDelegate(ComicItemGrid sender, RequestingNavigationEventArgs args);
-        internal event RequestingNavigationEventDelegate RequestingNavigation;
+        internal event RequestingNavigationEventDelegate? RequestingNavigation;
 
         #region Controlling from MainPage
 
         internal void ScrollToTop() {
-            if (this.ViewModel.ComicItems.Count > 0) {
+            if (this.ViewModel != null && this.ViewModel.ComicItems.Count > 0) {
                 // Looks like there isn't a good way to actually scroll with an animation. 
                 // Both GridView.ScrollIntoView and GridView.MakeVisible scrolls instantly without animation.
                 // The solution used here is a reverse-engineering that can potentially break anytime with an update to the UWP library
@@ -81,7 +82,7 @@ namespace ComicsViewer {
             }
 
             // Note: we must call this function no matter what. MainPage must handle things differently based on e.NavigationMode on its own.
-            args.OnNavigatedTo(this, e);
+            args.OnNavigatedTo?.Invoke(this, e);
         }
 
         internal void ManuallyNavigatedTo(NavigationEventArgs e) {
@@ -103,6 +104,10 @@ namespace ComicsViewer {
         }
 
         private void RecalculateGridItemSize(GridView grid) {
+            if (this.ViewModel == null) {
+                return;
+            }
+
             var idealItemWidth = this.ViewModel.ImageWidth;
             var idealItemHeight = this.ViewModel.ImageHeight;
             var columns = Math.Ceiling(grid.ActualWidth / idealItemWidth);
@@ -115,7 +120,7 @@ namespace ComicsViewer {
     }
 
     class RequestingNavigationEventArgs {
-        internal ComicNavigationItem NavigationItem { get; set; }
+        internal ComicNavigationItem? NavigationItem { get; set; }
         internal RequestingNavigationType NavigationType { get; set; }
     }
 

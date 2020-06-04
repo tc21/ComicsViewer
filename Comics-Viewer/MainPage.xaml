@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <muxc:NavigationView Name="NavigationView"
+    <muxc:NavigationView x:Name="NavigationView"
                          PaneDisplayMode="Top"
                          IsSettingsVisible="False"
                          Loaded="NavigationView_Loaded"

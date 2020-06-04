@@ -22,16 +22,18 @@ using ComicsLibrary;
 using ComicsViewer.ComicGrid;
 using MUXC = Microsoft.UI.Xaml.Controls;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+#nullable enable
 
 namespace ComicsViewer {
     public sealed partial class MainPage : Page {
-        private ComicStore comicStore;
-        private ComicItemGrid activeContent;
+        private ComicStore comicStore = ComicStore.EmptyComicStore;
+        private ComicItemGrid? activeContent;
 
         public MainPage() {
             this.InitializeComponent();
         }
+
+        private string DefaultNavigationTag => this.ProfileNavigationViewItem.Tag.ToString();
 
         private async Task SwitchToProfile(string profileName) {
             if (!ProfileManager.LoadedProfiles.Contains(profileName)) {
@@ -59,7 +61,7 @@ namespace ComicsViewer {
                 }
             }
 
-            this.SelectedNavigationTag = this.ProfileNavigationViewItem.Tag.ToString();
+            this.SelectedNavigationTag = this.DefaultNavigationTag;
             this.NavigateToTab(this.SelectedNavigationTag, new EntranceNavigationTransitionInfo());
 
             this.NavigationView.SelectedItem = this.ProfileNavigationViewItem;
@@ -86,7 +88,7 @@ namespace ComicsViewer {
         }
 
         /* Internally tracking navigation tag that doesn't need to be exposed to the view model */
-        private string selectedNavigationTag;
+        private string selectedNavigationTag = "";
         private string SelectedNavigationTag {
             get => this.selectedNavigationTag;
             set {
@@ -118,7 +120,7 @@ namespace ComicsViewer {
 
             var tag = args.InvokedItemContainer.Tag.ToString();
 
-            if (this.activeContent.ViewModel.PageType == tag) {
+            if (this.activeContent?.ViewModel!.PageType == tag) {
                 this.activeContent.ScrollToTop();
                 return;
             }
@@ -150,7 +152,7 @@ namespace ComicsViewer {
         /// </summary>
         /// <param name="search">Filter function representing the search.</param>
         private void ReloadCurrentTab()
-             => this.NavigateToTab(this.activeContent.ViewModel.PageType);
+             => this.NavigateToTab(this.activeContent?.ViewModel!.PageType ?? this.DefaultNavigationTag);
 
         /// <summary>
         /// Called when the user clicks a ComicNavigationItem
@@ -159,7 +161,7 @@ namespace ComicsViewer {
             switch (args.NavigationType) {
                 case RequestingNavigationType.Into:
                     this.navigationDepth += 1;
-                    var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForComics(args.NavigationItem.Comics));
+                    var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForComics(args.NavigationItem!.Comics));
                     this.ContentFrame.Navigate(typeof(ComicItemGridSecondLevelContainer), navigationArguments);
                     return;
             }
@@ -223,7 +225,7 @@ namespace ComicsViewer {
             sender.Text = (string)args.SelectedItem;
         }
 
-        private Func<Comic, bool> activeSearch = null;
+        private Func<Comic, bool>? activeSearch = null;
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
             // TODO: submit the search
@@ -236,7 +238,7 @@ namespace ComicsViewer {
             this.activeSearch = search;
 
             // remove focus from the search box (partially to indicate that the search succeeded)
-            this.activeContent.Focus(FocusState.Pointer);
+            this.activeContent?.Focus(FocusState.Pointer);
 
             this.ReloadCurrentTab();
         }

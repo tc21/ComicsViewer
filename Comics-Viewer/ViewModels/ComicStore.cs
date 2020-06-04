@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     /// <summary>
     /// A comic store stores a list of all comics, from which the application can request a
@@ -16,6 +18,8 @@ namespace ComicsViewer.ViewModels {
     /// For now, everything is read-only.
     /// </summary>
     class ComicStore {
+        internal static readonly ComicStore EmptyComicStore = new ComicStore(new UserProfile(), new Comic[0]);
+
         private readonly UserProfile profile;
         private readonly List<Comic> comics;
 
@@ -33,7 +37,7 @@ namespace ComicsViewer.ViewModels {
             return new ComicStore(profile, comics);
         }
 
-        private ComicViewModel CreateViewModel(Func<Comic, bool> search, Func<Comic, IEnumerable<string>> groupBy, string pageType) {
+        private ComicViewModel CreateViewModel(Func<Comic, bool>? search, Func<Comic, IEnumerable<string>>? groupBy, string pageType) {
             IEnumerable<Comic> comics = this.comics;
             if (search != null) {
                 comics = comics.Where(search);
@@ -48,19 +52,14 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        internal ComicViewModel CreateViewModelForPage(Func<Comic, bool> search, string pageType = "comics") {
-            switch (pageType) {
-                case "comics":
-                    return this.CreateViewModel(search, null, pageType);
-                case "authors":
-                    return this.CreateViewModel(search, comic => new[] { comic.DisplayAuthor }, pageType);
-                case "categories":
-                    return this.CreateViewModel(search, comic => new[] { comic.DisplayCategory }, pageType);
-                case "tags":
-                    return this.CreateViewModel(search, comic => comic.Tags, pageType);
-                default:
-                    throw new ApplicationLogicException($"Invalid page type '{pageType}' when creating comic store.");
-            }
+        internal ComicViewModel CreateViewModelForPage(Func<Comic, bool>? search, string pageType = "comics") {
+            return pageType switch {
+                "comics" => this.CreateViewModel(search, null, pageType),
+                "authors" => this.CreateViewModel(search, comic => new[] { comic.DisplayAuthor }, pageType),
+                "categories" => this.CreateViewModel(search, comic => new[] { comic.DisplayCategory }, pageType),
+                "tags" => this.CreateViewModel(search, comic => comic.Tags, pageType),
+                _ => throw new ApplicationLogicException($"Invalid page type '{pageType}' when creating comic store."),
+            };
         }
 
         internal ComicViewModel CreateViewModelForComics(IEnumerable<Comic> comics) {
@@ -69,6 +68,7 @@ namespace ComicsViewer.ViewModels {
 
         private static IEnumerable<ComicNavigationItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
             var dict = new Dictionary<string, List<Comic>>();
+
             foreach (var comic in comics) {
                 foreach (var key in groupBy(comic)) {
                     if (!dict.ContainsKey(key)) {

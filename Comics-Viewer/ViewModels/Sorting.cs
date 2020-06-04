@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     static class Sorting {
         internal enum SortSelector {
@@ -25,19 +27,14 @@ namespace ComicsViewer.ViewModels {
         }
 
         private static Comparison<ComicItem> ComicItemComparisonForSortSelector(SortSelector sortSelector) {
-            switch (sortSelector) {
-                case SortSelector.Title:
-                    return CompareTitle;
-                case SortSelector.Author:
-                    return CompareAuthor;
-                case SortSelector.DateAdded:
-                    return CompareDateAdded;
-                case SortSelector.ItemCount:
-                    return CompareItemCount;
-
-                default:
-                    throw new ApplicationLogicException("Theoretically unreachable code");
-            }
+            return sortSelector switch {
+                SortSelector.Title => CompareTitle,
+                SortSelector.Author => CompareAuthor,
+                SortSelector.DateAdded => CompareDateAdded,
+                SortSelector.ItemCount => CompareItemCount,
+                SortSelector.Random => throw new ApplicationLogicException("Random sort should not propagate here"),
+                _ => throw new ApplicationLogicException("Theoretically unreachable code"),
+            };
         }
 
         private static int CompareTitle(ComicItem a, ComicItem b) {

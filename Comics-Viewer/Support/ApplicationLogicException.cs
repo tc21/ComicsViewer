@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer {
     /// <summary>
     /// Represents an error caused by programmer error. By design, this should be impossible, but we all make mistakes.

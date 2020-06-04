@@ -15,6 +15,8 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
+#nullable enable
+
 namespace ComicsViewer.ComicGrid {
     /* UWP cannot handle caching multiple instances of pages of the same type. To enable caching pages using Frame's
      * built-in behavior, each page must be a different type. Here we limit the application to two pages. Each container 
@@ -32,7 +34,7 @@ namespace ComicsViewer.ComicGrid {
      * But just in case we want to in the future, I want to make it obvious that they should have the exact same implementation.
      */
     public sealed partial class ComicItemGridTopLevelContainer : Page, IComicItemGridContainer {
-        public ComicItemGrid Grid { get; private set; }
+        public ComicItemGrid? Grid { get; private set; }
 
         public ComicItemGridTopLevelContainer() {
             this.InitializeComponent();
@@ -40,7 +42,6 @@ namespace ComicsViewer.ComicGrid {
 
         private void Frame_Navigated(object sender, NavigationEventArgs e) {
             this.Grid = (ComicItemGrid)this.Frame.Content;
-            Debug.WriteLine($"TopLevelContainer.Frame.Navigated");
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -48,7 +49,7 @@ namespace ComicsViewer.ComicGrid {
                 // reuse cached page when navigating back
                 // Note, since ComicItemGridContainer is just a wrapper around ComicItemGrid, and all the logic is 
                 // handled by ComicItemGrid, we have make sure ComicItemGrid.OnNavigatedTo is called no matter what.
-                this.Grid.ManuallyNavigatedTo(e);
+                this.Grid?.ManuallyNavigatedTo(e);
                 return;
             }
 

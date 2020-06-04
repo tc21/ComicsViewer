@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     public class ComicWorkItem : ComicItem {
         public Comic Comic { get; }
