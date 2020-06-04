@@ -215,20 +215,17 @@ namespace ComicsViewer {
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                // TODO: update AutoSuggestBox.ItemsSource to set list of auto-suggested items
-                sender.ItemsSource = Search.GetSearchSuggestions(sender.Text);
+                sender.ItemsSource = Search.GetSearchSuggestions(sender.Text).ToList();
             }
         }
 
         private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args) {
-            // TODO: update sender.Text to reflect the selection the user has currently highlighted
             sender.Text = (string)args.SelectedItem;
         }
 
         private Func<Comic, bool>? activeSearch = null;
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
-            // TODO: submit the search
             var search = Search.Compile(sender.Text);
 
             if (search == null) {
