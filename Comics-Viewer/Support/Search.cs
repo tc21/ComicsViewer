@@ -39,17 +39,19 @@ namespace ComicsViewer {
 
             foreach (var (key, value) in tokens) {
                 if (key == "") {
-                    requiredSearches.Add(comic => DefaultSearchField(comic).Contains(value, StringComparison.InvariantCultureIgnoreCase));
+                    requiredSearches.Add(comic => DefaultSearchField(comic).Contains(value, StringComparison.OrdinalIgnoreCase));
                     continue;
                 }
 
-                if (!searchFields.ContainsKey(key)) {
+                var lower = key.ToLower();
+
+                if (!searchFields.ContainsKey(lower)) {
                     // Encountering non-existent token
                     return null;
                 }
                 
 
-                requiredSearches.Add(comic => searchFields[key](comic).Contains(value, StringComparison.InvariantCultureIgnoreCase));
+                requiredSearches.Add(comic => searchFields[lower](comic).Contains(value, StringComparison.OrdinalIgnoreCase));
             }
 
             return comic => requiredSearches.All(search => search(comic));
@@ -73,7 +75,7 @@ namespace ComicsViewer {
             }
 
             foreach (var token in tokens) {
-                if (token.key != "" && !searchFields.ContainsKey(token.key)) {
+                if (token.key != "" && !searchFields.ContainsKey(token.key.ToLower())) {
                     // Invalid tag name
                     return from key in searchFields.Keys
                            orderby Similarity(key, token.key)
@@ -155,7 +157,7 @@ namespace ComicsViewer {
                     return a.Length;
                 }
 
-                if (a[0] == b[0]) {
+                if (a.Substring(0, 1).Equals(b.Substring(0, 1), StringComparison.OrdinalIgnoreCase)) {
                     return LevenshteinDistance(a.Substring(1), b.Substring(1));
                 }
 

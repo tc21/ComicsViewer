@@ -25,6 +25,7 @@
 
         <muxc:NavigationView.AutoSuggestBox>
             <AutoSuggestBox 
+                x:Name="SearchBox"
                 QueryIcon="Find"
                 MinWidth="200"
                 PlaceholderText="Search Comics"

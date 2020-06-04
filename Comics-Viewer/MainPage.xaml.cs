@@ -45,6 +45,7 @@ namespace ComicsViewer {
 
             var profile = await ProfileManager.LoadProfile(profileName);
             this.comicStore = await ComicStore.CreateComicsStore(profile);
+            this.activeSearch = null;
 
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
@@ -53,6 +54,7 @@ namespace ComicsViewer {
              * elements are the names of the other profiles that are loaded but not active. Clicking on one of those 
              * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
              * page */
+            this.SearchBox.Text = "";
             this.ProfileNavigationViewItem.Content = profileName;
             this.ProfileNavigationViewItem.MenuItems.Clear();
             foreach (var existingProfile in ProfileManager.LoadedProfiles) {
@@ -214,8 +216,14 @@ namespace ComicsViewer {
         #region Search
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
+            if (sender.Text.Trim() == "") {
+                sender.ItemsSource = Defaults.SettingsAccessor.SavedSearches;
+                return;
+            }
+            
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
                 sender.ItemsSource = Search.GetSearchSuggestions(sender.Text).ToList();
+                return;
             }
         }
 
@@ -232,12 +240,39 @@ namespace ComicsViewer {
                 return;
             }
 
-            this.activeSearch = search;
+            // Add this search to the recents list
+            if (sender.Text.Trim() != "") {
+                var savedSearches = Defaults.SettingsAccessor.SavedSearches;
+                RemoveIgnoreCase(ref savedSearches, sender.Text);
+                savedSearches.Insert(0, sender.Text);
+
+                while (savedSearches.Count > 4) {
+                    savedSearches.RemoveAt(4);
+                }
+
+                Defaults.SettingsAccessor.SavedSearches = savedSearches;
+            }
 
             // remove focus from the search box (partially to indicate that the search succeeded)
             this.activeContent?.Focus(FocusState.Pointer);
 
+            // execute the search
+            this.activeSearch = search;
             this.ReloadCurrentTab();
+
+            static void RemoveIgnoreCase(ref IList<string> list, string text) {
+                var removes = new List<int>();
+
+                for (var i = 0; i < list.Count; i++) {
+                    if (list[i].Equals(text, StringComparison.OrdinalIgnoreCase)) {
+                        removes.Insert(0, i);
+                    }
+                }
+
+                foreach (var i in removes) {
+                    list.RemoveAt(i);
+                }
+            }
         }
 
         #endregion

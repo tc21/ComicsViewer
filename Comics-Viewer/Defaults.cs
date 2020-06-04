@@ -204,7 +204,9 @@ namespace ComicsViewer {
                 ["tags"] = (int)Sorting.SortSelector.Title,
                 ["categories"] = (int)Sorting.SortSelector.Title,
                 ["default"] =(int)Sorting.SortSelector.Title
-            }
+            },
+            // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...
+            ["SavedSearches"] = "",
         };
 
         private static DefaultSettingsAccessor defaultSettingsAccessor = new DefaultSettingsAccessor(defaultSettings);
@@ -220,6 +222,11 @@ namespace ComicsViewer {
 
             public static void SetLastSortSelection(string pageType, int value)
                 => defaultSettingsAccessor.SetCollectionItem("SortSelections", pageType, value);
+
+            public static IList<string> SavedSearches {
+                get => defaultSettingsAccessor.Get<string>("SavedSearches").Split('|').ToList();
+                set => defaultSettingsAccessor.Set("SavedSearches", string.Join('|', value));
+            }
         }
 
         private static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
