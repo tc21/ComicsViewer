@@ -24,7 +24,7 @@ namespace ComicsViewer {
             this.InitializeComponent();
         }
 
-        async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _) {
+        private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _) {
             if (!(sender is GridView grid)) {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
             }
@@ -40,15 +40,15 @@ namespace ComicsViewer {
             }
         }
 
-        void RequestNavigationInto(ComicNavigationItem item) {
+        private void RequestNavigationInto(ComicNavigationItem item) {
             this.RequestingNavigation?.Invoke(this, new RequestingNavigationEventArgs {
                 NavigationItem = item,
                 NavigationType = RequestingNavigationType.Into
             });
         }
 
-        internal delegate void RequestingNavigationEventDelegate(ComicItemGrid sender, RequestingNavigationEventArgs args);
-        internal event RequestingNavigationEventDelegate? RequestingNavigation;
+        public delegate void RequestingNavigationEventDelegate(ComicItemGrid sender, RequestingNavigationEventArgs args);
+        public event RequestingNavigationEventDelegate? RequestingNavigation;
 
         #region Controlling from MainPage
 
@@ -119,12 +119,12 @@ namespace ComicsViewer {
         #endregion
     }
 
-    class RequestingNavigationEventArgs {
-        internal ComicNavigationItem? NavigationItem { get; set; }
-        internal RequestingNavigationType NavigationType { get; set; }
+    public class RequestingNavigationEventArgs {
+        public ComicNavigationItem? NavigationItem { get; set; }
+        public RequestingNavigationType NavigationType { get; set; }
     }
 
-    enum RequestingNavigationType {
+    public enum RequestingNavigationType {
         Into
     }
 }

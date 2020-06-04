@@ -11,8 +11,8 @@ using Windows.Storage;
 #nullable enable
 
 namespace ComicsViewer {
-    static class Defaults {
-        static readonly IDictionary<string, object> defaultSettings = new Dictionary<string, object> {
+    public static class Defaults {
+        private static readonly IDictionary<string, object> defaultSettings = new Dictionary<string, object> {
             { "lastProfile", "" },
             { "comicsSortSelection", (int)Sorting.SortSelector.Author },
             { "categoriesSortSelection", (int)Sorting.SortSelector.Title },
@@ -21,9 +21,9 @@ namespace ComicsViewer {
             { "defaultSortSelection", (int)Sorting.SortSelector.Title },
         };
 
-        static readonly ApplicationDataContainer settingsContainer = ApplicationData.Current.RoamingSettings;
+        private static readonly ApplicationDataContainer settingsContainer = ApplicationData.Current.RoamingSettings;
 
-        internal static T GetSetting<T>(string key) {
+        public static T GetSetting<T>(string key) {
             if (!defaultSettings.ContainsKey(key)) {
                 throw new ApplicationLogicException($"Key '{key}' does not exist in the defaultSettings dictionary");
             }
@@ -41,7 +41,7 @@ namespace ComicsViewer {
 
         }
 
-        internal static void WriteSetting<T>(string key, T value) {
+        public static void WriteSetting<T>(string key, T value) {
             if (value == null) {
                 throw new ApplicationLogicException("WriteSetting cannot accept null arguments.");
             }
@@ -49,7 +49,7 @@ namespace ComicsViewer {
             WriteSetting(key, value, typeof(T));
         }
 
-        internal static void WriteSetting(string key, object value, Type type) {
+        public static void WriteSetting(string key, object value, Type type) {
             if (!defaultSettings.ContainsKey(key)) {
                 throw new ApplicationLogicException($"Key '{key}' does not exist in the defaultSettings dictionary");
             }
@@ -66,13 +66,13 @@ namespace ComicsViewer {
             settingsContainer.Values[key] = value;
         }
 
-        internal static class SettingsAccessor {
-            internal static string LastProfile {
+        public static class SettingsAccessor {
+            public static string LastProfile {
                 get => GetSetting<string>("lastProfile");
                 set => WriteSetting("lastProfile", value);
             }
 
-            internal static int GetLastSortSelection(string pageType) {
+            public static int GetLastSortSelection(string pageType) {
                 if (!validPageTypes.Contains(pageType)) {
                     throw new ApplicationLogicException($"'{pageType}' is not a valid page type.");
                 }
@@ -80,7 +80,7 @@ namespace ComicsViewer {
                 return GetSetting<int>(pageType + "SortSelection");
             }
 
-            internal static void SetLastSortSelection(string pageType, int value) {
+            public static void SetLastSortSelection(string pageType, int value) {
                 if (!validPageTypes.Contains(pageType)) {
                     throw new ApplicationLogicException($"'{pageType}' is not a valid page type.");
                 }
@@ -91,10 +91,10 @@ namespace ComicsViewer {
             static readonly string[] validPageTypes = { "comics", "categories", "authors", "tags", "default" };
         }
 
-        static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
-        internal static StorageFolder TempFolder => ApplicationData.Current.TemporaryFolder;
+        private static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
+        public static StorageFolder TempFolder => ApplicationData.Current.TemporaryFolder;
 
-        static async Task<StorageFolder> ApplicationDataFolderNamed(string name) {
+        private static async Task<StorageFolder> ApplicationDataFolderNamed(string name) {
             try {
                 return await ApplicationDataFolder.GetFolderAsync(name);
             } catch (FileNotFoundException) {
@@ -102,19 +102,19 @@ namespace ComicsViewer {
             }
         }
 
-        internal static async Task<StorageFolder> GetProfileFolder() => await ApplicationDataFolderNamed("Profiles");
-        internal static async Task<StorageFolder> GetDatabaseFolder() => await ApplicationDataFolderNamed("Databases");
-        internal static async Task<StorageFolder> GetThumbnailFolder() => await ApplicationDataFolderNamed("Thumbnails");
+        public static async Task<StorageFolder> GetProfileFolder() => await ApplicationDataFolderNamed("Profiles");
+        public static async Task<StorageFolder> GetDatabaseFolder() => await ApplicationDataFolderNamed("Databases");
+        public static async Task<StorageFolder> GetThumbnailFolder() => await ApplicationDataFolderNamed("Thumbnails");
 
-        internal static string ProfileFolderPath => Path.Combine(ApplicationDataFolder.Path, "Profiles");
-        internal static string DatabaseFolderPath => Path.Combine(ApplicationDataFolder.Path, "Databases");
-        internal static string ThumbnailFolderPath => Path.Combine(ApplicationDataFolder.Path, "Thumbnails");
+        public static string ProfileFolderPath => Path.Combine(ApplicationDataFolder.Path, "Profiles");
+        public static string DatabaseFolderPath => Path.Combine(ApplicationDataFolder.Path, "Databases");
+        public static string ThumbnailFolderPath => Path.Combine(ApplicationDataFolder.Path, "Thumbnails");
 
-        internal static string DatabaseFileNameForProfile(UserProfile profile) {
+        public static string DatabaseFileNameForProfile(UserProfile profile) {
             return Path.Combine(DatabaseFolderPath, $"{profile.Name}.library.db");
         }
 
-        internal static async Task<StorageFile> CreateTempFile(string desiredName) {
+        public static async Task<StorageFile> CreateTempFile(string desiredName) {
             return await TempFolder.CreateFileAsync(desiredName, CreationCollisionOption.GenerateUniqueName);
         }
     }

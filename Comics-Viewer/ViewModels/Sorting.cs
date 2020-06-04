@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.ViewModels {
-    static class Sorting {
-        internal enum SortSelector {
+    public static class Sorting {
+        public enum SortSelector {
             Title, Author, DateAdded, ItemCount, Random
         }
 
-        internal static readonly string[] SortSelectorNames = { "Title", "Author", "Date Added", "Item Count", "Random" };
+        public static readonly string[] SortSelectorNames = { "Title", "Author", "Date Added", "Item Count", "Random" };
 
-        internal static List<ComicItem> Sorted(List<ComicItem> items, SortSelector sortSelector) {
+        public static List<ComicItem> Sorted(List<ComicItem> items, SortSelector sortSelector) {
             if (sortSelector == SortSelector.Random) {
                 return items.OrderBy(_ => App.Randomizer.Next()).ToList();
             }
@@ -79,7 +79,5 @@ namespace ComicsViewer.ViewModels {
 
             return fallback(a, b);
         }
-
-
     }
 }

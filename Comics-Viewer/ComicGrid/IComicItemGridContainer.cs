@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.ComicGrid {
-    interface IComicItemGridContainer {
-        ComicItemGrid? Grid { get; }
+    public interface IComicItemGridContainer {
+        public ComicItemGrid? Grid { get; }
     }
 }

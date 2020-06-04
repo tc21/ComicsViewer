@@ -35,12 +35,12 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        internal readonly string PageType;
+        public readonly string PageType;
 
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
-        internal ComicViewModel(UserProfile profile, IEnumerable<ComicItem> comicItems, string pageType) : base(profile) {
+        public ComicViewModel(UserProfile profile, IEnumerable<ComicItem> comicItems, string pageType) : base(profile) {
             this.ComicItems = comicItems.ToList();
             this.PageType = pageType;
 

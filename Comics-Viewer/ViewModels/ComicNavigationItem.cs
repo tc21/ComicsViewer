@@ -15,7 +15,7 @@ namespace ComicsViewer.ViewModels {
         public override string Subtitle { get; }
         public override string ThumbnailPath => Thumbnail.ThumbnailPath(this.Comics.First());
 
-        internal readonly List<Comic> Comics;
+        public readonly IList<Comic> Comics;
 
         public ComicNavigationItem(string name, IEnumerable<Comic> comics) {
             this.Comics = comics.ToList();

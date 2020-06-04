@@ -17,8 +17,8 @@ namespace ComicsViewer.ViewModels {
     /// 
     /// For now, everything is read-only.
     /// </summary>
-    class ComicStore {
-        internal static readonly ComicStore EmptyComicStore = new ComicStore(new UserProfile(), new Comic[0]);
+    public class ComicStore {
+        public static readonly ComicStore EmptyComicStore = new ComicStore(new UserProfile(), new Comic[0]);
 
         private readonly UserProfile profile;
         private readonly List<Comic> comics;
@@ -28,7 +28,7 @@ namespace ComicsViewer.ViewModels {
             this.comics = comics.ToList();
         }
 
-        internal static async Task<ComicStore> CreateComicsStore(UserProfile profile) {
+        public static async Task<ComicStore> CreateComicsStore(UserProfile profile) {
             var databaseConnection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
             var manager = new ComicsReadOnlyManager(databaseConnection);
 
@@ -52,7 +52,7 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        internal ComicViewModel CreateViewModelForPage(Func<Comic, bool>? search, string pageType = "comics") {
+        public ComicViewModel CreateViewModelForPage(Func<Comic, bool>? search, string pageType = "comics") {
             return pageType switch {
                 "comics" => this.CreateViewModel(search, null, pageType),
                 "authors" => this.CreateViewModel(search, comic => new[] { comic.DisplayAuthor }, pageType),
@@ -62,7 +62,7 @@ namespace ComicsViewer.ViewModels {
             };
         }
 
-        internal ComicViewModel CreateViewModelForComics(IEnumerable<Comic> comics) {
+        public ComicViewModel CreateViewModelForComics(IEnumerable<Comic> comics) {
             return new ComicViewModel(this.profile, comics.Select(comic => new ComicWorkItem(comic)), "default");
         }
 

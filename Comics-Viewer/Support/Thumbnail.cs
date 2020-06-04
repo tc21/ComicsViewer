@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.Thumbnails {
-    static class Thumbnail {
-        internal static string ThumbnailPath(Comic comic) {
+    public static class Thumbnail {
+        public static string ThumbnailPath(Comic comic) {
             return Path.Combine(Defaults.ThumbnailFolderPath, comic.UniqueIdentifier + ".thumbnail.jpg");
         }
     }

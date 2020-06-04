@@ -21,16 +21,16 @@ namespace ComicsViewer.ViewModels {
         public int ImageWidth => this.Profile.ImageWidth;
         public string ProfileName => this.Profile.Name;
 
-        internal readonly UserProfile Profile;
+        public readonly UserProfile Profile;
 
-        internal ViewModel(UserProfile profile) {
+        public ViewModel(UserProfile profile) {
             this.Profile = profile;
         }
 
         #region INotifyPropertyChanged Implementation
 
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        internal void OnPropertyChanged([CallerMemberName] string propertyName = "") {
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "") {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 

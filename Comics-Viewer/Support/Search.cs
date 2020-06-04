@@ -8,25 +8,25 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer {
-    static class Search {
+    public static class Search {
         /* Note: This can be optimized a lot by relying on the cached data in ComicStore. We'll see if it comes to it */
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
-        static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
+        private static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
             { "title", (comic) => comic.Title },
             { "author", (comic) => comic.Author },
             { "category", (comic) => comic.Category },
             { "tags", (comic) => string.Join("|", comic.Tags) } // We should just return a list, but we'll assume no one will actually use "|" for now...
         };
 
-        static string DefaultSearchField(Comic comic) {
+        private static string DefaultSearchField(Comic comic) {
             return comic.UniqueIdentifier;
         }
 
         /// <summary>
         /// Returns null when compilation failed
         /// </summary>
-        static internal Func<Comic, bool>? Compile(string searchTerm) {
+        public static Func<Comic, bool>? Compile(string searchTerm) {
             var requiredSearches = new List<Func<Comic, bool>>();
 
             List<Tuple<string, string>> tokens;
@@ -56,12 +56,12 @@ namespace ComicsViewer {
             return comic => requiredSearches.All(search => search(comic));
         }
 
-        static internal List<string> GetSearchSuggestions(string incompleteSearchTerm) {
+        public static List<string> GetSearchSuggestions(string incompleteSearchTerm) {
             // TODO
             return new List<string>();
         }
 
-        static List<Tuple<string, string>> SplitTokens(string searchTerm) {
+        private static List<Tuple<string, string>> SplitTokens(string searchTerm) {
             var result = new List<Tuple<string, string>>();
 
             /* Very primitive parser for a very simple task */

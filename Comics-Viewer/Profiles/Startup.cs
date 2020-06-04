@@ -16,8 +16,8 @@ namespace ComicsViewer.Profiles {
         OpenFirstFile
     }
 
-    static class Startup {
-        internal static async Task OpenComic(Comic comic, UserProfile profile) {
+    public static class Startup {
+        public static async Task OpenComic(Comic comic, UserProfile profile) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
@@ -27,8 +27,8 @@ namespace ComicsViewer.Profiles {
                     }
 
                     break;
+                // TODO More cases
             }
-            // TODO placeholder
         } 
     }
 }
