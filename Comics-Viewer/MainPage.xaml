@@ -9,35 +9,61 @@
     mc:Ignorable="d"
     RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <muxc:NavigationView x:Name="NavigationView"
-                         PaneDisplayMode="Top"
-                         IsSettingsVisible="False"
-                         Loaded="NavigationView_Loaded"
-                         ItemInvoked="NavigationView_ItemInvoked"
-                         BackRequested="NavigationView_BackRequested">
-        <muxc:NavigationView.MenuItems>
-            <!-- ProfileNavigationViewItem's Content is a placeholder -->
-            <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />
-            <muxc:NavigationViewItem Tag="categories" Content="Categories" />
-            <muxc:NavigationViewItem Tag="authors" Content="Authors" />
-            <muxc:NavigationViewItem Tag="tags" Content="Tags" />
-        </muxc:NavigationView.MenuItems>
+    <Page.Resources>
+        <AcrylicBrush x:Key="NavigationViewTopPaneBackground" 
+                      BackgroundSource="HostBackdrop" 
+                      TintColor="{ThemeResource SystemChromeLowColor}"
+                      TintOpacity="0.8"
+                      FallbackColor="{ThemeResource SystemChromeLowColor}" />
+    </Page.Resources>
 
-        <muxc:NavigationView.AutoSuggestBox>
-            <AutoSuggestBox 
-                x:Name="SearchBox"
-                QueryIcon="Find"
-                MinWidth="200"
-                PlaceholderText="Search Comics"
-                TextChanged="AutoSuggestBox_TextChanged"
-                QuerySubmitted="AutoSuggestBox_QuerySubmitted"
-                SuggestionChosen="AutoSuggestBox_SuggestionChosen"
-                CornerRadius="0"
-                BorderThickness="0"
-                />
-        </muxc:NavigationView.AutoSuggestBox>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
 
-        <Frame x:Name="ContentFrame" 
+        <Grid x:Name="AppTitleBar" Background="{ThemeResource NavigationViewTopPaneBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftPaddingColumn" Width="0"/>
+                <ColumnDefinition />
+                <ColumnDefinition x:Name="RightPaddingColumn" Width="0"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" 
+                       Text="Comics"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Margin="12 8 0 8"/>
+        </Grid>
+
+        <muxc:NavigationView x:Name="NavigationView"
+                             Grid.Row="1"
+                             IsSettingsVisible="False"
+                             PaneDisplayMode="Top"
+                             IsBackButtonVisible="Collapsed"
+                             Loaded="NavigationView_Loaded"
+                             ItemInvoked="NavigationView_ItemInvoked">
+            <muxc:NavigationView.MenuItems>
+                <!-- ProfileNavigationViewItem's Content is a placeholder -->
+                <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />
+                <muxc:NavigationViewItem Tag="categories" Content="Categories" />
+                <muxc:NavigationViewItem Tag="authors" Content="Authors" />
+                <muxc:NavigationViewItem Tag="tags" Content="Tags" />
+            </muxc:NavigationView.MenuItems>
+
+            <muxc:NavigationView.AutoSuggestBox>
+                <AutoSuggestBox x:Name="SearchBox"
+                                QueryIcon="Find"
+                                MinWidth="200"
+                                PlaceholderText="Search Comics"
+                                TextChanged="AutoSuggestBox_TextChanged"
+                                QuerySubmitted="AutoSuggestBox_QuerySubmitted"
+                                SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                                CornerRadius="0"
+                                BorderThickness="0"/>
+            </muxc:NavigationView.AutoSuggestBox>
+
+            <Frame x:Name="ContentFrame" 
                NavigationFailed="ContentFrame_NavigationFailed" />
-    </muxc:NavigationView>
+        </muxc:NavigationView>
+    </Grid>
 </Page>

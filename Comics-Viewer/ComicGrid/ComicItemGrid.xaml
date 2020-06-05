@@ -86,15 +86,15 @@
                 </ComboBox.Style>
             </ComboBox>
         </StackPanel>
-
-            <GridView x:Name="VisibleComicsGrid" 
-                      Grid.Row="1"
-                      SelectionMode="Extended"
-                      ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
-                      SizeChanged="VisibleComicsGrid_SizeChanged"
-                      DoubleTapped="VisibleComicsGrid_DoubleTapped"
-                      ItemTemplate="{StaticResource ComicItemTemplate}"
-                      ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
-                      ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}" />
+        
+        <GridView x:Name="VisibleComicsGrid" 
+                  Grid.Row="1"
+                  SelectionMode="Extended"
+                  ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
+                  SizeChanged="VisibleComicsGrid_SizeChanged"
+                  DoubleTapped="VisibleComicsGrid_DoubleTapped"
+                  ItemTemplate="{StaticResource ComicItemTemplate}"
+                  ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
+                  ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}" />
     </Grid>
 </Page>

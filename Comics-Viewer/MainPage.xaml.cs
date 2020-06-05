@@ -21,6 +21,9 @@ using System.Threading.Tasks;
 using ComicsLibrary;
 using ComicsViewer.ComicGrid;
 using MUXC = Microsoft.UI.Xaml.Controls;
+using Windows.UI.ViewManagement;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
 
 #nullable enable
 
@@ -29,8 +32,26 @@ namespace ComicsViewer {
         private ComicStore comicStore = ComicStore.EmptyComicStore;
         private ComicItemGrid? activeContent;
 
+        // stored to update BackButtonVisibility
+        private readonly SystemNavigationManager currentView = SystemNavigationManager.GetForCurrentView();
+
         public MainPage() {
             this.InitializeComponent();
+
+            // Custom title bar
+            var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
+            coreTitleBar.ExtendViewIntoTitleBar = true;
+            coreTitleBar.LayoutMetricsChanged += this.CoreTitleBar_LayoutMetricsChanged;
+
+            // Transparent upper-right-area buttons
+            var titleBar = ApplicationView.GetForCurrentView().TitleBar;
+            titleBar.ButtonBackgroundColor = Windows.UI.Colors.Transparent;
+            titleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
+            titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 255, 255, 255);
+            titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(51, 255, 255, 255);
+
+            // Enable back button on title bar
+            this.currentView.BackRequested += this.CurrentView_BackRequested;
         }
 
         private string DefaultNavigationTag => this.ProfileNavigationViewItem.Tag.ToString();
@@ -180,7 +201,7 @@ namespace ComicsViewer {
             this.ContentFrame.GoBack();
         }
 
-        private void NavigationView_BackRequested(MUXC.NavigationView sender, MUXC.NavigationViewBackRequestedEventArgs args) {
+        private void CurrentView_BackRequested(object sender, BackRequestedEventArgs e) {
             this.NavigateOut();
         }
 
@@ -204,7 +225,8 @@ namespace ComicsViewer {
             }
 
             this.activeContent = grid;
-            this.NavigationView.IsBackEnabled = this.navigationDepth > 0;
+            this.currentView.AppViewBackButtonVisibility = 
+                this.navigationDepth > 0 ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
         }
 
         private void ContentFrame_NavigationFailed(object _, NavigationFailedEventArgs e) {
@@ -276,5 +298,13 @@ namespace ComicsViewer {
         }
 
         #endregion
+
+        /* reference: https://docs.microsoft.com/en-us/windows/uwp/design/shell/title-bar#full-customization-example */
+        private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args) {
+            this.LeftPaddingColumn.Width = new GridLength(sender.SystemOverlayLeftInset);
+            this.RightPaddingColumn.Width = new GridLength(sender.SystemOverlayRightInset);
+
+            this.AppTitleBar.Height = sender.Height;
+        }
     }
 }
