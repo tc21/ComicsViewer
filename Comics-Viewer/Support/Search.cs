@@ -15,14 +15,14 @@ namespace ComicsViewer {
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
         private static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
-            { "title", (comic) => comic.Title },
-            { "author", (comic) => comic.Author },
-            { "category", (comic) => comic.Category },
+            { "title", (comic) => comic.DisplayTitle },
+            { "author", (comic) => comic.DisplayAuthor },
+            { "category", (comic) => comic.DisplayCategory },
             { "tags", (comic) => string.Join("|", comic.Tags) } // We should just return a list, but we'll assume no one will actually use "|" for now...
         };
 
         private static string DefaultSearchField(Comic comic) {
-            return comic.UniqueIdentifier;
+            return $"{comic.DisplayAuthor}|{comic.DisplayTitle}";
         }
 
         /// <summary>

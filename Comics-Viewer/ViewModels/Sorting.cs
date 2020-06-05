@@ -42,7 +42,7 @@ namespace ComicsViewer.ViewModels {
         }
 
         private static int CompareAuthor(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.Author, CompareTitle);
+            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.DisplayAuthor, CompareTitle);
         }
 
         private static int CompareItemCount(ComicItem a, ComicItem b) {
