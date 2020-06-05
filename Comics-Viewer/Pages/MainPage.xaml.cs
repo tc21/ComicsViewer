@@ -187,6 +187,12 @@ namespace ComicsViewer {
                     var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForComics(args.NavigationItem!.Comics));
                     this.ContentFrame.Navigate(typeof(ComicItemGridSecondLevelContainer), navigationArguments);
                     return;
+                case RequestingNavigationType.Search:
+                    var predeterminedSearchResult = args.NavigationItem!.Comics.ToHashSet();
+                    this.SearchBox.Text = "<automatically generated>";
+                    this.activeSearch = comic => predeterminedSearchResult.Contains(comic);
+                    this.ReloadCurrentTab();
+                    return;
             }
 
             throw new ApplicationLogicException("Unhandled RequestingNavigationType");

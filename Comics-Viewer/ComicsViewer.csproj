@@ -121,20 +121,21 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ComicGrid\IComicItemGridContainer.cs" />
-    <Compile Include="ComicGrid\ComicItemGridSecondLevelContainer.xaml.cs">
+    <Compile Include="Pages\ComicGrid\IComicItemGridContainer.cs" />
+    <Compile Include="Pages\ComicGrid\ComicItemGridSecondLevelContainer.xaml.cs">
       <DependentUpon>ComicItemGridSecondLevelContainer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ComicGrid\ComicItemGridTopLevelContainer.xaml.cs">
+    <Compile Include="Pages\ComicGrid\ComicItemGridTopLevelContainer.xaml.cs">
       <DependentUpon>ComicItemGridTopLevelContainer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Helpers\Bindings.cs" />
     <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
-    <Compile Include="ComicGrid\ComicItemGrid.xaml.cs">
+    <Compile Include="Pages\ComicGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ComicGrid\ComicItemGridNavigationArguments.cs" />
+    <Compile Include="Pages\ComicGrid\ComicItemGridNavigationArguments.cs" />
     <Compile Include="Defaults.cs" />
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Profiles\ProfileManager.cs" />
@@ -217,19 +218,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="ComicGrid\ComicItemGrid.xaml">
+    <Page Include="Pages\ComicGrid\ComicItemGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ComicGrid\ComicItemGridSecondLevelContainer.xaml">
+    <Page Include="Pages\ComicGrid\ComicItemGridSecondLevelContainer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ComicGrid\ComicItemGridTopLevelContainer.xaml">
+    <Page Include="Pages\ComicGrid\ComicItemGridTopLevelContainer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPage.xaml">
+    <Page Include="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

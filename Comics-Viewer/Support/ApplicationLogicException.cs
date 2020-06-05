@@ -13,5 +13,6 @@ namespace ComicsViewer {
     /// </summary>
     internal class ApplicationLogicException : Exception {
         public ApplicationLogicException(string message) : base(message) { }
+        public ApplicationLogicException() : base() { }
     }
 }

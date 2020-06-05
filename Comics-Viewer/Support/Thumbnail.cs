@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.Thumbnails {
     public static class Thumbnail {
+        // TODO this class in unused
         public static string ThumbnailPath(Comic comic) {
             return Path.Combine(Defaults.ThumbnailFolderPath, comic.UniqueIdentifier + ".thumbnail.jpg");
         }
