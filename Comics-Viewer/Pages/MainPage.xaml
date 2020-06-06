@@ -60,7 +60,7 @@
                              Grid.Row="1"
                              IsBackButtonVisible="Collapsed"
                              Loaded="NavigationView_Loaded"
-                             ItemInvoked="NavigationView_ItemInvoked" HorizontalAlignment="Stretch">
+                             ItemInvoked="NavigationView_ItemInvoked">
             <muxc:NavigationView.MenuItems>
                 <!-- ProfileNavigationViewItem's Content is a placeholder -->
                 <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />

@@ -28,6 +28,7 @@ namespace ComicsViewer {
             this.ContextMenuCommands = new ComicItemGridCommands(this);
         }
 
+        // We may want to ask for user permission instead of crashing and expecting the user to turn on broadFileSystemAccess
         private Task OpenItem(ComicItem item) {
             if (item is ComicWorkItem workItem) {
                 return Startup.OpenComic(workItem.Comic, this.ViewModel!.Profile);

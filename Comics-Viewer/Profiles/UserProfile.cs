@@ -24,12 +24,12 @@ namespace ComicsViewer.Profiles {
         // static values and methods
         public static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
 
-        public static async Task<UserProfile> Deserialize(Stream input) {
-            return await JsonSerializer.DeserializeAsync<UserProfile>(input);
+        public static ValueTask<UserProfile> Deserialize(Stream input) {
+            return JsonSerializer.DeserializeAsync<UserProfile>(input);
         }
 
-        public static async Task Serialize(UserProfile profile, Stream output) {
-            await JsonSerializer.SerializeAsync(output, profile);
+        public static Task Serialize(UserProfile profile, Stream output) {
+            return JsonSerializer.SerializeAsync(output, profile);
         }
 
         // Profile helper methods
