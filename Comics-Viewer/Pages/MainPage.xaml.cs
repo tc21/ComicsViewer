@@ -20,12 +20,13 @@ using Windows.UI.Xaml.Media.Animation;
 using System.Threading.Tasks;
 using ComicsLibrary;
 using ComicsViewer.ComicGrid;
-using MUXC = Microsoft.UI.Xaml.Controls;
 using Windows.UI.ViewManagement;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using ComicsViewer.Pages;
 using ComicsViewer.Filters;
+using MUXC = Microsoft.UI.Xaml.Controls;
+using MUXM = Microsoft.UI.Xaml.Media;
 
 #nullable enable
 
@@ -252,6 +253,13 @@ namespace ComicsViewer {
 
         private void ComicFilter_FilterChanged(Filter filter) {
             this.ReloadCurrentTab();
+
+            if (this.comicFilter?.GeneratedFilter == null) {
+                this.FilterButton.Background = null;
+            } else {
+                this.FilterButton.Background = this.Resources["SystemControlAccentAcrylicElementAccentMediumHighBrush"] as Brush;
+            }
+            
         }
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
