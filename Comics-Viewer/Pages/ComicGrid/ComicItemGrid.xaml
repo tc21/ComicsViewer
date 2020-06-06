@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"    
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    RequestedTheme="Dark"
+    Background="Transparent">
 
     <Page.Resources>
         <ResourceDictionary>
@@ -57,11 +58,6 @@
                     <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style.Setters>
             </Style>
-            <Style TargetType="MenuFlyout">
-                <Style.Setters>
-                    <Setter Property="helpers:Bindings.VisibilityToEnabled" Value="True" />
-                </Style.Setters>
-            </Style>
             <MenuFlyout x:Name="ComicItemGridContextFlyout" x:Key="ComicItemGridContextFlyout" Opening="ComicItemGridContextFlyout_Opening">
                 <!-- Can we figure out why applying helpers:Bindings don't work when used in a style? -->
                 <!-- Design note: we use the tag to dynamically generate text. To opt out, don't include a tag. 
@@ -84,7 +80,12 @@
                 <ComboBox.Resources>
                     <ResourceDictionary>
                         <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
+                        <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
                         <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
                     </ResourceDictionary>
                 </ComboBox.Resources>
                 <ComboBox.Style>

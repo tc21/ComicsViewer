@@ -24,6 +24,8 @@ using MUXC = Microsoft.UI.Xaml.Controls;
 using Windows.UI.ViewManagement;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
+using ComicsViewer.Pages;
+using ComicsViewer.Filters;
 
 #nullable enable
 
@@ -66,7 +68,8 @@ namespace ComicsViewer {
 
             var profile = await ProfileManager.LoadProfile(profileName);
             this.comicStore = await ComicStore.CreateComicsStore(profile);
-            this.activeSearch = null;
+            this.comicFilter = new Filter();
+            this.comicFilter.FilterChanged += this.ComicFilter_FilterChanged;
 
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
@@ -162,7 +165,7 @@ namespace ComicsViewer {
         private void NavigateToTab(string tag, NavigationTransitionInfo transitionInfo) {
             this.navigationDepth = 0;
 
-            var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForPage(this.activeSearch, tag));
+            var navigationArguments = this.GetNavigationArguments(this.comicStore.CreateViewModelForPage(this.comicFilter, tag));
             this.ContentFrame.Navigate(typeof(ComicItemGridTopLevelContainer), navigationArguments, transitionInfo);
         }
 
@@ -174,8 +177,10 @@ namespace ComicsViewer {
         /// Called when a search is updated. Refreshes the current top-level tab to apply the search by re-navigating to it.
         /// </summary>
         /// <param name="search">Filter function representing the search.</param>
-        private void ReloadCurrentTab()
-             => this.NavigateToTab(this.activeContent?.ViewModel!.PageType ?? this.DefaultNavigationTag);
+        private void ReloadCurrentTab() {
+            var item = this.NavigationView.SelectedItem as MUXC.NavigationViewItem;
+            this.NavigateToTab(item?.Tag?.ToString() ?? this.DefaultNavigationTag);
+        }
 
         /// <summary>
         /// Called when the user clicks a ComicNavigationItem
@@ -189,8 +194,8 @@ namespace ComicsViewer {
                     return;
                 case RequestingNavigationType.Search:
                     var predeterminedSearchResult = args.NavigationItem!.Comics.ToHashSet();
-                    this.SearchBox.Text = "<automatically generated>";
-                    this.activeSearch = comic => predeterminedSearchResult.Contains(comic);
+                    this.comicFilter!.Metadata.GeneratedFilterItemCount = predeterminedSearchResult.Count;
+                    this.comicFilter!.GeneratedFilter = comic => predeterminedSearchResult.Contains(comic);
                     this.ReloadCurrentTab();
                     return;
             }
@@ -243,6 +248,12 @@ namespace ComicsViewer {
 
         #region Search
 
+        private Filter? comicFilter;
+
+        private void ComicFilter_FilterChanged(Filter filter) {
+            this.ReloadCurrentTab();
+        }
+
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (sender.Text.Trim() == "") {
                 sender.ItemsSource = Defaults.SettingsAccessor.SavedSearches;
@@ -258,8 +269,6 @@ namespace ComicsViewer {
         private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args) {
             sender.Text = (string)args.SelectedItem;
         }
-
-        private Func<Comic, bool>? activeSearch = null;
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
             var search = Search.Compile(sender.Text);
@@ -285,9 +294,10 @@ namespace ComicsViewer {
             this.activeContent?.Focus(FocusState.Pointer);
 
             // execute the search
-            this.activeSearch = search;
-            this.ReloadCurrentTab();
+            this.comicFilter!.Metadata.SearchPhrase = sender.Text;
+            this.comicFilter!.Search = search;
 
+            // Helper functions
             static void RemoveIgnoreCase(ref IList<string> list, string text) {
                 var removes = new List<int>();
 
@@ -311,6 +321,12 @@ namespace ComicsViewer {
             this.RightPaddingColumn.Width = new GridLength(sender.SystemOverlayRightInset);
 
             this.AppTitleBar.Height = sender.Height;
+        }
+
+        private void FilterNavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e) {
+            var flyout = (this.Resources["FilterFlyout"] as Flyout)!;
+            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.comicFilter);
+            flyout.ShowAt(sender as FrameworkElement);
         }
     }
 }

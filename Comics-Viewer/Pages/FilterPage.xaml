@@ -1,0 +1,41 @@
+﻿<Page
+    x:Class="ComicsViewer.Pages.FilterPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:filters="using:ComicsViewer.Filters"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    RequestedTheme="Dark">
+    <StackPanel MinWidth="200">
+        <Grid Margin="12 4 12 12" Visibility="{x:Bind ViewModel.GeneratedFilterEnabled, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="{x:Bind ViewModel.GeneratedFilterDescription}"
+                       Margin="0 0 12 0"
+                       VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1" Width="16" Height="16" CornerRadius="8" Margin="4" Padding="0"
+                        Click="ClearCustomFilterButton_Click">
+                <Viewbox MaxHeight="7">
+                    <SymbolIcon Symbol="Clear" />
+                </Viewbox>
+            </Button>
+        </Grid>
+        <controls:Expander Header="Categories (placeholder)" 
+                           IsExpanded="True" 
+                           Background="Transparent"
+                           HorizontalContentAlignment="Stretch">
+            <ItemsControl Margin="12 4">
+                <CheckBox Content="Classical (placeholder)" />
+                <CheckBox Content="Pop (placeholder)" CornerRadius="0" />
+                <CheckBox Content="Rock (placeholder)" CornerRadius="10" />
+                <ToggleSwitch OnContent="Metal (placeholder - on)" OffContent="Metal (placeholder - off)" />
+            </ItemsControl>
+        </controls:Expander>
+    </StackPanel>
+</Page>

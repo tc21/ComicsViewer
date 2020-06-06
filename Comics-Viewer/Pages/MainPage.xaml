@@ -15,9 +15,30 @@
                       TintColor="{ThemeResource SystemChromeLowColor}"
                       TintOpacity="0.8"
                       FallbackColor="{ThemeResource SystemChromeLowColor}" />
+
+        <Flyout x:Key="FilterFlyout">
+            <Frame x:Name="FilterFlyoutFrame" />
+        </Flyout>
     </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640" />
+                    </VisualState.StateTriggers>
+                    
+                    <VisualState.Setters>
+                        <Setter Target="FilterButton.HorizontalAlignment" Value="Right"/>
+                        <Setter Target="FilterButton.VerticalAlignment" Value="Stretch"/>
+                        <Setter Target="NavigationView.PaneDisplayMode" Value="Top"/>
+                        <Setter Target="ContentFrame.Margin" Value="0"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition />
@@ -37,11 +58,9 @@
 
         <muxc:NavigationView x:Name="NavigationView"
                              Grid.Row="1"
-                             IsSettingsVisible="False"
-                             PaneDisplayMode="Top"
                              IsBackButtonVisible="Collapsed"
                              Loaded="NavigationView_Loaded"
-                             ItemInvoked="NavigationView_ItemInvoked">
+                             ItemInvoked="NavigationView_ItemInvoked" HorizontalAlignment="Stretch">
             <muxc:NavigationView.MenuItems>
                 <!-- ProfileNavigationViewItem's Content is a placeholder -->
                 <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />
@@ -54,7 +73,7 @@
                 <AutoSuggestBox x:Name="SearchBox"
                                 QueryIcon="Find"
                                 MinWidth="200"
-                                PlaceholderText="Search Comics"
+                                PlaceholderText="Search items"
                                 TextChanged="AutoSuggestBox_TextChanged"
                                 QuerySubmitted="AutoSuggestBox_QuerySubmitted"
                                 SuggestionChosen="AutoSuggestBox_SuggestionChosen"
@@ -62,8 +81,18 @@
                                 BorderThickness="0"/>
             </muxc:NavigationView.AutoSuggestBox>
 
+            <muxc:NavigationView.PaneCustomContent>
+                <muxc:NavigationViewItem x:Name="FilterButton" 
+                                         Icon="Filter"
+                                         Content="Filters"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Bottom" 
+                                         Tapped="FilterNavigationViewItem_Tapped"/>
+            </muxc:NavigationView.PaneCustomContent>
+
             <Frame x:Name="ContentFrame" 
-               NavigationFailed="ContentFrame_NavigationFailed" />
+                   Margin="0 40 0 0"
+                   NavigationFailed="ContentFrame_NavigationFailed" />
         </muxc:NavigationView>
     </Grid>
 </Page>

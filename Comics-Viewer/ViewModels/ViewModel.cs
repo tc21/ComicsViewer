@@ -14,7 +14,7 @@ namespace ComicsViewer.ViewModels {
     /// The view model from which every view model inherits. Because every Page needs its own viewmodel, 
     /// all containing the same application state, we do that in this class, and make every view model inherit from this.
     /// </summary>
-    public class ViewModel : INotifyPropertyChanged {
+    public class ViewModel : ViewModelBase {
         /* static properties */
         public string[] SortSelectors => Sorting.SortSelectorNames;
         public int ImageHeight => this.Profile.ImageHeight;
@@ -26,14 +26,12 @@ namespace ComicsViewer.ViewModels {
         public ViewModel(UserProfile profile) {
             this.Profile = profile;
         }
+    }
 
-        #region INotifyPropertyChanged Implementation
-
+    public class ViewModelBase : INotifyPropertyChanged {
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
         public void OnPropertyChanged([CallerMemberName] string propertyName = "") {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        #endregion
     }
 }

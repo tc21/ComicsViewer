@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.SQL;
+using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
 using Microsoft.Data.Sqlite;
 using System;
@@ -37,10 +38,10 @@ namespace ComicsViewer.ViewModels {
             return new ComicStore(profile, comics);
         }
 
-        private ComicViewModel CreateViewModel(Func<Comic, bool>? search, Func<Comic, IEnumerable<string>>? groupBy, string pageType) {
+        private ComicViewModel CreateViewModel(Filter? filter, Func<Comic, IEnumerable<string>>? groupBy, string pageType) {
             IEnumerable<Comic> comics = this.comics;
-            if (search != null) {
-                comics = comics.Where(search);
+            if (filter != null) {
+                comics = comics.Where(filter.ShouldBeVisible);
             }
 
             var comicItems = new List<ComicItem>();
@@ -52,12 +53,12 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        public ComicViewModel CreateViewModelForPage(Func<Comic, bool>? search, string pageType = "comics") {
+        public ComicViewModel CreateViewModelForPage(Filter? filter, string pageType = "comics") {
             return pageType switch {
-                "comics" => this.CreateViewModel(search, null, pageType),
-                "authors" => this.CreateViewModel(search, comic => new[] { comic.DisplayAuthor }, pageType),
-                "categories" => this.CreateViewModel(search, comic => new[] { comic.DisplayCategory }, pageType),
-                "tags" => this.CreateViewModel(search, comic => comic.Tags, pageType),
+                "comics" => this.CreateViewModel(filter, null, pageType),
+                "authors" => this.CreateViewModel(filter, comic => new[] { comic.DisplayAuthor }, pageType),
+                "categories" => this.CreateViewModel(filter, comic => new[] { comic.DisplayCategory }, pageType),
+                "tags" => this.CreateViewModel(filter, comic => comic.Tags, pageType),
                 _ => throw new ApplicationLogicException($"Invalid page type '{pageType}' when creating comic store."),
             };
         }
