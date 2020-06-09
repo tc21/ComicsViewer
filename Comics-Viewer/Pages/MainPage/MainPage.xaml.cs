@@ -183,38 +183,10 @@ namespace ComicsViewer {
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
             if (Search.Compile(sender.Text) is Func<Comic, bool> search) {
-                this.ViewModel.SubmitSearch(search);
+                this.ViewModel.SubmitSearch(search, sender.Text);
 
                 // remove focus from the search box (partially to indicate that the search succeeded)
                 this.activeContent?.Focus(FocusState.Pointer);
-
-                // Add this search to the recents list
-                if (sender.Text.Trim() != "") {
-                    var savedSearches = Defaults.SettingsAccessor.SavedSearches;
-                    RemoveIgnoreCase(ref savedSearches, sender.Text);
-                    savedSearches.Insert(0, sender.Text);
-
-                    while (savedSearches.Count > 4) {
-                        savedSearches.RemoveAt(4);
-                    }
-
-                    Defaults.SettingsAccessor.SavedSearches = savedSearches;
-                }
-            }
-
-            // Helper functions
-            static void RemoveIgnoreCase(ref IList<string> list, string text) {
-                var removes = new List<int>();
-
-                for (var i = 0; i < list.Count; i++) {
-                    if (list[i].Equals(text, StringComparison.OrdinalIgnoreCase)) {
-                        removes.Insert(0, i);
-                    }
-                }
-
-                foreach (var i in removes) {
-                    list.RemoveAt(i);
-                }
             }
         }
 

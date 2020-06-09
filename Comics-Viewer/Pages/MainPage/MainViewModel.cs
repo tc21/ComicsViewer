@@ -101,6 +101,7 @@ namespace ComicsViewer {
         public void NavigateIntoSelected(IEnumerable<ComicItem> items) {
             var comics = items.SelectMany(item => item.Comics).Select(item => item.UniqueIdentifier).ToHashSet();
             this.Filter.GeneratedFilter = comic => comics.Contains(comic.UniqueIdentifier);
+            this.Filter.Metadata.GeneratedFilterItemCount = comics.Count;
         }
 
         public void RefreshPage() {
@@ -131,8 +132,40 @@ namespace ComicsViewer {
         }
         // Called when a search is successfully compiled and submitted
         // Note: this happens at AppViewModel because filters are per-app
-        public void SubmitSearch(Func<Comic, bool> search) {
-            Filter.Search = search;
+        public void SubmitSearch(Func<Comic, bool> search, string? searchText = null) {
+            this.Filter.Search = search;
+
+            if (searchText != null) {
+                this.Filter.Metadata.SearchPhrase = searchText;
+
+                // Add this search to the recents list
+                if (searchText.Trim() != "") {
+                    var savedSearches = Defaults.SettingsAccessor.SavedSearches;
+                    RemoveIgnoreCase(ref savedSearches, searchText);
+                    savedSearches.Insert(0, searchText);
+
+                    while (savedSearches.Count > 4) {
+                        savedSearches.RemoveAt(4);
+                    }
+
+                    Defaults.SettingsAccessor.SavedSearches = savedSearches;
+                }
+            }
+
+            // Helper function
+            static void RemoveIgnoreCase(ref IList<string> list, string text) {
+                var removes = new List<int>();
+
+                for (var i = 0; i < list.Count; i++) {
+                    if (list[i].Equals(text, StringComparison.OrdinalIgnoreCase)) {
+                        removes.Insert(0, i);
+                    }
+                }
+
+                foreach (var i in removes) {
+                    list.RemoveAt(i);
+                }
+            }
         }
 
         public FilterPageNavigationArguments GetFilterPageNavigationArguments() {
