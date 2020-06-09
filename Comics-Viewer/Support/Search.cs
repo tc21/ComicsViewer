@@ -15,10 +15,12 @@ namespace ComicsViewer {
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
         private static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
-            { "title", (comic) => comic.DisplayTitle },
-            { "author", (comic) => comic.DisplayAuthor },
-            { "category", (comic) => comic.DisplayCategory },
-            { "tags", (comic) => string.Join("|", comic.Tags) } // We should just return a list, but we'll assume no one will actually use "|" for now...
+            { "title", comic => comic.DisplayTitle },
+            { "author", comic => comic.DisplayAuthor },
+            { "category", comic => comic.DisplayCategory },
+            { "tags", comic => string.Join("|", comic.Tags) }, // We should just return a list, but we'll assume no one will actually use "|" for now...
+            { "loved", comic => comic.Loved.ToString() },
+            { "disliked", comic => comic.Disliked.ToString() },
         };
 
         private static string DefaultSearchField(Comic comic) {
@@ -95,18 +97,18 @@ namespace ComicsViewer {
                          orderby key
                          select Decompile(Replacing(tokens, token, (key, token.value)))).ToList();
 
-                    //var tns = tagNameSuggestions.ToList();
                     var index = tokens.IndexOf(token);
                     
                     if (index > 0) {
                         var (key, value) = tokens[index - 1];
                         tokens[index - 1] = (key, $"{value} {token.value}");
                         tokens.RemoveAt(index);
-                        tagNameSuggestions.Insert(0, Decompile(tokens));
                     } else if (tokens.Count > (index + 1) && tokens[index + 1].key == "") {
                         tokens[index] = (token.key, $"{token.value} {tokens[index + 1].value}");
                         tokens.RemoveAt(index + 1);
                     }
+
+                    tagNameSuggestions.Insert(0, Decompile(tokens));
 
                     return tagNameSuggestions;
                 }

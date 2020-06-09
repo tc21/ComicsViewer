@@ -173,7 +173,12 @@ namespace ComicsViewer {
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                sender.ItemsSource = Search.GetSearchSuggestions(sender.Text).ToList();
+                var suggestions = Search.GetSearchSuggestions(sender.Text).ToList();
+                while (suggestions.Count > 4) {
+                    suggestions.RemoveAt(4);
+                }
+
+                sender.ItemsSource = suggestions;
             }
         }
 

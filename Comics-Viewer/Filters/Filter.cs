@@ -17,7 +17,7 @@ namespace ComicsViewer.Filters {
         private Func<Comic, bool>? search;
 
         public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
-            || this.selectedTags.Count != 0 || this.generatedFilter != null || this.search != null;
+            || this.selectedTags.Count != 0 || this.generatedFilter != null;
 
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
