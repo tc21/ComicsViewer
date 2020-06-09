@@ -39,11 +39,53 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException("args.Filter cannot be null");
             }
 
-            this.ViewModel = new FilterViewModel(args.Filter!, args.VisibleCategories!);
+            this.ViewModel = new FilterViewModel(args.Filter!, args.VisibleCategories, args.VisibleAuthors, args.VisibleTags);
         }
 
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {
             this.ViewModel!.GeneratedFilter = null;
+        }
+
+        private void ListView_CategorySelectionChanged(object sender, SelectionChangedEventArgs e) {
+            var filter = this.ViewModel!.Filter;
+
+            using (filter.DeferNotifications()) {
+                foreach (var item in e.AddedItems) {
+                    filter.AddCategory(item.ToString());
+                }
+
+                foreach (var item in e.RemovedItems) {
+                    filter.RemoveCategory(item.ToString());
+                }
+            }
+        }
+
+        private void ListView_AuthorSelectionChanged(object sender, SelectionChangedEventArgs e) {
+            var filter = this.ViewModel!.Filter;
+
+            using (filter.DeferNotifications()) {
+                foreach (var item in e.AddedItems) {
+                    filter.AddAuthor(item.ToString());
+                }
+
+                foreach (var item in e.RemovedItems) {
+                    filter.RemoveAuthor(item.ToString());
+                }
+            }
+        }
+
+        private void ListView_TagSelectionChanged(object sender, SelectionChangedEventArgs e) {
+            var filter = this.ViewModel!.Filter;
+
+            using (filter.DeferNotifications()) {
+                foreach (var item in e.AddedItems) {
+                    filter.AddTag(item.ToString());
+                }
+
+                foreach (var item in e.RemovedItems) {
+                    filter.RemoveTag(item.ToString());
+                }
+            }
         }
     }
 }

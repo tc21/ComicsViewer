@@ -22,16 +22,14 @@
 
                     <Border Grid.Row="0">
                         <Image x:Name="ComicItemThumbnail"
-                           Source="{x:Bind ThumbnailPath}" />
+                               Source="{x:Bind ThumbnailPath}" />
                     </Border>
-                    <TextBlock 
-                    Grid.Row="1" 
-                    Text="{x:Bind Title}" 
-                    Style="{StaticResource ItemTitleStyle}"/>
-                    <TextBlock 
-                    Grid.Row="2" 
-                    Text="{x:Bind Subtitle}"
-                    Style="{StaticResource ItemSubtitleStyle}"/>
+                    <TextBlock Grid.Row="1" 
+                               Text="{x:Bind Title}" 
+                               Style="{StaticResource ItemTitleStyle}"/>
+                    <TextBlock Grid.Row="2" 
+                               Text="{x:Bind Subtitle}"
+                               Style="{StaticResource ItemSubtitleStyle}"/>
                 </Grid>
             </DataTemplate>
             <ItemsPanelTemplate x:Key="HorizontalItemsWrapGridTemplate">
@@ -76,7 +74,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
             <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
             <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
-                      SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}" RequestedTheme="Default">
+                      SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}">
                 <ComboBox.Resources>
                     <ResourceDictionary>
                         <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>

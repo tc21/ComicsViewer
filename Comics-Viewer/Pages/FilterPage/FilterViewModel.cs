@@ -25,29 +25,33 @@ namespace ComicsViewer.Filters {
         public bool GeneratedFilterEnabled => this.Filter.GeneratedFilter != null;
         public string GeneratedFilterDescription => $"Automatically generated filter ({this.Filter.Metadata.GeneratedFilterItemCount} items)";
 
+        public List<string> Categories { get; }
+        public List<string> Authors { get; }
+        public List<string> Tags { get; }
 
-        public List<CheckBoxItem> Categories { get; } = new List<CheckBoxItem>();
-
-        private Filter Filter { get; }
-
-        public FilterViewModel(Filter filter, IEnumerable<string> categories) {
-            this.Filter = filter;
-
-            foreach (var category in categories) {
-                var item = new CheckBoxItem(category, this.Filter.ContainsCategory(category));
-                item.PropertyChanged += this.Item_PropertyChanged;
-                this.Categories.Add(item);
+        public bool OnlyShowLovedChecked {
+            get => this.Filter.OnlyShowLoved;
+            set {
+                this.Filter.OnlyShowLoved = value;
+                this.OnPropertyChanged();
+            }
+        }
+        public bool ShowDislikedChecked {
+            get => this.Filter.ShowDisliked;
+            set {
+                this.Filter.ShowDisliked = value;
+                this.OnPropertyChanged();
             }
         }
 
-        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e) {
-            // We cheat a little since the only changable property right now is IsChecked
-            var item = (CheckBoxItem)sender;
-            if (item.IsChecked) {
-                this.Filter.AddCategory(item.Name);
-            } else {
-                this.Filter.RemoveCategory(item.Name);
-            }
+        internal Filter Filter { get; }
+
+        public FilterViewModel(Filter filter, IEnumerable<string>? categories, IEnumerable<string>? authors, IEnumerable<string>? tags) {
+            this.Filter = filter;
+
+            this.Categories = categories.OrderBy(x => x).ToList();
+            this.Authors = authors.OrderBy(x => x).ToList();
+            this.Tags = tags.OrderBy(x => x).ToList();
         }
     }
 }

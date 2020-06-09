@@ -4,12 +4,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:support="using:ComicsViewer.Support.Controls"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     RequestedTheme="Dark">
-    <StackPanel MinWidth="200">
-        <Grid Margin="12 4 12 12" Visibility="{x:Bind ViewModel.GeneratedFilterEnabled, Mode=OneWay}">
+    <Page.Resources>
+        <DataTemplate x:Key="FilterItemListTemplate" x:DataType="support:CheckBoxItem">
+            <CheckBox Content="{x:Bind Name}" IsChecked="{x:Bind IsChecked, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+        </DataTemplate>
+    </Page.Resources>
+    
+    <Grid MinWidth="320" MaxHeight="600">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="12 4 12 12" Visibility="{x:Bind ViewModel.GeneratedFilterEnabled, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto"/>
@@ -26,17 +41,32 @@
                 </Viewbox>
             </Button>
         </Grid>
-        <controls:Expander Header="Categories" 
-                           IsExpanded="True" 
-                           Background="Transparent"
-                           HorizontalContentAlignment="Stretch">
-            <ItemsControl Margin="12 4" ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="support:CheckBoxItem">
-                        <CheckBox Content="{x:Bind Name}" IsChecked="{x:Bind IsChecked, Mode=TwoWay}" HorizontalAlignment="Stretch" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0"
+                      Margin="12 4"
+                      Content="Only show loved"
+                      IsChecked="{x:Bind ViewModel.OnlyShowLovedChecked}" />
+            <CheckBox Grid.Column="1"
+                      Margin="12 4"
+                      Content="Show disliked"
+                      IsChecked="{x:Bind ViewModel.ShowDislikedChecked}" />
+        </Grid>
+
+        <controls:Expander Grid.Row="2" Header="Categories"  Background="Transparent" HorizontalContentAlignment="Stretch">
+            <ListView ItemsSource="{x:Bind ViewModel.Categories}" SelectionMode="Multiple" SelectionChanged="ListView_CategorySelectionChanged" />
         </controls:Expander>
-    </StackPanel>
+
+        <controls:Expander Grid.Row="3" Header="Authors"  Background="Transparent" HorizontalContentAlignment="Stretch">
+            <ListView ItemsSource="{x:Bind ViewModel.Authors}" SelectionMode="Multiple" SelectionChanged="ListView_AuthorSelectionChanged" />
+        </controls:Expander>
+
+        <controls:Expander Grid.Row="4" Header="Tags"  Background="Transparent" HorizontalContentAlignment="Stretch">
+            <ListView ItemsSource="{x:Bind ViewModel.Tags}" SelectionMode="Multiple" SelectionChanged="ListView_TagSelectionChanged" />
+        </controls:Expander>
+    </Grid>
 </Page>

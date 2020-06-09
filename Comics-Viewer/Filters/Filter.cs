@@ -15,6 +15,8 @@ namespace ComicsViewer.Filters {
         private readonly HashSet<string> selectedTags = new HashSet<string>();
         private Func<Comic, bool>? generatedFilter;
         private Func<Comic, bool>? search;
+        private bool onlyShowLoved = false;
+        private bool showDisliked = false;
 
         public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
             || this.selectedTags.Count != 0 || this.generatedFilter != null;
@@ -22,14 +24,17 @@ namespace ComicsViewer.Filters {
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
         public bool RemoveAuthor(string author) => this.RemoveFrom(this.selectedAuthors, author);
+        public void ClearAuthors() => this.Clear(this.selectedAuthors);
 
         public bool ContainsCategory(string category) => this.selectedCategories.Contains(category);
         public bool AddCategory(string category) => this.AddTo(this.selectedCategories, category);
         public bool RemoveCategory(string category) => this.RemoveFrom(this.selectedCategories, category);
+        public void ClearCategories() => this.Clear(this.selectedCategories);
 
         public bool ContainsTag(string tag) => this.selectedTags.Contains(tag);
         public bool AddTag(string tag) => this.AddTo(this.selectedTags, tag);
         public bool RemoveTag(string tag) => this.RemoveFrom(this.selectedTags, tag);
+        public void ClearTags() => this.Clear(this.selectedTags);
 
         public FilterMetadata Metadata = new FilterMetadata();
 
@@ -49,12 +54,30 @@ namespace ComicsViewer.Filters {
             }
         }
 
+        public bool OnlyShowLoved {
+            get => this.onlyShowLoved;
+            set {
+                this.onlyShowLoved = value;
+                this.SendNotification();
+            }
+        }
+
+        public bool ShowDisliked {
+            get => this.showDisliked;
+            set {
+                this.showDisliked = value;
+                this.SendNotification();
+            }
+        }
+
         public void Clear() {
             this.selectedAuthors.Clear();
             this.selectedCategories.Clear();
             this.selectedTags.Clear();
             this.search = null;
             this.generatedFilter = null;
+            this.onlyShowLoved = false;
+            this.showDisliked = false;
             this.SendNotification();
         }
 
@@ -68,6 +91,11 @@ namespace ComicsViewer.Filters {
             var result = set.Remove(item);
             this.SendNotification();
             return result;
+        }
+
+        private void Clear(HashSet<string> set) {
+            set.Clear();
+            this.SendNotification();
         }
 
         protected override void DoNotify() {
@@ -86,7 +114,7 @@ namespace ComicsViewer.Filters {
                 return false;
             }
 
-            if (this.selectedTags.Count != 0 && comic.Tags.All(tag => !this.selectedCategories.Contains(comic.DisplayCategory))) {
+            if (this.selectedTags.Count != 0 && comic.Tags.All(tag => !this.selectedTags.Contains(tag))) {
                 return false;
             }
 

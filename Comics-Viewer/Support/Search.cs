@@ -18,7 +18,7 @@ namespace ComicsViewer {
             { "title", comic => comic.DisplayTitle },
             { "author", comic => comic.DisplayAuthor },
             { "category", comic => comic.DisplayCategory },
-            { "tags", comic => string.Join("|", comic.Tags) }, // We should just return a list, but we'll assume no one will actually use "|" for now...
+            { "tag", comic => string.Join("|", comic.Tags) }, // We should just return a list, but we'll assume no one will actually use "|" for now...
             { "loved", comic => comic.Loved.ToString() },
             { "disliked", comic => comic.Disliked.ToString() },
         };
