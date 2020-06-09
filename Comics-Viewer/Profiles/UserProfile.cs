@@ -7,31 +7,33 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable 
+
 namespace ComicsViewer.Profiles {
     public class UserProfile {
         // fields to be serialized
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
         public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
 
         // generated properties
-        internal string DatabaseFileName => Defaults.DatabaseFileNameForProfile(this);
+        public string DatabaseFileName => Defaults.DatabaseFileNameForProfile(this);
 
         // static values and methods
-        internal static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+        public static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
 
-        internal static async Task<UserProfile> Deserialize(Stream input) {
-            return await JsonSerializer.DeserializeAsync<UserProfile>(input);
+        public static ValueTask<UserProfile> Deserialize(Stream input) {
+            return JsonSerializer.DeserializeAsync<UserProfile>(input);
         }
 
-        internal static async Task Serialize(UserProfile profile, Stream output) {
-            await JsonSerializer.SerializeAsync(output, profile);
+        public static Task Serialize(UserProfile profile, Stream output) {
+            return JsonSerializer.SerializeAsync(output, profile);
         }
 
         // Profile helper methods
-        internal async Task<IEnumerable<StorageFile>> FilesForComicAtPath(string path) {
+        public async Task<IEnumerable<StorageFile>> FilesForComicAtPath(string path) {
             var folder = await StorageFolder.GetFolderFromPathAsync(path);
             var files = await folder.GetFilesAsync();
 
@@ -41,7 +43,7 @@ namespace ComicsViewer.Profiles {
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        internal async Task<StorageFile> FirstFileForComicAtPath(string path) {
+        public async Task<StorageFile?> FirstFileForComicAtPath(string path) {
             foreach (var file in await this.FilesForComicAtPath(path)) {
                 return file;
             }

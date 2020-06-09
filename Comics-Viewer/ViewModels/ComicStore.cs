@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.SQL;
+using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
 using Microsoft.Data.Sqlite;
 using System;
@@ -8,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     /// <summary>
     /// A comic store stores a list of all comics, from which the application can request a
@@ -15,7 +18,9 @@ namespace ComicsViewer.ViewModels {
     /// 
     /// For now, everything is read-only.
     /// </summary>
-    class ComicStore {
+    public class ComicStore {
+        public static readonly ComicStore EmptyComicStore = new ComicStore(new UserProfile(), new Comic[0]);
+
         private readonly UserProfile profile;
         private readonly List<Comic> comics;
 
@@ -24,7 +29,7 @@ namespace ComicsViewer.ViewModels {
             this.comics = comics.ToList();
         }
 
-        internal static async Task<ComicStore> CreateComicsStore(UserProfile profile) {
+        public static async Task<ComicStore> CreateComicsStore(UserProfile profile) {
             var databaseConnection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
             var manager = new ComicsReadOnlyManager(databaseConnection);
 
@@ -33,42 +38,55 @@ namespace ComicsViewer.ViewModels {
             return new ComicStore(profile, comics);
         }
 
-        private ComicViewModel CreateViewModel(Func<Comic, bool> search, Func<Comic, IEnumerable<string>> groupBy, string pageType) {
+        // used for FilterPageViewModel
+        internal (HashSet<string> categories, HashSet<string> authors, HashSet<string> tags) GetAuxiliaryInfo(Filter? filter) {
+            var categories = new HashSet<string>();
+            var authors = new HashSet<string>();
+            var tags = new HashSet<string>();
+
+            foreach (var comic in this.comics) {
+                if (filter != null && !filter.ShouldBeVisible(comic)) {
+                    continue;
+                }
+
+                categories.Add(comic.DisplayCategory);
+                authors.Add(comic.DisplayAuthor);
+                foreach (var tag in comic.Tags) {
+                    tags.Add(tag);
+                }
+            }
+
+            return (categories, authors, tags);
+        }
+
+        private IEnumerable<ComicItem> FilterAndGroupComicItems(Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
             IEnumerable<Comic> comics = this.comics;
-            if (search != null) {
-                comics = comics.Where(search);
+            if (filter != null) {
+                comics = comics.Where(filter.ShouldBeVisible);
             }
 
             var comicItems = new List<ComicItem>();
 
             if (groupBy == null) {
-                return new ComicViewModel(this.profile, comics.Select(comic => new ComicWorkItem(comic)), pageType);
+                return comics.Select(comic => new ComicWorkItem(comic));
             } else {
-                return new ComicViewModel(this.profile, GroupByMultiple(comics, groupBy), pageType);
+                return GroupByMultiple(comics, groupBy);
             }
         }
 
-        internal ComicViewModel CreateViewModelForPage(Func<Comic, bool> search, string pageType = "comics") {
-            switch (pageType) {
-                case "comics":
-                    return this.CreateViewModel(search, null, pageType);
-                case "authors":
-                    return this.CreateViewModel(search, comic => new[] { comic.DisplayAuthor }, pageType);
-                case "categories":
-                    return this.CreateViewModel(search, comic => new[] { comic.DisplayCategory }, pageType);
-                case "tags":
-                    return this.CreateViewModel(search, comic => comic.Tags, pageType);
-                default:
-                    throw new ApplicationLogicException($"Invalid page type '{pageType}' when creating comic store.");
-            }
-        }
-
-        internal ComicViewModel CreateViewModelForComics(IEnumerable<Comic> comics) {
-            return new ComicViewModel(this.profile, comics.Select(comic => new ComicWorkItem(comic)), "default");
+        public IEnumerable<ComicItem> ComicItemsForPage(Filter? filter, string pageType = "comics") { 
+            return pageType switch {
+                "comics" => this.FilterAndGroupComicItems(filter, null),
+                "authors" => this.FilterAndGroupComicItems(filter, comic => new[] { comic.DisplayAuthor }),
+                "categories" => this.FilterAndGroupComicItems(filter, comic => new[] { comic.DisplayCategory }),
+                "tags" => this.FilterAndGroupComicItems(filter, comic => comic.Tags),
+                _ => throw new ApplicationLogicException($"Invalid page type '{pageType}' when creating comic store."),
+            };
         }
 
         private static IEnumerable<ComicNavigationItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
             var dict = new Dictionary<string, List<Comic>>();
+
             foreach (var comic in comics) {
                 foreach (var key in groupBy(comic)) {
                     if (!dict.ContainsKey(key)) {

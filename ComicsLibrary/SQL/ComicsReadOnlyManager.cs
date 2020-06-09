@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using TC.Experimental.Database;
-using TC.Experimental.Database.MicrosoftSqliteExtension;
+using TC.Database;
+using TC.Database.MicrosoftSqlite;
 
 namespace ComicsLibrary.SQL {
     public class ComicsReadOnlyManager {

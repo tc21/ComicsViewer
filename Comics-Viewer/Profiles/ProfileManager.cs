@@ -8,31 +8,32 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
 
+#nullable enable
+
 namespace ComicsViewer.Profiles {
-    static class ProfileManager {
-        const string ProfileFileNameExtension = ".profile.json";
+    public static class ProfileManager {
+        public const string ProfileFileNameExtension = ".profile.json";
 
 
-        internal static bool Initialized { get; private set; } = false;
-        internal static readonly List<string> LoadedProfiles = new List<string>();
+        public static bool Initialized { get; private set; } = false;
+        public static readonly List<string> LoadedProfiles = new List<string>();
 
         /// <summary>
         /// To be called when the application loads. Loads existing profiles from the application data folder, 
         /// and loads the last used profile.
         /// </summary>
-        internal static async Task Initialize() {
+        public static async Task Initialize() {
             await LoadProfiles(await Defaults.GetProfileFolder());
             Initialized = true;
         }
 
-        static async Task LoadProfiles(StorageFolder profileFolder) {
+        public static async Task LoadProfiles(StorageFolder profileFolder) {
             var files = await profileFolder.GetFilesAsync();
             foreach (var file in files) {
                 if (file.Name.EndsWith(ProfileFileNameExtension)) {
                     try {
-                        using (var stream = await file.OpenStreamForReadAsync()) {
-                            _ = UserProfile.Deserialize(stream);
-                        }
+                        using var stream = await file.OpenStreamForReadAsync();
+                        _ = UserProfile.Deserialize(stream);
                         LoadedProfiles.Add(file.Name.TruncateEnd(ProfileFileNameExtension.Length));
                     } catch (JsonException) {
                         // do nothing
@@ -41,16 +42,15 @@ namespace ComicsViewer.Profiles {
             }
         }
 
-        internal static async Task<UserProfile> LoadProfile(string name) {
+        public static async Task<UserProfile> LoadProfile(string name) {
             if (!LoadedProfiles.Contains(name)) {
                 throw new ApplicationLogicException($"Profile '{name}' is not in the list of loaded profiles");
             }
 
             var profileFolder = await Defaults.GetProfileFolder();
             var file = await profileFolder.GetFileAsync(name + ProfileFileNameExtension);
-            using (var stream = await file.OpenStreamForReadAsync()) {
-                return await UserProfile.Deserialize(stream);
-            }
+            using var stream = await file.OpenStreamForReadAsync();
+            return await UserProfile.Deserialize(stream);
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace ComicsViewer.Profiles {
         /// <param name="suggestedName">The suggested name of the profile. 
         /// Will be renamed if a profile with the given name already exists.</param>
         /// <returns>A UserProfile object with a unique name and default values </returns>
-        internal static UserProfile CreateProfile(string suggestedName = "Untitled Profile") {
+        public static UserProfile CreateProfile(string suggestedName = "Untitled Profile") {
             var acceptedName = suggestedName;
 
             var counter = 0;
@@ -73,7 +73,7 @@ namespace ComicsViewer.Profiles {
             };
         }
 
-        internal static async Task SaveProfile(UserProfile profile) {
+        public static async Task SaveProfile(UserProfile profile) {
             var fileName = profile.Name + ProfileFileNameExtension;
             var profileFolder = await Defaults.GetProfileFolder();
 
@@ -85,9 +85,8 @@ namespace ComicsViewer.Profiles {
                 file = await profileFolder.CreateFileAsync(fileName);
             }
 
-            using (var stream = await file.OpenStreamForWriteAsync()) {
-                await UserProfile.Serialize(profile, stream);
-            }
+            using var stream = await file.OpenStreamForWriteAsync();
+            await UserProfile.Serialize(profile, stream);
         }
     }
 }

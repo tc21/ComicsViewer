@@ -1,0 +1,116 @@
+﻿<Page
+    x:Class="ComicsViewer.ComicItemGrid"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:ComicsViewer.ViewModels"
+    xmlns:helpers="using:ComicsViewer.Pages.Helpers"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"    
+    RequestedTheme="Dark"
+    Background="Transparent">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="ComicItemTemplate" x:DataType="vm:ComicItem">
+                <Grid Margin="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0">
+                        <Image x:Name="ComicItemThumbnail"
+                           Source="{x:Bind ThumbnailPath}" />
+                    </Border>
+                    <TextBlock 
+                    Grid.Row="1" 
+                    Text="{x:Bind Title}" 
+                    Style="{StaticResource ItemTitleStyle}"/>
+                    <TextBlock 
+                    Grid.Row="2" 
+                    Text="{x:Bind Subtitle}"
+                    Style="{StaticResource ItemSubtitleStyle}"/>
+                </Grid>
+            </DataTemplate>
+            <ItemsPanelTemplate x:Key="HorizontalItemsWrapGridTemplate">
+                <ItemsWrapGrid Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+            <Style x:Key="ComicItemContainerStyle" TargetType="GridViewItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                <Setter Property="Margin" Value="0"/>
+            </Style>
+            <Style TargetType="TextBlock" x:Key="ItemTitleStyle">
+                <Style.Setters>
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Foreground" Value="{ThemeResource SystemControlPageTextBaseHighBrush}" />
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                </Style.Setters>
+            </Style>
+            <Style TargetType="TextBlock" x:Key="ItemSubtitleStyle">
+                <Style.Setters>
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="Foreground" Value="{ThemeResource SystemControlPageTextBaseMediumBrush}" />
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                </Style.Setters>
+            </Style>
+            <MenuFlyout x:Name="ComicItemGridContextFlyout" x:Key="ComicItemGridContextFlyout" Opening="ComicItemGridContextFlyout_Opening">
+                <!-- Can we figure out why applying helpers:Bindings don't work when used in a style? -->
+                <!-- Design note: we use the tag to dynamically generate text. To opt out, don't include a tag. 
+                     Optionally, we can dynamically generate even the ones that are supposed stay static.  -->
+                <MenuFlyoutItem Tag="open" Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutItem Text="Search selected" Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" helpers:Bindings.VisibilityToEnabled="True" />
+            </MenuFlyout>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid x:Name="ContainerGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
+            <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
+                      SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}" RequestedTheme="Default">
+                <ComboBox.Resources>
+                    <ResourceDictionary>
+                        <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
+                        <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
+                        <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
+                        <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
+                    </ResourceDictionary>
+                </ComboBox.Resources>
+                <ComboBox.Style>
+                    <Style TargetType="ComboBox">
+                        <Style.Setters>
+                            <Setter Property="Padding" Value="4 0" />
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Style.Setters>
+                    </Style>
+                </ComboBox.Style>
+            </ComboBox>
+        </StackPanel>
+
+        <GridView x:Name="VisibleComicsGrid" 
+                  Grid.Row="1"
+                  SelectionMode="Extended"
+                  ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
+                  SizeChanged="VisibleComicsGrid_SizeChanged"
+                  DoubleTapped="VisibleComicsGrid_DoubleTapped"
+                  IsRightTapEnabled="True"
+                  RightTapped="VisibleComicsGrid_RightTapped"
+                  ItemTemplate="{StaticResource ComicItemTemplate}"
+                  ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
+                  ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"
+                  ContextFlyout="{StaticResource ComicItemGridContextFlyout}">
+        </GridView>
+    </Grid>
+</Page>

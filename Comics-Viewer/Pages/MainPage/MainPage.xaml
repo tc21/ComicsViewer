@@ -1,0 +1,98 @@
+﻿<Page
+    x:Class="ComicsViewer.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ComicsViewer.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    RequestedTheme="Dark"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Resources>
+        <AcrylicBrush x:Key="NavigationViewTopPaneBackground" 
+                      BackgroundSource="HostBackdrop" 
+                      TintColor="{ThemeResource SystemChromeLowColor}"
+                      TintOpacity="0.8"
+                      FallbackColor="{ThemeResource SystemChromeLowColor}" />
+
+        <Flyout x:Key="FilterFlyout">
+            <Frame x:Name="FilterFlyoutFrame" />
+        </Flyout>
+    </Page.Resources>
+
+    <Grid x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640" />
+                    </VisualState.StateTriggers>
+
+                    <VisualState.Setters>
+                        <Setter Target="FilterButton.HorizontalAlignment" Value="Right"/>
+                        <Setter Target="FilterButton.VerticalAlignment" Value="Stretch"/>
+                        <Setter Target="NavigationView.PaneDisplayMode" Value="Top"/>
+                        <Setter Target="ContentFrame.Margin" Value="0"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="AppTitleBar" Background="{ThemeResource NavigationViewTopPaneBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftPaddingColumn" Width="0"/>
+                <ColumnDefinition />
+                <ColumnDefinition x:Name="RightPaddingColumn" Width="0"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" 
+                       Text="Comics"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Margin="12 8 0 8"/>
+        </Grid>
+
+        <muxc:NavigationView x:Name="NavigationView"
+                             Grid.Row="1"
+                             IsBackButtonVisible="Collapsed"
+                             Loaded="NavigationView_Loaded"
+                             ItemInvoked="NavigationView_ItemInvoked">
+            <muxc:NavigationView.MenuItems>
+                <!-- ProfileNavigationViewItem's Content is a placeholder -->
+                <muxc:NavigationViewItem x:Name="ProfileNavigationViewItem" Tag="comics" Content="Loading Profiles..." />
+                <muxc:NavigationViewItem Tag="categories" Content="Categories" />
+                <muxc:NavigationViewItem Tag="authors" Content="Authors" />
+                <muxc:NavigationViewItem Tag="tags" Content="Tags" />
+            </muxc:NavigationView.MenuItems>
+
+            <muxc:NavigationView.AutoSuggestBox>
+                <AutoSuggestBox x:Name="SearchBox"
+                                QueryIcon="Find"
+                                MinWidth="200"
+                                PlaceholderText="Search items"
+                                TextChanged="AutoSuggestBox_TextChanged"
+                                QuerySubmitted="AutoSuggestBox_QuerySubmitted"
+                                SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                                CornerRadius="0"
+                                BorderThickness="0"/>
+            </muxc:NavigationView.AutoSuggestBox>
+
+            <muxc:NavigationView.PaneCustomContent>
+                <muxc:NavigationViewItem x:Name="FilterButton" 
+                                         Icon="Filter"
+                                         Content="Filters"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Bottom" 
+                                         Tapped="FilterNavigationViewItem_Tapped"/>
+            </muxc:NavigationView.PaneCustomContent>
+
+            <Frame x:Name="ContentFrame" 
+                   Margin="0 40 0 0"
+                   NavigationFailed="ContentFrame_NavigationFailed" />
+        </muxc:NavigationView>
+    </Grid>
+</Page>

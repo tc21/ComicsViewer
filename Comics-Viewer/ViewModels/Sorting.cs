@@ -4,15 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
-    static class Sorting {
-        internal enum SortSelector {
+    public static class Sorting {
+        public enum SortSelector {
             Title, Author, DateAdded, ItemCount, Random
         }
 
-        internal static readonly string[] SortSelectorNames = { "Title", "Author", "Date Added", "Item Count", "Random" };
+        public static readonly string[] SortSelectorNames = { "Title", "Author", "Date Added", "Item Count", "Random" };
 
-        internal static List<ComicItem> Sorted(List<ComicItem> items, SortSelector sortSelector) {
+        public static List<ComicItem> Sorted(List<ComicItem> items, SortSelector sortSelector) {
             if (sortSelector == SortSelector.Random) {
                 return items.OrderBy(_ => App.Randomizer.Next()).ToList();
             }
@@ -25,19 +27,14 @@ namespace ComicsViewer.ViewModels {
         }
 
         private static Comparison<ComicItem> ComicItemComparisonForSortSelector(SortSelector sortSelector) {
-            switch (sortSelector) {
-                case SortSelector.Title:
-                    return CompareTitle;
-                case SortSelector.Author:
-                    return CompareAuthor;
-                case SortSelector.DateAdded:
-                    return CompareDateAdded;
-                case SortSelector.ItemCount:
-                    return CompareItemCount;
-
-                default:
-                    throw new ApplicationLogicException("Theoretically unreachable code");
-            }
+            return sortSelector switch {
+                SortSelector.Title => CompareTitle,
+                SortSelector.Author => CompareAuthor,
+                SortSelector.DateAdded => CompareDateAdded,
+                SortSelector.ItemCount => CompareItemCount,
+                SortSelector.Random => throw new ApplicationLogicException("Random sort should not propagate here"),
+                _ => throw new ApplicationLogicException("Theoretically unreachable code"),
+            };
         }
 
         private static int CompareTitle(ComicItem a, ComicItem b) {
@@ -45,11 +42,11 @@ namespace ComicsViewer.ViewModels {
         }
 
         private static int CompareAuthor(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.Author, CompareTitle);
+            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.DisplayAuthor, CompareTitle);
         }
 
         private static int CompareItemCount(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicNavigationItem comic) => comic.Comics.Count, CompareAuthor, reverse: true);
+            return CompareSameType(a, b, (ComicNavigationItem comic) => comic.Comics.Count(), CompareAuthor, reverse: true);
         }
 
         private static int CompareDateAdded(ComicItem a, ComicItem b) {
@@ -82,7 +79,5 @@ namespace ComicsViewer.ViewModels {
 
             return fallback(a, b);
         }
-
-
     }
 }

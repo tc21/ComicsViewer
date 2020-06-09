@@ -9,13 +9,15 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.System;
 
+#nullable enable
+
 namespace ComicsViewer.Profiles {
     public enum StartupApplicationType {
         OpenFirstFile
     }
 
-    static class Startup {
-        internal static async Task OpenComic(Comic comic, UserProfile profile) {
+    public static class Startup {
+        public static async Task OpenComic(Comic comic, UserProfile profile) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
@@ -25,8 +27,8 @@ namespace ComicsViewer.Profiles {
                     }
 
                     break;
+                // TODO More cases
             }
-            // TODO placeholder
         } 
     }
 }
