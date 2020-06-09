@@ -123,22 +123,8 @@ namespace ComicsViewer {
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
             private IEnumerable<ComicItem> SelectedItems => parent.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
-            private IEnumerable<ComicWorkItem> WorkItems => parent.VisibleComicsGrid.SelectedItems.OfType<ComicWorkItem>();
-            private IEnumerable<ComicNavigationItem> NavItems => parent.VisibleComicsGrid.SelectedItems.OfType<ComicNavigationItem>();
-            // assuming all of the same type
-            private ComicItemType SelectedItemType {
-                get {
-                    if (this.SelectedItemCount == 0) {
-                        return ComicItemType.None;
-                    }
-
-                    if (this.parent.VisibleComicsGrid.SelectedItems[0] is ComicWorkItem) {
-                        return ComicItemType.Work;
-                    }
-
-                    return ComicItemType.None;
-                }
-            }
+            // 1. assuming all of the same type; 2. if count = 0 then it doesn't matter
+            private ComicItemType SelectedItemType => this.SelectedItems.Count() == 0 ? ComicItemType.Work : this.SelectedItems.First().ItemType;
 
             internal ComicItemGridCommands(ComicItemGrid parent) {
                 this.parent = parent;
@@ -158,10 +144,6 @@ namespace ComicsViewer {
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
                 return (sender, args) => args.CanExecute = predicate();
-            }
-
-            private enum ComicItemType {
-                Work, Navigation, None
             }
         }
 
@@ -183,9 +165,10 @@ namespace ComicsViewer {
         }
 
         private string GetDynamicFlyoutText(string tag) {
-            return tag switch
-            {
-                "open" => (this.VisibleComicsGrid.SelectedItems[0] is ComicWorkItem ? "Open" : "Navigate into") +
+            var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
+
+            return tag switch {
+                "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") +
                           (this.VisibleComicsGrid.SelectedItems.Count > 1 ? $" {this.VisibleComicsGrid.SelectedItems.Count} items" : ""),
                 "search" => "Search selected",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")

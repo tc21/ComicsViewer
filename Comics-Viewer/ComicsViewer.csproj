@@ -160,8 +160,6 @@
     <Compile Include="ViewModels\ComicItem.cs" />
     <Compile Include="ViewModels\ComicStore.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
-    <Compile Include="ViewModels\ComicWorkItem.cs" />
-    <Compile Include="ViewModels\ComicNavigationItem.cs" />
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
     <Compile Include="ViewModels\Sorting.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />

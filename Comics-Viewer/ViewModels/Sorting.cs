@@ -42,23 +42,23 @@ namespace ComicsViewer.ViewModels {
         }
 
         private static int CompareAuthor(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.DisplayAuthor, CompareTitle);
+            return CompareSameType(a, b, ComicItemType.Work, comic => comic.TitleComic.DisplayAuthor, CompareTitle);
         }
 
         private static int CompareItemCount(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicNavigationItem comic) => comic.Comics.Count(), CompareAuthor, reverse: true);
+            return CompareSameType(a, b, ComicItemType.Navigation, comic => comic.Comics.Count(), CompareAuthor, reverse: true);
         }
 
         private static int CompareDateAdded(ComicItem a, ComicItem b) {
-            return CompareSameType(a, b, (ComicWorkItem comic) => comic.Comic.DateAdded, CompareAuthor, reverse: true);
+            return CompareSameType(a, b, ComicItemType.Work, comic => comic.TitleComic.DateAdded, CompareAuthor, reverse: true);
         }
 
-        private static int CompareSameType<U, T>(
-            ComicItem a, ComicItem b, Func<U, T> key, Comparison<ComicItem> fallback,
+        private static int CompareSameType<T>(
+            ComicItem a, ComicItem b, ComicItemType type, Func<ComicItem, T> key, Comparison<ComicItem> fallback, 
             bool reverse = false, bool sortBeforeOtherTypes = true
-        ) where U : ComicItem where T : IComparable<T> {
-            if (a is U a_ && b is U b_) {
-                var comparisonResult = key(a_).CompareTo(key(b_));
+        ) where T : IComparable<T> {
+            if (a.ItemType == type && b.ItemType == type) {
+                var comparisonResult = key(a).CompareTo(key(b));
                 if (comparisonResult != 0) {
                     if (reverse) {
                         return -comparisonResult;
@@ -69,11 +69,11 @@ namespace ComicsViewer.ViewModels {
                 return fallback(a, b);
             }
 
-            if (a is U) {
+            if (a.ItemType == type) {
                 return sortBeforeOtherTypes ? 1 : -1;
             }
 
-            if (b is U) {
+            if (b.ItemType == type) {
                 return sortBeforeOtherTypes ? -1 : 1;
             }
 

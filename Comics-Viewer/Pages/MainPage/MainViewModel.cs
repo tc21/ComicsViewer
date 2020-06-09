@@ -87,14 +87,14 @@ namespace ComicsViewer {
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Back });
         }
 
-        public void NavigateInto(ComicNavigationItem item, NavigationTransitionInfo? transitionInfo = null) {
+        public void NavigateInto(ComicItem item, NavigationTransitionInfo? transitionInfo = null) {
             this.NavigationLevel = 1;
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
                 PageType = typeof(ComicItemGridSecondLevelContainer),
                 Tag = SecondLevelNavigationTag,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                ComicItems = item.Comics.Select(comic => new ComicWorkItem(comic))
+                ComicItems = item.Comics.Select(comic => ComicItem.WorkItem(comic))
             });
         }
 

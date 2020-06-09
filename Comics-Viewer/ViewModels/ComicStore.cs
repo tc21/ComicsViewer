@@ -68,7 +68,7 @@ namespace ComicsViewer.ViewModels {
             var comicItems = new List<ComicItem>();
 
             if (groupBy == null) {
-                return comics.Select(comic => new ComicWorkItem(comic));
+                return comics.Select(comic => ComicItem.WorkItem(comic));
             } else {
                 return GroupByMultiple(comics, groupBy);
             }
@@ -84,7 +84,7 @@ namespace ComicsViewer.ViewModels {
             };
         }
 
-        private static IEnumerable<ComicNavigationItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
+        private static IEnumerable<ComicItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
             var dict = new Dictionary<string, List<Comic>>();
 
             foreach (var comic in comics) {
@@ -98,7 +98,7 @@ namespace ComicsViewer.ViewModels {
             }
 
             foreach (var pair in dict) {
-                yield return new ComicNavigationItem(pair.Key, pair.Value);
+                yield return ComicItem.NavigationItem(pair.Key, pair.Value);
             }
         }
     }
