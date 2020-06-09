@@ -17,6 +17,7 @@ namespace ComicsViewer.ViewModels {
         public override string ThumbnailPath => Path.Combine(Defaults.ThumbnailFolderPath, this.Comic.UniqueIdentifier + ".thumbnail.jpg");
         public override string Title => this.Comic.DisplayTitle;
         public override string Subtitle => this.Comic.DisplayAuthor;
+        public override IEnumerable<Comic> Comics => new[] { this.Comic };
 
         public ComicWorkItem(Comic comic) {
             this.Comic = comic;

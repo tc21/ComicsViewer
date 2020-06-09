@@ -37,6 +37,13 @@ namespace ComicsViewer.ViewModels {
 
         public readonly string PageType;
 
+        /* internal communication */
+        internal IEnumerable<string> VisibleCategories
+            => this.ComicItems.SelectMany(item => item.Comics)
+                              .Select(comic => comic.DisplayCategory)
+                              .Distinct()
+                              .OrderBy(category => category);
+
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */

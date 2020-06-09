@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +9,24 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.Filters {
-    public class Filter {
+    public class Filter : DeferredNotify {
         private readonly HashSet<string> selectedAuthors = new HashSet<string>();
         private readonly HashSet<string> selectedCategories = new HashSet<string>();
         private readonly HashSet<string> selectedTags = new HashSet<string>();
         private Func<Comic, bool>? generatedFilter;
         private Func<Comic, bool>? search;
 
-        public bool AddSelectedAuthor(string author) => this.AddTo(this.selectedAuthors, author);
-        public bool RemoveSelectedAuthor(string author) => this.RemoveFrom(this.selectedAuthors, author);
-        public bool AddSelectedCategory(string category) => this.AddTo(this.selectedCategories, category);
-        public bool RemoveSelectedCategory(string category) => this.RemoveFrom(this.selectedCategories, category);
-        public bool AddSelectedTag(string tag) => this.AddTo(this.selectedTags, tag);
-        public bool RemoveSelectedTag(string tag) => this.RemoveFrom(this.selectedTags, tag);
+        public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
+        public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
+        public bool RemoveAuthor(string author) => this.RemoveFrom(this.selectedAuthors, author);
+
+        public bool ContainsCategory(string category) => this.selectedCategories.Contains(category);
+        public bool AddCategory(string category) => this.AddTo(this.selectedCategories, category);
+        public bool RemoveCategory(string category) => this.RemoveFrom(this.selectedCategories, category);
+
+        public bool ContainsTag(string tag) => this.selectedTags.Contains(tag);
+        public bool AddTag(string tag) => this.AddTo(this.selectedTags, tag);
+        public bool RemoveTag(string tag) => this.RemoveFrom(this.selectedTags, tag);
 
         public FilterMetadata Metadata = new FilterMetadata();
 
@@ -28,7 +34,7 @@ namespace ComicsViewer.Filters {
             get => this.generatedFilter;
             set { 
                 this.generatedFilter = value;
-                this.Updated();
+                this.Notify();
             }
         }
 
@@ -36,26 +42,24 @@ namespace ComicsViewer.Filters {
             get => this.search;
             set {
                 this.search = value;
-                this.Updated();
+                this.Notify();
             }
         }
 
         private bool AddTo(HashSet<string> set, string item) {
             var result = set.Add(item);
-            this.Updated();
+            this.Notify();
             return result;
         }
 
         private bool RemoveFrom(HashSet<string> set, string item) {
             var result = set.Remove(item);
-            this.Updated();
+            this.Notify();
             return result;
         }
 
-        private void Updated() {
-            if (!this.deferNotifications) {
-                this.FilterChanged(this);
-            }
+        protected override void Notify() {
+            this.FilterChanged(this);
         }
 
         public delegate void FilterChangedEventHandler(Filter filter);
@@ -79,27 +83,6 @@ namespace ComicsViewer.Filters {
             }
 
             return this.Search?.Invoke(comic) ?? true;
-        }
-
-        // Based on Microsoft.Toolkit.Uwp.UI.AdvancedCollectionView
-        private bool deferNotifications = false;
-
-        public IDisposable DeferNotifications() {
-            return new NotificationDeferrer(this);
-        }
-
-        public class NotificationDeferrer : IDisposable {
-            private readonly Filter filter;
-
-            public NotificationDeferrer(Filter filter) {
-                this.filter = filter;
-                this.filter.deferNotifications = true;
-            }
-
-            public void Dispose() {
-                this.filter.deferNotifications = false;
-                this.filter.FilterChanged?.Invoke(this.filter);
-            }
         }
     }
 

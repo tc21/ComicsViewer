@@ -218,10 +218,7 @@ namespace ComicsViewer {
         }
 
         private ComicItemGridNavigationArguments GetNavigationArguments(ComicViewModel viewModel) {
-            return new ComicItemGridNavigationArguments {
-                ViewModel = viewModel,
-                OnNavigatedTo = this.ComicItemGrid_OnNavigatedTo
-            };
+            return new ComicItemGridNavigationArguments(viewModel, this.ComicItemGrid_OnNavigatedTo);
         }
 
         /// <summary>
@@ -333,7 +330,7 @@ namespace ComicsViewer {
 
         private void FilterNavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e) {
             var flyout = (this.Resources["FilterFlyout"] as Flyout)!;
-            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.comicFilter);
+            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), new FilterPageNavigationArguments(this.activeContent!.ViewModel!, this.comicFilter));
             flyout.ShowAt(sender as FrameworkElement);
         }
     }

@@ -124,6 +124,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Filters\Filter.cs" />
+    <Compile Include="Filters\FilterPageNavigationArguments.cs" />
     <Compile Include="Filters\FilterViewModel.cs" />
     <Compile Include="Pages\ComicGrid\IComicItemGridContainer.cs" />
     <Compile Include="Pages\ComicGrid\ComicItemGridSecondLevelContainer.xaml.cs">
@@ -136,6 +137,7 @@
       <DependentUpon>FilterPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Helpers\Bindings.cs" />
+    <Compile Include="Support\Controls\CheckBoxItem.cs" />
     <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
     <Compile Include="Pages\ComicGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>
@@ -149,6 +151,8 @@
     <Compile Include="Profiles\Startup.cs" />
     <Compile Include="Profiles\UserProfile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\DefaultDictionary.cs" />
+    <Compile Include="Support\DeferredNotify.cs" />
     <Compile Include="Support\Search.cs" />
     <Compile Include="Support\ApplicationLogicException.cs" />
     <Compile Include="Support\Thumbnail.cs" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsLibrary;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,5 +13,7 @@ namespace ComicsViewer.ViewModels {
         public abstract string ThumbnailPath { get; }
         public abstract string Title { get; }
         public abstract string Subtitle { get; }
+
+        public abstract IEnumerable<Comic> Comics { get; }
     }
 }

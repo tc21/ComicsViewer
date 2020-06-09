@@ -30,15 +30,15 @@ namespace ComicsViewer.Pages {
         public FilterViewModel? ViewModel;
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (!(e.Parameter is Filter filter)) {
-                throw new ApplicationLogicException("FilterPage must receive a filter as its navigation argument");
+            if (!(e.Parameter is FilterPageNavigationArguments args)) {
+                throw new ApplicationLogicException("FilterPage must receive a FilterPageNavigationArguments as its navigation argument");
             }
 
-            this.ViewModel = new FilterViewModel(filter);
+            this.ViewModel = new FilterViewModel(args.Filter, args.ViewModel.VisibleCategories);
         }
 
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {
-            this.ViewModel!.Filter.GeneratedFilter = null;
+            this.ViewModel!.GeneratedFilter = null;
         }
     }
 }

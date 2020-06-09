@@ -15,18 +15,18 @@ namespace ComicsViewer.ViewModels {
         public override string Subtitle { get; }
         public override string ThumbnailPath => Thumbnail.ThumbnailPath(this.Comics.First());
 
-        public readonly IList<Comic> Comics;
+        public override IEnumerable<Comic> Comics { get; }
 
         public ComicNavigationItem(string name, IEnumerable<Comic> comics) {
             this.Comics = comics.ToList();
 
-            if (this.Comics.Count == 0) {
+            if (this.Comics.Count() == 0) {
                 throw new ApplicationLogicException("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
             }
 
             this.Title = name;
-            this.Subtitle = $"{this.Comics.Count} Item";
-            if (this.Comics.Count != 1) {
+            this.Subtitle = $"{this.Comics.Count()} Item";
+            if (this.Comics.Count() != 1) {
                 this.Subtitle += "s";
             }
         }

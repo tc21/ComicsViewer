@@ -10,7 +10,12 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ComicsViewer {
     public class ComicItemGridNavigationArguments {
+        public ComicViewModel ViewModel { get; set; }
         public Action<ComicItemGrid, NavigationEventArgs>? OnNavigatedTo { get; set; }
-        public ComicViewModel? ViewModel { get; set; }
+
+        public ComicItemGridNavigationArguments(ComicViewModel viewModel, Action<ComicItemGrid, NavigationEventArgs>? onNavigatedTo = null) {
+            this.ViewModel = viewModel;
+            this.OnNavigatedTo = onNavigatedTo;
+        }
     }
 }
