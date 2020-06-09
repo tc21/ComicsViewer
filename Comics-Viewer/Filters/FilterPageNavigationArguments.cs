@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ComicsViewer.Filters {
-    class FilterPageNavigationArguments {
-        public ComicViewModel ViewModel { get; set; }
-        public Filter Filter { get; set; }
+#nullable enable
 
-        public FilterPageNavigationArguments(ComicViewModel viewModel, Filter filter) {
-            this.ViewModel = viewModel;
-            this.Filter = filter;
-        }
+namespace ComicsViewer.Filters {
+    public class FilterPageNavigationArguments {
+        public Filter? Filter { get; set; }
+        public IEnumerable<string>? VisibleCategories { get; set; }
+        public IEnumerable<string>? VisibleAuthors { get; set; }
+        public IEnumerable<string>? VisibleTags { get; set; }
     }
 }

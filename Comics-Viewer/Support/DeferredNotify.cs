@@ -9,11 +9,11 @@ namespace ComicsViewer.Support {
         // Based on Microsoft.Toolkit.Uwp.UI.AdvancedCollectionView
         private bool deferNotifications = false;
 
-        protected abstract void Notify();
+        protected abstract void DoNotify();
 
         protected void SendNotification() {
             if (!deferNotifications) {
-                this.Notify();
+                this.DoNotify();
             }
         }
 

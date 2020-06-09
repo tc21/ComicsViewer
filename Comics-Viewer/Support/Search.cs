@@ -58,6 +58,10 @@ namespace ComicsViewer {
         }
 
         public static IEnumerable<string> GetSearchSuggestions(string incompleteSearchTerm) {
+            if (incompleteSearchTerm.Trim() == "") {
+                return Defaults.SettingsAccessor.SavedSearches;
+            }
+
             /* We have 3 types of search suggestions. Only one type runs at a time, in this priority:
              * 1. Correcting parse errors
              * 2. Correcting tag names

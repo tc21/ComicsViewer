@@ -13,7 +13,6 @@ using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
@@ -22,49 +21,23 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ComicsViewer {
     public sealed partial class ComicItemGrid : Page {
-        public ComicViewModel? ViewModel;
+        public MainViewModel? MainViewModel => ViewModel?.MainViewModel;
+        public ComicItemGridViewModel? ViewModel;
+
         public ComicItemGrid() {
             this.InitializeComponent();
             this.ContextMenuCommands = new ComicItemGridCommands(this);
         }
-
-        // We may want to ask for user permission instead of crashing and expecting the user to turn on broadFileSystemAccess
-        private Task OpenItem(ComicItem item) {
-            if (item is ComicWorkItem workItem) {
-                return Startup.OpenComic(workItem.Comic, this.ViewModel!.Profile);
-            }
-
-            // item is navigation item
-            this.RequestNavigationInto((ComicNavigationItem)item);
-            return Task.CompletedTask;
-        }
-
-        private void RequestNavigationInto(ComicNavigationItem item) {
-            this.RequestingNavigation?.Invoke(this, new RequestingNavigationEventArgs {
-                NavigationItem = item,
-                NavigationType = RequestingNavigationType.Into
-            });
-        }
-
-        private void RequestSearchResultOf(IEnumerable<Comic> comics) {
-            this.RequestingNavigation?.Invoke(this, new RequestingNavigationEventArgs {
-                NavigationItem = new ComicNavigationItem("<dynamically generated>", comics),
-                NavigationType = RequestingNavigationType.Search
-            });
-        }
-
-        public delegate void RequestingNavigationEventDelegate(ComicItemGrid sender, RequestingNavigationEventArgs args);
-        public event RequestingNavigationEventDelegate? RequestingNavigation;
 
         private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _) {
             if (!(sender is GridView grid)) {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
             }
 
-            // do we really need to await this?
-            await Task.WhenAll(this.VisibleComicsGrid.SelectedItems.Select(i => this.OpenItem((ComicItem)i)));
+            await this.ViewModel!.OpenItems(grid.SelectedItems);
         }
 
+        // Prepares the grid before the right click context menu is shown
         private void VisibleComicsGrid_RightTapped(object sender, RightTappedRoutedEventArgs e) {
             if (!(sender is GridView grid)) {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
@@ -91,9 +64,14 @@ namespace ComicsViewer {
                 // Looks like there isn't a good way to actually scroll with an animation. 
                 // Both GridView.ScrollIntoView and GridView.MakeVisible scrolls instantly without animation.
                 // The solution used here is a reverse-engineering that can potentially break anytime with an update to the UWP library
+                if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) == null) {
+                    // this means the grid hasn't even loaded yet, just ignore the request
+                    return;
+                }
+
                 if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) is UIElement childElement &&
                     VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
-                    scrollViewer.ChangeView(null, scrollViewer.VerticalOffset, null);
+                    scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
                 } else {
                     throw new ApplicationLogicException("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
                 }
@@ -109,13 +87,17 @@ namespace ComicsViewer {
                 throw new ApplicationLogicException("A ComicItemGrid must receive a ComicItemGridNavigationArguments as its parameter.");
             }
 
+            if (args.ViewModel == null) {
+                throw new ApplicationLogicException();
+            }
+
             if (e.NavigationMode == NavigationMode.New) {
                 // Initialize this page only when creating a new page, 
                 // not when the user returned to this page by pressing the back button
                 this.ViewModel = args.ViewModel;
             }
 
-            // Note: we must call this function no matter what. MainPage must handle things differently based on e.NavigationMode on its own.
+            // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
             args.OnNavigatedTo?.Invoke(this, e);
         }
 
@@ -163,21 +145,15 @@ namespace ComicsViewer {
 
                 // Opens selected comics or navigates into the selected navigation item
                 this.OpenItemsCommand = new StandardUICommand(StandardUICommandKind.Open);
-                this.OpenItemsCommand.ExecuteRequested += async (sender, args) 
-                    => await Task.WhenAll(this.SelectedItems.Select(parent.OpenItem));
+                this.OpenItemsCommand.ExecuteRequested += async (sender, args) => await parent.ViewModel!.OpenItems(this.SelectedItems);
                 this.OpenItemsCommand.CanExecuteRequested += this.CanExecuteHandler(() 
                     => this.SelectedItemType == ComicItemType.Work || this.SelectedItemCount == 1);
 
                 // Generates and executes a search limiting visible items to those selected
                 this.SearchSelectedCommand = new XamlUICommand();
-                this.SearchSelectedCommand.ExecuteRequested += (sender, args) => {
-                    parent.RequestSearchResultOf(this.SelectedItemType switch {
-                        ComicItemType.Work => this.WorkItems.Select(i => i.Comic),
-                        _ => this.NavItems.SelectMany(i => i.Comics)
-                    });
-                };
-                this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(() => 
-                    this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
+                this.SearchSelectedCommand.ExecuteRequested += (sender, args) => parent.MainViewModel!.NavigateIntoSelected(this.SelectedItems);
+                this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -244,26 +220,13 @@ namespace ComicsViewer {
 
         #endregion
     }
-
-    public class RequestingNavigationEventArgs {
-        public ComicNavigationItem? NavigationItem { get; set; }
-        public RequestingNavigationType NavigationType { get; set; }
-    }
+    //public class RequestingNavigationEventArgs {
+    //    public ComicNavigationItem? NavigationItem { get; set; }
+    //    public RequestingNavigationType NavigationType { get; set; }
+    //}
 
     /* Handled at MainPage -> ComicItemGrid_RequestingNavigation */
-    public enum RequestingNavigationType {
-        Into, Search
-    }
-
-    public class BooleanToVisibilityConverter : IValueConverter {
-        public object Convert(object value, Type targetType, object parameter, string language) {
-            //reverse conversion (false=>Visible, true=>collapsed) on any given parameter
-            var input = (null == parameter) ? (bool)value : !((bool)value);
-            return input ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language) {
-            throw new NotImplementedException();
-        }
-    }
+    //public enum RequestingNavigationType {
+    //    Into, Search
+    //}
 }

@@ -30,6 +30,10 @@ namespace ComicsLibrary {
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;
         public string DateAdded => this.Metadata.DateAdded ?? OldestDate;
+
+        public bool IsSame(Comic other) {
+            return this.UniqueIdentifier == other.UniqueIdentifier;
+        }
     }
 
     public class ComicMetadata {

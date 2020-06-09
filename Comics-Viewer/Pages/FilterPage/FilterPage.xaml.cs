@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Filters;
+using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +35,11 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException("FilterPage must receive a FilterPageNavigationArguments as its navigation argument");
             }
 
-            this.ViewModel = new FilterViewModel(args.Filter, args.ViewModel.VisibleCategories);
+            if (args.Filter == null) {
+                throw new ApplicationLogicException("args.Filter cannot be null");
+            }
+
+            this.ViewModel = new FilterViewModel(args.Filter!, args.VisibleCategories!);
         }
 
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {

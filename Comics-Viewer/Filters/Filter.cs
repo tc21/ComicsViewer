@@ -16,6 +16,9 @@ namespace ComicsViewer.Filters {
         private Func<Comic, bool>? generatedFilter;
         private Func<Comic, bool>? search;
 
+        public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
+            || this.selectedTags.Count != 0 || this.generatedFilter != null || this.search != null;
+
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
         public bool RemoveAuthor(string author) => this.RemoveFrom(this.selectedAuthors, author);
@@ -34,7 +37,7 @@ namespace ComicsViewer.Filters {
             get => this.generatedFilter;
             set { 
                 this.generatedFilter = value;
-                this.Notify();
+                this.SendNotification();
             }
         }
 
@@ -42,23 +45,32 @@ namespace ComicsViewer.Filters {
             get => this.search;
             set {
                 this.search = value;
-                this.Notify();
+                this.SendNotification();
             }
+        }
+
+        public void Clear() {
+            this.selectedAuthors.Clear();
+            this.selectedCategories.Clear();
+            this.selectedTags.Clear();
+            this.search = null;
+            this.generatedFilter = null;
+            this.SendNotification();
         }
 
         private bool AddTo(HashSet<string> set, string item) {
             var result = set.Add(item);
-            this.Notify();
+            this.SendNotification();
             return result;
         }
 
         private bool RemoveFrom(HashSet<string> set, string item) {
             var result = set.Remove(item);
-            this.Notify();
+            this.SendNotification();
             return result;
         }
 
-        protected override void Notify() {
+        protected override void DoNotify() {
             this.FilterChanged(this);
         }
 
