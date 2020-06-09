@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.System;
+using Windows.UI.Popups;
 
 #nullable enable
 
@@ -25,7 +26,6 @@ namespace ComicsViewer.Profiles {
                         // There's no reason for us to wait for the file to actually launch
                         _ = Launcher.LaunchFileAsync(file);
                     }
-
                     break;
                 // TODO More cases
             }

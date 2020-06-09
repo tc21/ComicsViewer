@@ -3,10 +3,12 @@ using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Popups;
 
 #nullable enable
 
@@ -76,8 +78,14 @@ namespace ComicsViewer {
             // Only work items remain at this point
             // Although we don't have to await these, we will need to do so for it to throw an 
             // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
-            var tasks = items.Cast<ComicWorkItem>().Select(item => Startup.OpenComic(item.Comic, this.MainViewModel.Profile));
-            await Task.WhenAll(tasks);
+            try {
+                var tasks = items.Cast<ComicWorkItem>().Select(item => Startup.OpenComic(item.Comic, this.MainViewModel.Profile));
+                await Task.WhenAll(tasks);
+            } catch (UnauthorizedAccessException) {
+                _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
+            } catch (FileNotFoundException) {
+                _ = await new MessageDialog("The application is not currently capable of handling this error.", "File not found").ShowAsync();
+            }
         }
 
         /* Instead of putting logic in each observable property's setter, we put them here, to keep setter code the
