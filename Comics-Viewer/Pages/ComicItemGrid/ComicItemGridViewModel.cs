@@ -60,11 +60,11 @@ namespace ComicsViewer {
         }
 
         // Helper function to open GridView.SelectedItems
-        internal Task OpenItems(IList<object> items) {
-            return this.OpenItems(items.Cast<ComicItem>());
+        internal Task OpenItemsAsync(IList<object> items) {
+            return this.OpenItemsAsync(items.Cast<ComicItem>());
         }
 
-        public async Task OpenItems(IEnumerable<ComicItem> items) {
+        public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
             if (items.First() is ComicNavigationItem navigationItem) {
                 if (items.Count() != 1) {
                     throw new ApplicationLogicException("Should not allow the user to open multiple navigation" +
@@ -79,7 +79,7 @@ namespace ComicsViewer {
             // Although we don't have to await these, we will need to do so for it to throw an 
             // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
             try {
-                var tasks = items.Cast<ComicWorkItem>().Select(item => Startup.OpenComic(item.Comic, this.MainViewModel.Profile));
+                var tasks = items.Cast<ComicWorkItem>().Select(item => Startup.OpenComicAsync(item.Comic, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
                 _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();

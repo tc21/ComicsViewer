@@ -22,12 +22,12 @@ namespace ComicsViewer.Profiles {
         /// To be called when the application loads. Loads existing profiles from the application data folder, 
         /// and loads the last used profile.
         /// </summary>
-        public static async Task Initialize() {
-            await LoadProfiles(await Defaults.GetProfileFolder());
+        public static async Task InitializeAsync() {
+            await LoadProfilesAsync(await Defaults.GetProfileFolderAsync());
             Initialized = true;
         }
 
-        public static async Task LoadProfiles(StorageFolder profileFolder) {
+        public static async Task LoadProfilesAsync(StorageFolder profileFolder) {
             var files = await profileFolder.GetFilesAsync();
             foreach (var file in files) {
                 if (file.Name.EndsWith(ProfileFileNameExtension)) {
@@ -42,12 +42,12 @@ namespace ComicsViewer.Profiles {
             }
         }
 
-        public static async Task<UserProfile> LoadProfile(string name) {
+        public static async Task<UserProfile> LoadProfileAsync(string name) {
             if (!LoadedProfiles.Contains(name)) {
                 throw new ApplicationLogicException($"Profile '{name}' is not in the list of loaded profiles");
             }
 
-            var profileFolder = await Defaults.GetProfileFolder();
+            var profileFolder = await Defaults.GetProfileFolderAsync();
             var file = await profileFolder.GetFileAsync(name + ProfileFileNameExtension);
             using var stream = await file.OpenStreamForReadAsync();
             return await UserProfile.Deserialize(stream);
@@ -73,9 +73,9 @@ namespace ComicsViewer.Profiles {
             };
         }
 
-        public static async Task SaveProfile(UserProfile profile) {
+        public static async Task SaveProfileAsync(UserProfile profile) {
             var fileName = profile.Name + ProfileFileNameExtension;
-            var profileFolder = await Defaults.GetProfileFolder();
+            var profileFolder = await Defaults.GetProfileFolderAsync();
 
             StorageFile file;
 

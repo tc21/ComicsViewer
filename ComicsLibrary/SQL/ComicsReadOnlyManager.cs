@@ -14,9 +14,9 @@ namespace ComicsLibrary.SQL {
             this.Connection = new ComicsDatabaseConnection(new SqliteDatabaseConnection(connection));
         }
 
-        public async Task<IEnumerable<Comic>> AllComics() {
+        public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
             // TODO: intentionally not working for testing purposes
-            return await this.Connection.GetAllComics();
+            return await this.Connection.GetAllComicsAsync();
         }
     }
 }

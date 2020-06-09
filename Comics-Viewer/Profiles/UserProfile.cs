@@ -33,7 +33,7 @@ namespace ComicsViewer.Profiles {
         }
 
         // Profile helper methods
-        public async Task<IEnumerable<StorageFile>> FilesForComicAtPath(string path) {
+        public async Task<IEnumerable<StorageFile>> GetFilesForComicAtPathAsync(string path) {
             var folder = await StorageFolder.GetFolderFromPathAsync(path);
             var files = await folder.GetFilesAsync();
 
@@ -43,8 +43,8 @@ namespace ComicsViewer.Profiles {
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        public async Task<StorageFile?> FirstFileForComicAtPath(string path) {
-            foreach (var file in await this.FilesForComicAtPath(path)) {
+        public async Task<StorageFile?> GetFirstFileForComicAtPathAsync(string path) {
+            foreach (var file in await this.GetFilesForComicAtPathAsync(path)) {
                 return file;
             }
 

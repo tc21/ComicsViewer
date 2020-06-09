@@ -29,12 +29,12 @@ namespace ComicsViewer.ViewModels {
             this.comics = comics.ToList();
         }
 
-        public static async Task<ComicStore> CreateComicsStore(UserProfile profile) {
+        public static async Task<ComicStore> CreateComicsStoreAsync(UserProfile profile) {
             var databaseConnection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
             var manager = new ComicsReadOnlyManager(databaseConnection);
 
             await manager.Connection.OpenAsync();
-            var comics = await manager.AllComics();
+            var comics = await manager.GetAllComicsAsync();
             return new ComicStore(profile, comics);
         }
 

@@ -232,7 +232,7 @@ namespace ComicsViewer {
         private static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
         public static StorageFolder TempFolder => ApplicationData.Current.TemporaryFolder;
 
-        private static async Task<StorageFolder> ApplicationDataFolderNamed(string name) {
+        private static async Task<StorageFolder> GetApplicationDataFolderAsync(string name) {
             try {
                 return await ApplicationDataFolder.GetFolderAsync(name);
             } catch (FileNotFoundException) {
@@ -240,9 +240,9 @@ namespace ComicsViewer {
             }
         }
 
-        public static async Task<StorageFolder> GetProfileFolder() => await ApplicationDataFolderNamed("Profiles");
-        public static async Task<StorageFolder> GetDatabaseFolder() => await ApplicationDataFolderNamed("Databases");
-        public static async Task<StorageFolder> GetThumbnailFolder() => await ApplicationDataFolderNamed("Thumbnails");
+        public static async Task<StorageFolder> GetProfileFolderAsync() => await GetApplicationDataFolderAsync("Profiles");
+        public static async Task<StorageFolder> GetDatabaseFolderAsync() => await GetApplicationDataFolderAsync("Databases");
+        public static async Task<StorageFolder> GetThumbnailFolderAsync() => await GetApplicationDataFolderAsync("Thumbnails");
 
         public static string ProfileFolderPath => Path.Combine(ApplicationDataFolder.Path, "Profiles");
         public static string DatabaseFolderPath => Path.Combine(ApplicationDataFolder.Path, "Databases");
@@ -252,7 +252,7 @@ namespace ComicsViewer {
             return Path.Combine(DatabaseFolderPath, $"{profile.Name}.library.db");
         }
 
-        public static async Task<StorageFile> CreateTempFile(string desiredName) {
+        public static async Task<StorageFile> CreateTempFileAsync(string desiredName) {
             return await TempFolder.CreateFileAsync(desiredName, CreationCollisionOption.GenerateUniqueName);
         }
     }

@@ -34,7 +34,7 @@ namespace ComicsViewer {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
             }
 
-            await this.ViewModel!.OpenItems(grid.SelectedItems);
+            await this.ViewModel!.OpenItemsAsync(grid.SelectedItems);
         }
 
         // Prepares the grid before the right click context menu is shown
@@ -145,7 +145,7 @@ namespace ComicsViewer {
 
                 // Opens selected comics or navigates into the selected navigation item
                 this.OpenItemsCommand = new StandardUICommand(StandardUICommandKind.Open);
-                this.OpenItemsCommand.ExecuteRequested += async (sender, args) => await parent.ViewModel!.OpenItems(this.SelectedItems);
+                this.OpenItemsCommand.ExecuteRequested += async (sender, args) => await parent.ViewModel!.OpenItemsAsync(this.SelectedItems);
                 this.OpenItemsCommand.CanExecuteRequested += this.CanExecuteHandler(() 
                     => this.SelectedItemType == ComicItemType.Work || this.SelectedItemCount == 1);
 

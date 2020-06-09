@@ -35,10 +35,10 @@ namespace ComicsViewer {
                 suggestedProfile = ProfileManager.LoadedProfiles[0];
             }
 
-            return this.SetProfile(suggestedProfile);
+            return this.SetProfileAsync(suggestedProfile);
         }
 
-        public async Task SetProfile(string newProfileName) {
+        public async Task SetProfileAsync(string newProfileName) {
             if (!ProfileManager.LoadedProfiles.Contains(newProfileName)) {
                 throw new ApplicationLogicException("The application should not allow the user to switch to a non-existent profile.");
             }
@@ -46,8 +46,8 @@ namespace ComicsViewer {
             // update internal modeling
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
-            this.Profile = await ProfileManager.LoadProfile(newProfileName);
-            this.comicStore = await ComicStore.CreateComicsStore(Profile);
+            this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
+            this.comicStore = await ComicStore.CreateComicsStoreAsync(Profile);
             this.Filter.Clear();
 
             this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });

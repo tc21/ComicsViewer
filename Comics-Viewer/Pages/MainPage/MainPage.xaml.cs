@@ -55,7 +55,7 @@ namespace ComicsViewer {
         private async void NavigationView_Loaded(object sender, RoutedEventArgs e) {
             /* Note: The app currently doesn't support multiple pages, but it one day might. */
             if (!ProfileManager.Initialized) {
-                await ProfileManager.Initialize();
+                await ProfileManager.InitializeAsync();
             }
 
             this.ViewModel.ProfileChanged += this.ViewModel_ProfileChanged;
@@ -135,7 +135,7 @@ namespace ComicsViewer {
              */
             if (args.InvokedItemContainer.Tag == null) {
                 var profileName = args.InvokedItemContainer.Content.ToString();
-                await this.ViewModel.SetProfile(profileName);
+                await this.ViewModel.SetProfileAsync(profileName);
                 return;
             }
 
