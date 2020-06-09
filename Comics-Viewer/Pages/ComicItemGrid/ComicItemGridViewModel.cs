@@ -27,9 +27,10 @@ namespace ComicsViewer {
                 this.OnPropertyChanged();
             }
         }
+
         /* semi-manually managed properties */
         public List<ComicItem> ComicItems { get; private set; }
-        private void SetComicItems(List<ComicItem> items) {
+        internal void SetComicItems(List<ComicItem> items) {
             if (items == this.ComicItems) {
                 return;
             }
@@ -37,6 +38,7 @@ namespace ComicsViewer {
             this.ComicItems = items;
             this.OnPropertyChanged(nameof(this.ComicItems));
         }
+
         /* manually managed properties */
         public string[] SortSelectors => Sorting.SortSelectorNames;
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;

@@ -63,7 +63,7 @@ namespace ComicsViewer {
         internal const string DefaultNavigationTag = "comics";
         internal const string SecondLevelNavigationTag = "default";
 
-        private string selectedTopLevelNavigationTag = DefaultNavigationTag;
+        private string selectedTopLevelNavigationTag = "";
         public int NavigationLevel { get; private set; }
         public string ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : SecondLevelNavigationTag;
 
@@ -104,10 +104,15 @@ namespace ComicsViewer {
         }
 
         public void RefreshPage() {
+            if (this.ActiveNavigationTag == "") {
+                // This means the page isn't initialized for some reason, such as before the profile has even been load
+                return;
+            }
+
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { 
                 PageType = (this.NavigationLevel == 0) ? typeof(ComicItemGridTopLevelContainer) : typeof(ComicItemGridSecondLevelContainer),
                 Tag = this.ActiveNavigationTag,
-                NavigationType = NavigationType.New,
+                NavigationType = NavigationType.Refresh,
                 ComicItems = this.comicStore.ComicItemsForPage(this.Filter, this.ActiveNavigationTag)
             });
         }
@@ -158,6 +163,6 @@ namespace ComicsViewer {
     }
 
     public enum NavigationType {
-        Back, New, Scroll
+        Back, New, Scroll, Refresh
     }
 }

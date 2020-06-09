@@ -60,11 +60,12 @@ namespace ComicsViewer {
 
             this.ViewModel.ProfileChanged += this.ViewModel_ProfileChanged;
             this.ViewModel.NavigationRequested += this.ViewModel_NavigationRequested;
-            // We're probably not supposed to directly access the filter but whatever
-            this.ViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
 
             // Initialize view models and fire events for the first time
             await this.ViewModel.SetDefaultProfile();
+
+            // We're probably not supposed to directly access the filter but whatever
+            this.ViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
         }
 
         private void ViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
@@ -106,7 +107,7 @@ namespace ComicsViewer {
                     this.activeContent?.ScrollToTop();
                     break;
                 case NavigationType.New:
-                    if (e.PageType == null || e.ComicItems == null || e.TransitionInfo == null) {
+                    if (e.PageType == null || e.ComicItems == null) {
                         throw new ApplicationLogicException();
                     }
 
@@ -119,6 +120,12 @@ namespace ComicsViewer {
 
                     this.currentView.AppViewBackButtonVisibility =
                         (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
+                    break;
+                case NavigationType.Refresh:
+                    if (this.activeContent == null) {
+                        throw new ApplicationLogicException("Refresh commands should not be possible without an active items grid.");
+                    }
+                    // do nothing. handled by ComicItemGrid
                     break;
                 default:
                     throw new ApplicationLogicException($"Unhandled NavigationType '{e.NavigationType}'.");
