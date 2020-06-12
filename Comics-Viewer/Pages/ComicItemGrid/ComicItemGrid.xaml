@@ -63,6 +63,14 @@
                 <MenuFlyoutItem Tag="open" Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" helpers:Bindings.VisibilityToEnabled="True" />
                 <MenuFlyoutItem Text="Search selected" Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" helpers:Bindings.VisibilityToEnabled="True" />
             </MenuFlyout>
+            <Flyout x:Key="ComicInfoFlyout" ShouldConstrainToRootBounds="False">
+                <Flyout.FlyoutPresenterStyle>
+                    <Style TargetType="FlyoutPresenter">
+                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                    </Style>
+                </Flyout.FlyoutPresenterStyle>
+                <Frame x:Name="ComicInfoFlyoutFrame" />
+            </Flyout>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -97,14 +105,15 @@
             </ComboBox>
         </StackPanel>
 
-        <GridView x:Name="VisibleComicsGrid" 
+        <GridView x:Name="VisibleComicsGrid"
                   Grid.Row="1"
                   SelectionMode="Extended"
                   ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
                   SizeChanged="VisibleComicsGrid_SizeChanged"
-                  DoubleTapped="VisibleComicsGrid_DoubleTapped"
                   IsRightTapEnabled="True"
+                  Tapped="VisibleComicsGrid_Tapped"
                   RightTapped="VisibleComicsGrid_RightTapped"
+                  DoubleTapped="VisibleComicsGrid_DoubleTapped"
                   ItemTemplate="{StaticResource ComicItemTemplate}"
                   ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                   ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"

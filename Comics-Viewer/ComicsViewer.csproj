@@ -125,6 +125,11 @@
     </Compile>
     <Compile Include="Filters\Filter.cs" />
     <Compile Include="Filters\FilterPageNavigationArguments.cs" />
+    <Compile Include="Pages\ComicInfoPage\ComicInfoPage.xaml.cs">
+      <DependentUpon>ComicInfoPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ComicInfoPage\ComicInfoPageNavigationArguments.cs" />
+    <Compile Include="Pages\ComicInfoPage\ComicInfoPageViewModel.cs" />
     <Compile Include="Pages\FilterPage\FilterViewModel.cs" />
     <Compile Include="Pages\Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
@@ -238,6 +243,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Pages\ComicInfoPage\ComicInfoPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\ComicItemGrid\ComicItemGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

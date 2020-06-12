@@ -133,7 +133,7 @@ namespace ComicsViewer {
         }
 
         // Helper function to open GridView.SelectedItems
-        internal Task OpenItemsAsync(IList<object> items) {
+        internal Task OpenItemsAsync(IEnumerable<object> items) {
             return this.OpenItemsAsync(items.Cast<ComicItem>());
         }
 

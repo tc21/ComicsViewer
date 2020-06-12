@@ -1,15 +1,19 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Pages;
 using ComicsViewer.Profiles;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -29,9 +33,52 @@ namespace ComicsViewer {
             this.ContextMenuCommands = new ComicItemGridCommands(this);
         }
 
+        private async void VisibleComicsGrid_Tapped(object sender, TappedRoutedEventArgs e) {
+            var controlKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
+            var shiftKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
+
+            if ((controlKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (shiftKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down) {
+                // The user is selecting something. Ignore this.
+                return;
+            }
+
+            // TODO we need to fix this triggering for the mouse forward/backwards buttons
+
+            if (!(sender is GridView)) {
+                throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
+            }
+
+            var tappedElement = (FrameworkElement)e.OriginalSource;
+            if (!(tappedElement.DataContext is ComicItem comicItem)) {
+                // The right click happened on an empty space
+                return;
+            }
+
+            if (comicItem.ItemType == ComicItemType.Navigation) {
+                await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
+                return;
+            }
+
+            // When this is implemented, it will completely replace the DoubleTapped features. 
+            var flyout = (this.Resources["ComicInfoFlyout"] as Flyout)!;
+            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
+                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem));
+            flyout.ShowAt(tappedElement, new FlyoutShowOptions { ExclusionRect = new Rect(0, 0, 0, 0) });
+        }
+
         private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _) {
             if (!(sender is GridView grid)) {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
+            }
+
+            if (grid.SelectedItems.Count == 0) {
+                return;
+            }
+
+            if (((ComicItem)grid.SelectedItems[0]).ItemType == ComicItemType.Navigation) {
+                // already handled by single tap
+                return;
             }
 
             await this.ViewModel!.OpenItemsAsync(grid.SelectedItems);
@@ -132,7 +179,7 @@ namespace ComicsViewer {
                 // Opens selected comics or navigates into the selected navigation item
                 this.OpenItemsCommand = new StandardUICommand(StandardUICommandKind.Open);
                 this.OpenItemsCommand.ExecuteRequested += async (sender, args) => await parent.ViewModel!.OpenItemsAsync(this.SelectedItems);
-                this.OpenItemsCommand.CanExecuteRequested += this.CanExecuteHandler(() 
+                this.OpenItemsCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work || this.SelectedItemCount == 1);
 
                 // Generates and executes a search limiting visible items to those selected
@@ -167,7 +214,8 @@ namespace ComicsViewer {
         private string GetDynamicFlyoutText(string tag) {
             var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
 
-            return tag switch {
+            return tag switch
+            {
                 "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") +
                           (this.VisibleComicsGrid.SelectedItems.Count > 1 ? $" {this.VisibleComicsGrid.SelectedItems.Count} items" : ""),
                 "search" => "Search selected",
@@ -203,13 +251,4 @@ namespace ComicsViewer {
 
         #endregion
     }
-    //public class RequestingNavigationEventArgs {
-    //    public ComicNavigationItem? NavigationItem { get; set; }
-    //    public RequestingNavigationType NavigationType { get; set; }
-    //}
-
-    /* Handled at MainPage -> ComicItemGrid_RequestingNavigation */
-    //public enum RequestingNavigationType {
-    //    Into, Search
-    //}
 }
