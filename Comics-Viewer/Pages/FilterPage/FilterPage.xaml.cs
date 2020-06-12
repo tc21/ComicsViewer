@@ -37,11 +37,11 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException("FilterPage must receive a FilterPageNavigationArguments as its navigation argument");
             }
 
-            if (args.Filter == null || args.AuxiliaryInfo == null) {
-                throw new ApplicationLogicException("args.Filter cannot be null");
+            if (args.Filter == null || args.AuxiliaryInfo == null || args.ParentViewModel == null) {
+                throw new ApplicationLogicException("args cannot be null");
             }
 
-            this.ViewModel = new FilterViewModel(args.Filter!, args.AuxiliaryInfo);
+            this.ViewModel = new FilterViewModel(args.ParentViewModel, args.Filter, args.AuxiliaryInfo);
 
             /* Note: SelectedItems is currently being set BEFORE ItemsSource, and our solution of allowing it to be
              * done is more of a hack than the proper way to handle it. One day we might decide it to be better to set

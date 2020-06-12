@@ -94,11 +94,6 @@ namespace ComicsViewer.Support.Controls {
             var removedItems = this.selectedItems.ToList();
             this.selectedItems.Clear();
 
-            // Unfortunately the logic in SelectedItems.set doesn't seem to work for some reason
-            // so here's a hacky way to do the same thing
-            //foreach (var itemListChild in this.ItemList.ItemsPanelRoot.Children) {
-            //    itemListChild.FindDescendant<CheckBox>().IsChecked = false;
-            //}
             foreach (var item in this.itemListItemsSource) {
                 item.IsChecked = this.selectedItems.Contains(item.Item);
             }
@@ -129,8 +124,11 @@ namespace ComicsViewer.Support.Controls {
         private void ExpandableChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
             if (this.selectedItems.Count == 0) {
                 this.DeselectAllButton.Visibility = Visibility.Collapsed;
+                this.SelectedItemsIndicator.Visibility = Visibility.Collapsed;
             } else {
+                this.SelectedItemsCounter.Text = this.selectedItems.Count.ToString();
                 this.DeselectAllButton.Visibility = Visibility.Visible;
+                this.SelectedItemsIndicator.Visibility = Visibility.Visible;
             }
         }
 

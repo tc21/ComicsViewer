@@ -77,29 +77,36 @@
             </Grid.ColumnDefinitions>
             <CheckBox Grid.Column="0"
                       Content="Only show loved"
-                      IsChecked="{x:Bind ViewModel.OnlyShowLovedChecked}" />
+                      IsChecked="{x:Bind ViewModel.OnlyShowLovedChecked, Mode=TwoWay}" />
             <CheckBox Grid.Column="1"
                       Margin="12 4"
                       Content="Show disliked"
-                      IsChecked="{x:Bind ViewModel.ShowDislikedChecked}" />
+                      IsChecked="{x:Bind ViewModel.ShowDislikedChecked, Mode=TwoWay}" />
         </Grid>
 
         <uc:ExpandableChecklist x:Name="CategoryChecklist"
                                 Grid.Row="2" Header="Categories"
                                 ItemsSource="{x:Bind ViewModel.Categories}"
-                                MaxHeight="600"
+                                MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
         
         <uc:ExpandableChecklist x:Name="AuthorChecklist"
                                 Grid.Row="3" Header="Authors"
                                 ItemsSource="{x:Bind ViewModel.Authors}"
-                                MaxHeight="600"
+                                MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
 
         <uc:ExpandableChecklist x:Name="TagChecklist"
                                 Grid.Row="4" Header="Tags"
                                 ItemsSource="{x:Bind ViewModel.Tags}"
-                                MaxHeight="600"
+                                MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
+
+        <StackPanel Orientation="Horizontal" Margin="12 4">
+            <TextBlock Text="{x:Bind ViewModel.ParentViewModel.VisibleItemCount, Mode=OneWay}"
+                       Style="{StaticResource DimmedTextStyle}"/>
+            <TextBlock Text=" item(s) visible"
+                       Style="{StaticResource DimmedTextStyle}"/>
+        </StackPanel>
     </StackPanel>
 </Page>

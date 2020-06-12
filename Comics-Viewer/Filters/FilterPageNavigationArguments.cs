@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace ComicsViewer.Filters {
     public class FilterPageNavigationArguments {
         public Filter? Filter { get; set; }
+        public ComicItemGridViewModel? ParentViewModel { get; set; }
         public FilterViewAuxiliaryInfo? AuxiliaryInfo { get; set; }
     }
 }

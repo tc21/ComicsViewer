@@ -39,6 +39,7 @@ namespace ComicsViewer {
 
             this.ComicItems = items;
             this.OnPropertyChanged(nameof(this.ComicItems));
+            this.OnPropertyChanged(nameof(this.VisibleItemCount));
         }
 
         /* manually managed properties */
@@ -46,6 +47,7 @@ namespace ComicsViewer {
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public string ProfileName => this.MainViewModel.Profile.Name;
+        public int VisibleItemCount => this.ComicItems.Count;
 
         internal readonly MainViewModel MainViewModel;
         private readonly List<Comic> comics;
@@ -85,7 +87,6 @@ namespace ComicsViewer {
             } else {
                 this.SetComicItems(Sorting.Sorted(comicItems, (Sorting.SortSelector)this.SelectedSortIndex));
             }
-
         }
 
         private static IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {

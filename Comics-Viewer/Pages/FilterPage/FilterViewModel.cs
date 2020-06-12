@@ -46,9 +46,11 @@ namespace ComicsViewer.Filters {
             }
         }
 
+        internal ComicItemGridViewModel ParentViewModel { get; }
         internal Filter Filter { get; }
 
-        public FilterViewModel(Filter filter, FilterViewAuxiliaryInfo info) {
+        public FilterViewModel(ComicItemGridViewModel parentViewModel,  Filter filter, FilterViewAuxiliaryInfo info) {
+            this.ParentViewModel = parentViewModel;
             this.Filter = filter;
 
             this.Categories = info.Categories.OrderBy(x => x.Name).ToList();

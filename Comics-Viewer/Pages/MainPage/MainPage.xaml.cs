@@ -192,8 +192,13 @@ namespace ComicsViewer {
         #endregion
 
         private void FilterNavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e) {
+            if (this.activeContent == null) {
+                // The app isn't ready yet
+                return;
+            }
+
             var flyout = (this.Resources["FilterFlyout"] as Flyout)!;
-            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.ViewModel.GetFilterPageNavigationArguments());
+            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel));
             flyout.ShowAt(sender as FrameworkElement);
         }
 

@@ -157,11 +157,12 @@ namespace ComicsViewer {
             }
         }
 
-        public FilterPageNavigationArguments GetFilterPageNavigationArguments() {
+        public FilterPageNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
             var info = this.GetAuxiliaryInfo(this.Filter);
 
             return new FilterPageNavigationArguments {
                 Filter = this.Filter,
+                ParentViewModel = parentViewModel,
                 AuxiliaryInfo = info
             };
         }
