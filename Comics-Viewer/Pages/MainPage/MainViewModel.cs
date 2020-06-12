@@ -61,6 +61,10 @@ namespace ComicsViewer {
         public event ProfileChangedEventHandler? ProfileChanged;
         public delegate void ProfileChangedEventHandler(MainViewModel sender, ProfileChangedEventArgs e);
 
+        internal void NotifyProfileChanged(ProfileChangeType type) {
+            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { ChangeType = type, NewProile = this.Profile });
+        }
+
         #endregion
 
         #region Navigation
@@ -190,7 +194,12 @@ namespace ComicsViewer {
     }
 
     public class ProfileChangedEventArgs {
+        public ProfileChangeType ChangeType = ProfileChangeType.ProfileChanged;
         public UserProfile NewProile { get; set; } = new UserProfile();
+    }
+
+    public enum ProfileChangeType {
+        ProfileChanged, SettingsChanged
     }
 
     public class NavigationRequestedEventArgs {

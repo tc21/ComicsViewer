@@ -139,6 +139,11 @@
     </Compile>
     <Compile Include="Pages\Helpers\Bindings.cs" />
     <Compile Include="Pages\Helpers\CheckBoxItem.cs" />
+    <Compile Include="Pages\SettingsPage\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SettingsPage\SettingsPageNavigationArguments.cs" />
+    <Compile Include="Pages\SettingsPage\SettingsPageViewModel.cs" />
     <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>
@@ -252,6 +257,10 @@
     <Page Include="Pages\MainPage\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\SettingsPage\SettingsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Support\Controls\ExpandableChecklist.xaml">
       <SubType>Designer</SubType>

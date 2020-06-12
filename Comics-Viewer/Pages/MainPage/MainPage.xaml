@@ -90,8 +90,8 @@
             </muxc:NavigationView.PaneCustomContent>
 
             <Frame x:Name="ContentFrame" 
-                   Margin="0 40 0 0"
-                   NavigationFailed="ContentFrame_NavigationFailed" />
+                    Margin="0 40 0 0"
+                    NavigationFailed="Frame_NavigationFailed"/>
         </muxc:NavigationView>
     </Grid>
 </Page>

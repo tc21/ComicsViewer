@@ -69,7 +69,9 @@ namespace ComicsViewer {
         }
 
         private void ViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
-            // TODO startup permission checks
+            if (e.ChangeType != ProfileChangeType.ProfileChanged) {
+                return;
+            }
 
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
@@ -128,6 +130,15 @@ namespace ComicsViewer {
         }
 
         private async void NavigationView_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args) {
+            if (args.IsSettingsInvoked) {
+                // Don't navigate to settings twice
+                if (!(this.ContentFrame.Content is SettingsPage)) {
+                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
+                    this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel!, this.ViewModel!.Profile));
+                }
+                return;
+            }
+            
             /* There are two types of navigation view items that can be invoked:
              * 1. A "profile switch" item: Tag = null, Content = <profile name>
              * 2. A "navigate" item: Tag = <page type>
@@ -148,7 +159,7 @@ namespace ComicsViewer {
             this.ViewModel.NavigateOut();
         }
 
-        private void ContentFrame_NavigationFailed(object _, NavigationFailedEventArgs e) {
+        private void Frame_NavigationFailed(object _, NavigationFailedEventArgs e) {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
@@ -198,7 +209,7 @@ namespace ComicsViewer {
             }
 
             var flyout = (this.Resources["FilterFlyout"] as Flyout)!;
-            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel));
+            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel!));
             flyout.ShowAt(sender as FrameworkElement);
         }
 

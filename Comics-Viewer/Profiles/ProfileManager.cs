@@ -14,7 +14,6 @@ namespace ComicsViewer.Profiles {
     public static class ProfileManager {
         public const string ProfileFileNameExtension = ".profile.json";
 
-
         public static bool Initialized { get; private set; } = false;
         public static readonly List<string> LoadedProfiles = new List<string>();
 
