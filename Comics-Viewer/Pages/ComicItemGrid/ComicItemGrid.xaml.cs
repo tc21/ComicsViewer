@@ -95,7 +95,6 @@ namespace ComicsViewer {
                 // Initialize this page only when creating a new page, 
                 // not when the user returned to this page by pressing the back button
                 this.ViewModel = args.ViewModel;
-                this.ViewModel.MainViewModel.NavigationRequested += this.MainViewModel_NavigationRequested;
             }
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
@@ -106,18 +105,6 @@ namespace ComicsViewer {
             this.OnNavigatedTo(e);
         }
 
-
-        private void MainViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
-            switch (e.NavigationType) {
-                case NavigationType.Refresh:
-                    if (e.ComicItems == null) {
-                        throw new ApplicationLogicException();
-                    }
-
-                    this.ViewModel!.SetComicItems(e.ComicItems.ToList());
-                    break;
-            }
-        }
         #endregion
 
         #region Context menu commands

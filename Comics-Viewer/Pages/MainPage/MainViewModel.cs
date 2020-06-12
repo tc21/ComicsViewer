@@ -1,8 +1,12 @@
 ﻿using ComicsLibrary;
+using ComicsLibrary.SQL;
 using ComicsViewer.ComicGrid;
 using ComicsViewer.Filters;
+using ComicsViewer.Pages.Helpers;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +18,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace ComicsViewer {
     public class MainViewModel {
-        private ComicStore comicStore = ComicStore.EmptyComicStore;
-
-        public MainViewModel() {
-            this.Filter.FilterChanged += this.Filter_FilterChanged;
-        }
+        private List<Comic> comics = new List<Comic>();
 
         #region Profiles 
 
@@ -47,7 +47,12 @@ namespace ComicsViewer {
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
-            this.comicStore = await ComicStore.CreateComicsStoreAsync(Profile);
+
+            var databaseConnection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
+            var manager = new ComicsReadOnlyManager(databaseConnection);
+            await manager.Connection.OpenAsync();
+            this.comics = (await manager.GetAllComicsAsync()).ToList();
+
             this.Filter.Clear();
 
             this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });
@@ -78,8 +83,9 @@ namespace ComicsViewer {
                 Tag = navigationTag,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
                 NavigationType = navigationType,
-                ComicItems = this.comicStore.ComicItemsForPage(this.Filter, navigationTag)
+                Comics = this.comics
             });
+            ;
         }
 
         public void NavigateOut() {
@@ -94,7 +100,7 @@ namespace ComicsViewer {
                 Tag = SecondLevelNavigationTag,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                ComicItems = item.Comics.Select(comic => ComicItem.WorkItem(comic))
+                Comics = item.Comics
             });
         }
 
@@ -102,20 +108,6 @@ namespace ComicsViewer {
             var comics = items.SelectMany(item => item.Comics).Select(item => item.UniqueIdentifier).ToHashSet();
             this.Filter.GeneratedFilter = comic => comics.Contains(comic.UniqueIdentifier);
             this.Filter.Metadata.GeneratedFilterItemCount = comics.Count;
-        }
-
-        public void RefreshPage() {
-            if (this.ActiveNavigationTag == "") {
-                // This means the page isn't initialized for some reason, such as before the profile has even been load
-                return;
-            }
-
-            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { 
-                PageType = (this.NavigationLevel == 0) ? typeof(ComicItemGridTopLevelContainer) : typeof(ComicItemGridSecondLevelContainer),
-                Tag = this.ActiveNavigationTag,
-                NavigationType = NavigationType.Refresh,
-                ComicItems = this.comicStore.ComicItemsForPage(this.Filter, this.ActiveNavigationTag)
-            });
         }
 
         public event NavigationRequestedEventHandler? NavigationRequested;
@@ -127,9 +119,6 @@ namespace ComicsViewer {
 
         internal readonly Filter Filter = new Filter();
 
-        private void Filter_FilterChanged(Filter filter) {
-            this.RefreshPage();
-        }
         // Called when a search is successfully compiled and submitted
         // Note: this happens at AppViewModel because filters are per-app
         public void SubmitSearch(Func<Comic, bool> search, string? searchText = null) {
@@ -169,7 +158,7 @@ namespace ComicsViewer {
         }
 
         public FilterPageNavigationArguments GetFilterPageNavigationArguments() {
-            var info = this.comicStore.GetAuxiliaryInfo(this.Filter);
+            var info = this.GetAuxiliaryInfo(this.Filter);
 
             return new FilterPageNavigationArguments {
                 Filter = this.Filter,
@@ -177,6 +166,25 @@ namespace ComicsViewer {
             };
         }
 
+        private FilterViewAuxiliaryInfo GetAuxiliaryInfo(Filter? filter) {
+            var categories = new DefaultDictionary<string, int>();
+            var authors = new DefaultDictionary<string, int>();
+            var tags = new DefaultDictionary<string, int>();
+
+            foreach (var comic in this.comics) {
+                if (filter != null && !filter.ShouldBeVisible(comic)) {
+                    continue;
+                }
+
+                categories[comic.DisplayCategory] += 1;
+                authors[comic.DisplayAuthor] += 1;
+                foreach (var tag in comic.Tags) {
+                    tags[tag] += 1;
+                }
+            }
+
+            return new FilterViewAuxiliaryInfo(categories, authors, tags);
+        }
         #endregion
     }
 
@@ -187,13 +195,13 @@ namespace ComicsViewer {
     public class NavigationRequestedEventArgs {
         public Type? PageType { get; set; }
         public string? Tag { get; set; }
-        public IEnumerable<ComicItem>? ComicItems { get; set; }
+        public IEnumerable<Comic>? Comics { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
         public NavigationType NavigationType { get; set; } = NavigationType.New;
     }
 
     public enum NavigationType {
-        Back, New, Scroll, Refresh
+        Back, New, Scroll
     }
 }

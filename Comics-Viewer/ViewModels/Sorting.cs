@@ -14,9 +14,9 @@ namespace ComicsViewer.ViewModels {
 
         public static readonly string[] SortSelectorNames = { "Title", "Author", "Date Added", "Item Count", "Random" };
 
-        public static List<ComicItem> Sorted(List<ComicItem> items, SortSelector sortSelector) {
+        public static List<ComicItem> Sorted(IEnumerable<ComicItem> items, SortSelector sortSelector) {
             if (sortSelector == SortSelector.Random) {
-                return items.OrderBy(_ => App.Randomizer.Next()).ToList();
+                throw new ApplicationLogicException("Random sorting must be handled manually by respective view models");
             }
 
             // Note: We don't actually use the original list ever again, but we probably don't need to optimize for, what,

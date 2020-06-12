@@ -1,4 +1,6 @@
-﻿using ComicsViewer.Profiles;
+﻿using ComicsLibrary;
+using ComicsViewer.Filters;
+using ComicsViewer.Profiles;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace ComicsViewer {
         }
 
         /* semi-manually managed properties */
-        public List<ComicItem> ComicItems { get; private set; }
+        public List<ComicItem> ComicItems { get; private set; } = new List<ComicItem>();
         internal void SetComicItems(List<ComicItem> items) {
             if (items == this.ComicItems) {
                 return;
@@ -46,19 +48,87 @@ namespace ComicsViewer {
         public string ProfileName => this.MainViewModel.Profile.Name;
 
         internal readonly MainViewModel MainViewModel;
+        private readonly List<Comic> comics;
+        // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
+        private readonly string navigationTag;
+        // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
+        // track of that order here
+        private Dictionary<string, int> randomSortSelectors;
 
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
-        public ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<ComicItem> comicItems) {
-            this.ComicItems = comicItems.ToList();
+        public ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<Comic> comics) {
             this.MainViewModel = appViewModel;
+            this.comics = comics.ToList();
+            this.navigationTag = appViewModel.ActiveNavigationTag;
 
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged += this.AppViewModel_ProfileChanged;
+            this.MainViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
+
+            var allComicItems = CreateComicItems(this.comics, null, this.navigationTag);
+            this.randomSortSelectors = allComicItems.Select(item => item.Title).Distinct().ToDictionary(e => e, _ => 0);
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
+
+            // Loads the actual comic items
+            this.RefreshComicItems();
+        }
+
+        private void RefreshComicItems() {
+            var comicItems = CreateComicItems(comics, this.MainViewModel.Filter, this.navigationTag);
+
+            if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
+                this.SetComicItems(comicItems.OrderBy(i => this.randomSortSelectors[i.Title]).ToList());
+            } else {
+                this.SetComicItems(Sorting.Sorted(comicItems, (Sorting.SortSelector)this.SelectedSortIndex));
+            }
+
+        }
+
+        private static IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {
+            return navigationTag switch {
+                "default" => FilterAndGroupComicItems(comics, filter, null),
+                "comics" => FilterAndGroupComicItems(comics, filter, null),
+                "authors" => FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayAuthor }),
+                "categories" => FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayCategory }),
+                "tags" => FilterAndGroupComicItems(comics, filter, comic => comic.Tags),
+                _ => throw new ApplicationLogicException($"Invalid navigation tag '{navigationTag}' when creating comic items."),
+            };
+        }
+
+        private static IEnumerable<ComicItem> FilterAndGroupComicItems(IEnumerable<Comic> comics, Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
+            if (filter != null) {
+                comics = comics.Where(filter.ShouldBeVisible);
+            }
+
+            var comicItems = new List<ComicItem>();
+
+            if (groupBy == null) {
+                return comics.Select(comic => ComicItem.WorkItem(comic));
+            } else {
+                return GroupByMultiple(comics, groupBy);
+            }
+        }
+
+        private static IEnumerable<ComicItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
+            var dict = new Dictionary<string, List<Comic>>();
+
+            foreach (var comic in comics) {
+                foreach (var key in groupBy(comic)) {
+                    if (!dict.ContainsKey(key)) {
+                        dict[key] = new List<Comic>();
+                    }
+
+                    dict[key].Add(comic);
+                }
+            }
+
+            foreach (var pair in dict) {
+                yield return ComicItem.NavigationItem(pair.Key, pair.Value);
+            }
         }
 
         // Helper function to open GridView.SelectedItems
@@ -96,9 +166,18 @@ namespace ComicsViewer {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
                     Defaults.SettingsAccessor.SetLastSortSelection(this.MainViewModel.ActiveNavigationTag, this.SelectedSortIndex);
-                    this.SetComicItems(Sorting.Sorted(this.ComicItems, (Sorting.SortSelector)this.SelectedSortIndex));
+
+                    if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
+                        this.randomSortSelectors = this.randomSortSelectors.Keys.ToDictionary(e => e, _ => App.Randomizer.Next());
+                    }
+
+                    this.RefreshComicItems();
                     break;
             }
+        }
+
+        private void Filter_FilterChanged(Filter filter) {
+            this.RefreshComicItems();
         }
 
         private void AppViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {

@@ -161,7 +161,6 @@
     <Compile Include="Support\ApplicationLogicException.cs" />
     <Compile Include="Support\Thumbnail.cs" />
     <Compile Include="ViewModels\ComicItem.cs" />
-    <Compile Include="ViewModels\ComicStore.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
     <Compile Include="Pages\Helpers\CountedString.cs" />

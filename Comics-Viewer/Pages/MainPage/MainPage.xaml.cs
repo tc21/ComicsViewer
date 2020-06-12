@@ -107,12 +107,12 @@ namespace ComicsViewer {
                     this.activeContent?.ScrollToTop();
                     break;
                 case NavigationType.New:
-                    if (e.PageType == null || e.ComicItems == null) {
+                    if (e.PageType == null || e.Comics == null) {
                         throw new ApplicationLogicException();
                     }
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
-                        ViewModel = new ComicItemGridViewModel(sender, e.ComicItems),
+                        ViewModel = new ComicItemGridViewModel(sender, e.Comics),
                         OnNavigatedTo = (grid, e) => this.activeContent = grid
                     };
 
@@ -120,12 +120,6 @@ namespace ComicsViewer {
 
                     this.currentView.AppViewBackButtonVisibility =
                         (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
-                    break;
-                case NavigationType.Refresh:
-                    if (this.activeContent == null) {
-                        throw new ApplicationLogicException("Refresh commands should not be possible without an active items grid.");
-                    }
-                    // do nothing. handled by ComicItemGrid
                     break;
                 default:
                     throw new ApplicationLogicException($"Unhandled NavigationType '{e.NavigationType}'.");
