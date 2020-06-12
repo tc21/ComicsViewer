@@ -169,13 +169,11 @@ namespace ComicsViewer {
         }
 
         public FilterPageNavigationArguments GetFilterPageNavigationArguments() {
-            var (categories, authors, tags) = this.comicStore.GetAuxiliaryInfo(this.Filter);
+            var info = this.comicStore.GetAuxiliaryInfo(this.Filter);
 
             return new FilterPageNavigationArguments {
                 Filter = this.Filter,
-                VisibleAuthors = authors,
-                VisibleCategories = categories,
-                VisibleTags = tags
+                AuxiliaryInfo = info
             };
         }
 

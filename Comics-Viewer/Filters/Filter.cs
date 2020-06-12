@@ -41,6 +41,10 @@ namespace ComicsViewer.Filters {
         public Func<Comic, bool>? GeneratedFilter {
             get => this.generatedFilter;
             set { 
+                if (this.generatedFilter == value) {
+                    return;
+                }
+
                 this.generatedFilter = value;
                 this.SendNotification();
             }
@@ -49,6 +53,10 @@ namespace ComicsViewer.Filters {
         public Func<Comic, bool>? Search {
             get => this.search;
             set {
+                if (this.search == value) {
+                    return;
+                }
+
                 this.search = value;
                 this.SendNotification();
             }
@@ -57,6 +65,10 @@ namespace ComicsViewer.Filters {
         public bool OnlyShowLoved {
             get => this.onlyShowLoved;
             set {
+                if (this.onlyShowLoved == value) {
+                    return;
+                }
+
                 this.onlyShowLoved = value;
                 this.SendNotification();
             }
@@ -65,6 +77,10 @@ namespace ComicsViewer.Filters {
         public bool ShowDisliked {
             get => this.showDisliked;
             set {
+                if (this.showDisliked == value) {
+                    return;
+                }
+
                 this.showDisliked = value;
                 this.SendNotification();
             }
@@ -83,17 +99,25 @@ namespace ComicsViewer.Filters {
 
         private bool AddTo(HashSet<string> set, string item) {
             var result = set.Add(item);
-            this.SendNotification();
+            if (result) {
+                this.SendNotification();
+            }
             return result;
         }
 
         private bool RemoveFrom(HashSet<string> set, string item) {
             var result = set.Remove(item);
-            this.SendNotification();
+            if (result) {
+                this.SendNotification();
+            }
             return result;
         }
 
         private void Clear(HashSet<string> set) {
+            if (set.Count == 0) {
+                return;
+            }
+
             set.Clear();
             this.SendNotification();
         }
@@ -115,6 +139,14 @@ namespace ComicsViewer.Filters {
             }
 
             if (this.selectedTags.Count != 0 && comic.Tags.All(tag => !this.selectedTags.Contains(tag))) {
+                return false;
+            }
+
+            if (this.onlyShowLoved && !comic.Loved) {
+                return false;
+            }
+
+            if (!this.showDisliked && comic.Disliked) {
                 return false;
             }
 

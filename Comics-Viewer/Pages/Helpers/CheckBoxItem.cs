@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace ComicsViewer.Support.Controls {
-    public class CheckBoxItem : ViewModelBase {
-        public string Name { get; }
+namespace ComicsViewer.Pages.Helpers {
+    public class CheckBoxItem<T> : ViewModelBase {
+        public T Item { get; }
 
         private bool isChecked;
         public bool IsChecked {
@@ -24,8 +24,8 @@ namespace ComicsViewer.Support.Controls {
             }
         }
 
-        public CheckBoxItem(string name, bool isChecked = false) {
-            this.Name = name;
+        public CheckBoxItem(T name, bool isChecked = false) {
+            this.Item = name;
             this.isChecked = isChecked;
         }
     }

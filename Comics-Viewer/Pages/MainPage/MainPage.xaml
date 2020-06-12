@@ -15,8 +15,7 @@
                       TintColor="{ThemeResource SystemChromeLowColor}"
                       TintOpacity="0.8"
                       FallbackColor="{ThemeResource SystemChromeLowColor}" />
-
-        <Flyout x:Key="FilterFlyout">
+        <Flyout x:Key="FilterFlyout" ShouldConstrainToRootBounds="False">
             <Frame x:Name="FilterFlyoutFrame" />
         </Flyout>
     </Page.Resources>

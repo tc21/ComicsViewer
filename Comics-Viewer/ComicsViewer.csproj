@@ -12,7 +12,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.18362.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -138,7 +138,7 @@
       <DependentUpon>FilterPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\Helpers\Bindings.cs" />
-    <Compile Include="Support\Controls\CheckBoxItem.cs" />
+    <Compile Include="Pages\Helpers\CheckBoxItem.cs" />
     <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>
@@ -152,6 +152,9 @@
     <Compile Include="Profiles\Startup.cs" />
     <Compile Include="Profiles\UserProfile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\Controls\ExpandableChecklist.xaml.cs">
+      <DependentUpon>ExpandableChecklist.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Support\DefaultDictionary.cs" />
     <Compile Include="Support\DeferredNotify.cs" />
     <Compile Include="Support\Search.cs" />
@@ -161,6 +164,8 @@
     <Compile Include="ViewModels\ComicStore.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
+    <Compile Include="Pages\Helpers\CountedString.cs" />
+    <Compile Include="Pages\Helpers\FilterViewAuxiliaryInfo.cs" />
     <Compile Include="ViewModels\Sorting.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
   </ItemGroup>
@@ -249,6 +254,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Support\Controls\ExpandableChecklist.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite">
@@ -277,6 +286,7 @@
       <Name>ComicsLibrary</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

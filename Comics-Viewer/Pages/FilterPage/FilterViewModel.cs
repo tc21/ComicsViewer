@@ -1,5 +1,5 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Support.Controls;
+using ComicsViewer.Pages.Helpers;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 #nullable enable
@@ -25,9 +26,10 @@ namespace ComicsViewer.Filters {
         public bool GeneratedFilterEnabled => this.Filter.GeneratedFilter != null;
         public string GeneratedFilterDescription => $"Automatically generated filter ({this.Filter.Metadata.GeneratedFilterItemCount} items)";
 
-        public List<string> Categories { get; }
-        public List<string> Authors { get; }
-        public List<string> Tags { get; }
+        // TODO come up with a better name than CountedString?
+        public List<CountedString> Categories { get; }
+        public List<CountedString> Authors { get; }
+        public List<CountedString> Tags { get; }
 
         public bool OnlyShowLovedChecked {
             get => this.Filter.OnlyShowLoved;
@@ -46,12 +48,12 @@ namespace ComicsViewer.Filters {
 
         internal Filter Filter { get; }
 
-        public FilterViewModel(Filter filter, IEnumerable<string>? categories, IEnumerable<string>? authors, IEnumerable<string>? tags) {
+        public FilterViewModel(Filter filter, FilterViewAuxiliaryInfo info) {
             this.Filter = filter;
 
-            this.Categories = categories.OrderBy(x => x).ToList();
-            this.Authors = authors.OrderBy(x => x).ToList();
-            this.Tags = tags.OrderBy(x => x).ToList();
+            this.Categories = info.Categories.OrderBy(x => x.Name).ToList();
+            this.Authors = info.Authors.OrderBy(x => x.Name).ToList();
+            this.Tags = info.Tags.Where(x => x.Count > 1).OrderByDescending(x => x.Count).ToList();
         }
     }
 }

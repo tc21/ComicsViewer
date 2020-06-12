@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Filters;
 using ComicsViewer.ViewModels;
+using Controls = Microsoft.Toolkit.Uwp.UI.Controls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +17,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using ComicsViewer.Support.Controls;
 
 #nullable enable
 
@@ -35,55 +37,62 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException("FilterPage must receive a FilterPageNavigationArguments as its navigation argument");
             }
 
-            if (args.Filter == null) {
+            if (args.Filter == null || args.AuxiliaryInfo == null) {
                 throw new ApplicationLogicException("args.Filter cannot be null");
             }
 
-            this.ViewModel = new FilterViewModel(args.Filter!, args.VisibleCategories, args.VisibleAuthors, args.VisibleTags);
+            this.ViewModel = new FilterViewModel(args.Filter!, args.AuxiliaryInfo);
+
+            /* Note: SelectedItems is currently being set BEFORE ItemsSource, and our solution of allowing it to be
+             * done is more of a hack than the proper way to handle it. One day we might decide it to be better to set
+             * ItemsSource manually in code in these lines, before setting SelectedItems. */
+            this.CategoryChecklist.SelectedItems = this.ViewModel.Categories.Where(e => this.ViewModel.Filter.ContainsCategory(e.Name));
+            this.AuthorChecklist.SelectedItems = this.ViewModel.Authors.Where(e => this.ViewModel.Filter.ContainsAuthor(e.Name));
+            this.TagChecklist.SelectedItems = this.ViewModel.Tags.Where(e => this.ViewModel.Filter.ContainsTag(e.Name));
+
+            /* Another note: setting SelectedItems trigger a SelectedItemsChanged event, which we don't want to happen
+             * until after they're initialized */
+            this.CategoryChecklist.SelectedItemsChanged += this.CategoryChecklist_SelectedItemsChanged;
+            this.AuthorChecklist.SelectedItemsChanged += this.AuthorChecklist_SelectedItemsChanged;
+            this.TagChecklist.SelectedItemsChanged += this.TagChecklist_SelectedItemsChanged;
         }
 
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {
             this.ViewModel!.GeneratedFilter = null;
         }
 
-        private void ListView_CategorySelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void CategoryChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
             var filter = this.ViewModel!.Filter;
+            this.HandleSelectionChange(e, filter, filter.AddCategory, filter.RemoveCategory);
+        }
 
+        private void AuthorChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
+            var filter = this.ViewModel!.Filter;
+            this.HandleSelectionChange(e, filter, filter.AddAuthor, filter.RemoveAuthor);
+        }
+
+        private void TagChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
+            var filter = this.ViewModel!.Filter;
+            this.HandleSelectionChange(e, filter, filter.AddTag, filter.RemoveTag);
+        }
+
+        private void HandleSelectionChange(SelectedItemsChangedEventArgs e, Filter filter, Func<string, bool> addItem, Func<string, bool> removeItem) {
             using (filter.DeferNotifications()) {
-                foreach (var item in e.AddedItems) {
-                    filter.AddCategory(item.ToString());
+                foreach (var item in e.RemovedItems) {
+                    removeItem(item.Name);
                 }
 
-                foreach (var item in e.RemovedItems) {
-                    filter.RemoveCategory(item.ToString());
+                foreach (var item in e.AddedItems) {
+                    addItem(item.Name);
                 }
             }
         }
 
-        private void ListView_AuthorSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            var filter = this.ViewModel!.Filter;
-
-            using (filter.DeferNotifications()) {
-                foreach (var item in e.AddedItems) {
-                    filter.AddAuthor(item.ToString());
-                }
-
-                foreach (var item in e.RemovedItems) {
-                    filter.RemoveAuthor(item.ToString());
-                }
-            }
-        }
-
-        private void ListView_TagSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            var filter = this.ViewModel!.Filter;
-
-            using (filter.DeferNotifications()) {
-                foreach (var item in e.AddedItems) {
-                    filter.AddTag(item.ToString());
-                }
-
-                foreach (var item in e.RemovedItems) {
-                    filter.RemoveTag(item.ToString());
+        /* Limits the size of the filter flyout by allowing only one checklist to be open at a time */
+        private void Checklist_Expanding(object sender, EventArgs e) {
+            foreach (var checklist in new[] { this.CategoryChecklist, this.AuthorChecklist, this.TagChecklist }) {
+                if (checklist != sender) {
+                    checklist.IsExpanded = false;
                 }
             }
         }

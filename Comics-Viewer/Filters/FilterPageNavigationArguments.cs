@@ -1,4 +1,5 @@
-﻿using ComicsViewer.ViewModels;
+﻿using ComicsViewer.Pages.Helpers;
+using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,6 @@ using System.Threading.Tasks;
 namespace ComicsViewer.Filters {
     public class FilterPageNavigationArguments {
         public Filter? Filter { get; set; }
-        public IEnumerable<string>? VisibleCategories { get; set; }
-        public IEnumerable<string>? VisibleAuthors { get; set; }
-        public IEnumerable<string>? VisibleTags { get; set; }
+        public FilterViewAuxiliaryInfo? AuxiliaryInfo { get; set; }
     }
 }

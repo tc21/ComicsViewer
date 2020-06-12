@@ -1,10 +1,13 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.SQL;
 using ComicsViewer.Filters;
+using ComicsViewer.Pages.Helpers;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,24 +42,24 @@ namespace ComicsViewer.ViewModels {
         }
 
         // used for FilterPageViewModel
-        internal (HashSet<string> categories, HashSet<string> authors, HashSet<string> tags) GetAuxiliaryInfo(Filter? filter) {
-            var categories = new HashSet<string>();
-            var authors = new HashSet<string>();
-            var tags = new HashSet<string>();
+        internal FilterViewAuxiliaryInfo GetAuxiliaryInfo(Filter? filter) {
+            var categories = new DefaultDictionary<string, int>();
+            var authors = new DefaultDictionary<string, int>();
+            var tags = new DefaultDictionary<string, int>();
 
             foreach (var comic in this.comics) {
                 if (filter != null && !filter.ShouldBeVisible(comic)) {
                     continue;
                 }
 
-                categories.Add(comic.DisplayCategory);
-                authors.Add(comic.DisplayAuthor);
+                categories[comic.DisplayCategory] += 1;
+                authors[comic.DisplayAuthor] += 1;
                 foreach (var tag in comic.Tags) {
-                    tags.Add(tag);
+                    tags[tag] += 1;
                 }
             }
 
-            return (categories, authors, tags);
+            return new FilterViewAuxiliaryInfo(categories, authors, tags);
         }
 
         private IEnumerable<ComicItem> FilterAndGroupComicItems(Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
