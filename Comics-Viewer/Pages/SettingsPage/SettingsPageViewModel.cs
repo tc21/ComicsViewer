@@ -2,6 +2,7 @@
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,11 +19,19 @@ namespace ComicsViewer.Pages {
         private UserProfile profile;
         private readonly MainViewModel mainViewModel;
 
+        // We will directly edit this list. We will need to save the profile and notify others of changes. 
+        public ObservableCollection<NamedPath> RootPaths { get; private set; } = new ObservableCollection<NamedPath>();
+
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
             this.mainViewModel = mainViewModel;
 
             this.mainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
 
+            this.profile = profile;
+            this.SetProfile(profile);
+        }
+
+        private void SetProfile(UserProfile profile) {
             this.profile = profile;
 
             this.ProfileSettings = new List<SettingsItemViewModel>() {
@@ -35,12 +44,18 @@ namespace ComicsViewer.Pages {
                     str => this.profile.ImageWidth = int.Parse(str),
                     str => int.TryParse(str, out var i) && i > 40)
             };
+
+            this.RootPaths = new ObservableCollection<NamedPath>(this.profile.RootPaths);
+
+            this.OnPropertyChanged(nameof(this.ProfileSettings));
+            this.OnPropertyChanged(nameof(this.ProfileName));
+            this.OnPropertyChanged(nameof(this.RootPaths));
         }
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
-            this.profile = e.NewProile;
-            this.OnPropertyChanged(nameof(this.ProfileName));
-            this.OnPropertyChanged(nameof(this.ProfileSettings));
+            if (e.ChangeType == ProfileChangeType.ProfileChanged) {
+                this.SetProfile(e.NewProile);
+            }
         }
 
         public async Task ProfileModifiedAsync() {
@@ -48,11 +63,24 @@ namespace ComicsViewer.Pages {
             await ProfileManager.SaveProfileAsync(profile);
         }
 
-        public List<SettingsItemViewModel> ProfileSettings { get; }
+        public List<SettingsItemViewModel> ProfileSettings { get; private set; } = new List<SettingsItemViewModel>();
 
         public async Task CreateProfileAsync(string suggestedName, bool copyCurrent = false) {
             var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? mainViewModel.Profile : null);
             await this.mainViewModel.SetProfileAsync(profile.Name);
+        }
+
+        public void AddEmptyProfileCategory() {
+            this.RootPaths.Add(new NamedPath());
+        }
+
+        public async Task SaveProfileCategories() {
+            this.profile.RootPaths = this.RootPaths.ToList();
+            // We don't actually have to notify this change
+            await ProfileManager.SaveProfileAsync(this.profile);
+
+            this.RootPaths = new ObservableCollection<NamedPath>(this.profile.RootPaths);
+            this.OnPropertyChanged(nameof(this.RootPaths));
         }
     }
 

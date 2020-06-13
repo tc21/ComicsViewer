@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -17,9 +18,11 @@ namespace ComicsViewer.Profiles {
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
         public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
+        public List<NamedPath> RootPaths { get; set; } = new List<NamedPath>();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
 
         // generated properties
+        [JsonIgnore]
         public string DatabaseFileName => Defaults.DatabaseFileNameForProfile(this);
 
         // static values and methods
@@ -32,6 +35,7 @@ namespace ComicsViewer.Profiles {
             this.ImageHeight = copy.ImageHeight;
             this.ImageWidth = copy.ImageWidth;
             this.FileExtensions = copy.FileExtensions.ToList();
+            this.RootPaths = copy.RootPaths.ToList();
             this.StartupApplicationType = copy.StartupApplicationType;
         }
 
@@ -59,5 +63,10 @@ namespace ComicsViewer.Profiles {
 
             return null;
         }
+    }
+
+    public class NamedPath {
+        public string Name { get; set; } = "";
+        public string Path { get; set; } = "";
     }
 }

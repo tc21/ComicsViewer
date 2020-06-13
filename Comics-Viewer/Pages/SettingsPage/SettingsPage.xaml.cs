@@ -73,5 +73,18 @@ namespace ComicsViewer.Pages {
         }
 
         #endregion
+
+        private void AddProfileCategoryButton_Click(object sender, RoutedEventArgs e) {
+            this.ViewModel!.AddEmptyProfileCategory();
+        }
+
+        private void ProfileCategoryDataGrid_CellEditEnded(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridCellEditEndedEventArgs e) {
+            this.SaveProfleCategoriesButton.Visibility = Visibility.Visible;
+        }
+
+        private async void SaveProfileCategoriesButton_Click(object sender, RoutedEventArgs e) {
+            await this.ViewModel!.SaveProfileCategories();
+            this.SaveProfleCategoriesButton.Visibility = Visibility.Collapsed;
+        }
     }
 }

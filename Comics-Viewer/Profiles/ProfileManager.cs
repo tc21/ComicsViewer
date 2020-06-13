@@ -105,6 +105,8 @@ namespace ComicsViewer.Profiles {
             }
 
             using var stream = await file.OpenStreamForWriteAsync();
+            // calling SetLength(0) clears the file content
+            stream.SetLength(0);
             await UserProfile.Serialize(profile, stream);
         }
     }
