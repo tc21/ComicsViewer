@@ -68,20 +68,34 @@ namespace ComicsViewer {
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
+            // TODO: currently if the user clicks an item but then clicks again outside of the item, it is still
+            // interpreted as a double-click. We should detect and ignore those kinds of situations.
             this.doubleTapPointerReleased = false;
-            await Task.Delay(200);
+            this.singleTapPosition = e.GetPosition(this.VisibleComicsGrid);
+
+            await Task.Delay(500);
 
             if (this.doubleTapPointerReleased == true) {
                 flyout.Hide();
                 await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
             }
 
+            this.singleTapPosition = null;
+
         }
 
+        private Point? singleTapPosition;
         private bool doubleTapPointerReleased;
 
         private void VisibleComicsGrid_PointerReleased(object sender, PointerRoutedEventArgs e) {
-            this.doubleTapPointerReleased = true;
+            if (!(this.singleTapPosition is Point lastPosition)) {
+                return;
+            }
+
+            var tapPosition = e.GetCurrentPoint(this.VisibleComicsGrid).Position;
+
+            var distance = Math.Sqrt(Math.Pow(tapPosition.X - lastPosition.X, 2) + Math.Pow(tapPosition.Y - lastPosition.Y, 2));
+            this.doubleTapPointerReleased = distance < 10;
         }
 
         // Prepares the grid before the right click context menu is shown
