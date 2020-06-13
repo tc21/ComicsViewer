@@ -1,4 +1,6 @@
-﻿using ComicsViewer.ClassExtensions;
+﻿using ComicsLibrary.SQL;
+using ComicsViewer.ClassExtensions;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TC.Database.MicrosoftSqlite;
 using Windows.Storage;
+using Windows.System;
 
 #nullable enable
 
@@ -58,7 +62,7 @@ namespace ComicsViewer.Profiles {
         /// <param name="suggestedName">The suggested name of the profile. 
         /// Will be renamed if a profile with the given name already exists.</param>
         /// <returns>A UserProfile object with a unique name and default values </returns>
-        public static UserProfile CreateProfile(string suggestedName = "Untitled Profile") {
+        public static async Task<UserProfile> CreateProfileAsync(string suggestedName = "Untitled Profile", UserProfile? copyOf = null) {
             var acceptedName = suggestedName;
 
             var counter = 0;
@@ -67,9 +71,25 @@ namespace ComicsViewer.Profiles {
                 acceptedName = $"{suggestedName} ({counter})";
             }
 
-            return new UserProfile() {
-                Name = suggestedName
-            };
+            UserProfile profile;
+
+            if (copyOf != null) {
+                profile = new UserProfile(copyOf);
+            } else {
+                profile = new UserProfile();
+            }
+
+            profile.Name = acceptedName;
+
+            /* save the profile json to disk, and create a new database file */
+            await SaveProfileAsync(profile);
+            LoadedProfiles.Add(profile.Name);
+
+            using var connection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
+            await connection.OpenAsync();
+            _ = ComicsManager.InitializeComicsManager(new SqliteDatabaseConnection(connection));
+
+            return profile;
         }
 
         public static async Task SaveProfileAsync(UserProfile profile) {

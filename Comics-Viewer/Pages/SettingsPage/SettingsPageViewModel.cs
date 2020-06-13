@@ -15,11 +15,14 @@ namespace ComicsViewer.Pages {
         /* Static properties */
         public string ProfileName => this.profile.Name;
 
-        private readonly UserProfile profile;
+        private UserProfile profile;
         private readonly MainViewModel mainViewModel;
 
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
             this.mainViewModel = mainViewModel;
+
+            this.mainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
+
             this.profile = profile;
 
             this.ProfileSettings = new List<SettingsItemViewModel>() {
@@ -34,12 +37,23 @@ namespace ComicsViewer.Pages {
             };
         }
 
+        private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
+            this.profile = e.NewProile;
+            this.OnPropertyChanged(nameof(this.ProfileName));
+            this.OnPropertyChanged(nameof(this.ProfileSettings));
+        }
+
         public async Task ProfileModifiedAsync() {
             this.mainViewModel.NotifyProfileChanged(ProfileChangeType.SettingsChanged);
             await ProfileManager.SaveProfileAsync(profile);
         }
 
         public List<SettingsItemViewModel> ProfileSettings { get; }
+
+        public async Task CreateProfileAsync(string suggestedName, bool copyCurrent = false) {
+            var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? mainViewModel.Profile : null);
+            await this.mainViewModel.SetProfileAsync(profile.Name);
+        }
     }
 
     public class SettingsItemViewModel : ViewModelBase {

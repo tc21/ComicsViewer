@@ -11,11 +11,17 @@ using SqliteManagedDatabaseConnection = TC.Database.ManagedDatabaseConnection<
 
 namespace ComicsLibrary.SQL {
     public class ComicsManager : ComicsReadOnlyManager {
-        internal ComicsManager(SqliteDatabaseConnection databaseConnection) : base(databaseConnection) { }
+        public ComicsManager(SqliteDatabaseConnection databaseConnection) : base(databaseConnection) { }
 
         public static ComicsManager MigratedComicsManager(SqliteDatabaseConnection connection) {
             var manager = new SqliteManagedDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
             manager.Migrate();
+            return new ComicsManager(connection);
+        }
+
+        public static ComicsManager InitializeComicsManager(SqliteDatabaseConnection connection) {
+            var manager = new SqliteManagedDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
+            manager.Initialize();
             return new ComicsManager(connection);
         }
     }

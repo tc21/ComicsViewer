@@ -48,7 +48,7 @@ namespace ComicsViewer {
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
-
+            
             
             using var connection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
             await connection.OpenAsync();

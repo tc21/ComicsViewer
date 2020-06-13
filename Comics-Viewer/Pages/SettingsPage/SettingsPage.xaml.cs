@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsViewer.Profiles;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,5 +35,43 @@ namespace ComicsViewer.Pages {
 
             this.ViewModel = new SettingsPageViewModel(args.MainViewModel, args.Profile);
         }
+
+        #region Creating a new profile 
+
+        private async void NewProfileButton_Click(object sender, RoutedEventArgs e) {
+            var result = await this.NewProfileDialog.ShowAsync();
+            if (result != ContentDialogResult.Primary) {
+                return;
+            }
+
+            await this.ViewModel!.CreateProfileAsync(this.NewProfileTextBox.Text, 
+                copyCurrent: this.NewProfileRadioButtons.SelectedItem == this.NewProfileCopyCurrentProfileRadioButton);
+        }
+
+        private void NewProfileTypeRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            this.UpdateNewProfileWarningText();
+        }
+
+        private void NewProfileTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            this.UpdateNewProfileWarningText();
+        }
+
+        private void UpdateNewProfileWarningText() {
+            if (this.NewProfileRadioButtons.SelectedIndex == -1) {
+                // the default warning should still be shown
+                return;
+            }
+
+            if (Path.GetInvalidFileNameChars().Any(c => this.NewProfileTextBox.Text.Contains(c))) {
+                this.NewProfileWarningTextBlock.Text = "The profile name contains invalid characters.";
+                this.NewProfileDialog.IsPrimaryButtonEnabled = false;
+                return;
+            }
+
+            this.NewProfileDialog.IsPrimaryButtonEnabled = true;
+            this.NewProfileWarningTextBlock.Text = "";
+        }
+
+        #endregion
     }
 }

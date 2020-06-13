@@ -25,6 +25,16 @@ namespace ComicsViewer.Profiles {
         // static values and methods
         public static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
 
+        public UserProfile() { }
+
+        public UserProfile(UserProfile copy) {
+            this.Name = copy.Name;
+            this.ImageHeight = copy.ImageHeight;
+            this.ImageWidth = copy.ImageWidth;
+            this.FileExtensions = copy.FileExtensions.ToList();
+            this.StartupApplicationType = copy.StartupApplicationType;
+        }
+
         public static ValueTask<UserProfile> Deserialize(Stream input) {
             return JsonSerializer.DeserializeAsync<UserProfile>(input);
         }
