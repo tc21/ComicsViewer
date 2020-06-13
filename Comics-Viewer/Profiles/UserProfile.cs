@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsLibrary;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,18 +34,16 @@ namespace ComicsViewer.Profiles {
         }
 
         // Profile helper methods
-        public async Task<IEnumerable<StorageFile>> GetFilesForComicAtPathAsync(string path) {
-            var folder = await StorageFolder.GetFolderFromPathAsync(path);
+        public async Task<IEnumerable<StorageFile>> GetFilesForComicFolderAsync(StorageFolder folder) {
             var files = await folder.GetFilesAsync();
-
             return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
         }
 
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        public async Task<StorageFile?> GetFirstFileForComicAtPathAsync(string path) {
-            foreach (var file in await this.GetFilesForComicAtPathAsync(path)) {
+        public async Task<StorageFile?> GetFirstFileForComicFolderAsync(StorageFolder folder) {
+            foreach (var file in await this.GetFilesForComicFolderAsync(folder)) {
                 return file;
             }
 

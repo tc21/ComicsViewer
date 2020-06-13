@@ -152,7 +152,7 @@ namespace ComicsViewer {
             // Although we don't have to await these, we will need to do so for it to throw an 
             // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
             try {
-                var tasks = items.Select(item => Startup.OpenComicAsync(item.TitleComic, this.MainViewModel.Profile));
+                var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.TitleComic.Path, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
                 _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();

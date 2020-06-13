@@ -18,17 +18,22 @@ namespace ComicsViewer.Profiles {
     }
 
     public static class Startup {
-        public static async Task OpenComicAsync(Comic comic, UserProfile profile) {
+        public static async Task OpenComicAtPathAsync(string path, UserProfile profile) {
+            var folder = await StorageFolder.GetFolderFromPathAsync(path);
+            await OpenComicFolderAsync(folder, profile);
+        }
+
+        public static async Task OpenComicFolderAsync(StorageFolder folder, UserProfile profile) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
-                    if (await profile.GetFirstFileForComicAtPathAsync(comic.Path) is StorageFile file) {
+                    if (await profile.GetFirstFileForComicFolderAsync(folder) is StorageFile file) {
                         // There's no reason for us to wait for the file to actually launch
                         _ = Launcher.LaunchFileAsync(file);
                     }
                     break;
-                // TODO More cases
+                    // TODO More cases
             }
-        } 
+        }
     }
 }

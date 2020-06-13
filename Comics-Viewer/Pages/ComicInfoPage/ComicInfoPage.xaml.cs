@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -13,18 +14,15 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
+#nullable enable
 
 namespace ComicsViewer.Pages {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class ComicInfoPage : Page {
         public ComicInfoPage() {
             this.InitializeComponent();
         }
 
-        private ComicInfoPageViewModel ViewModel;
+        private ComicInfoPageViewModel? ViewModel;
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicInfoPageNavigationArguments args)) {
@@ -34,8 +32,20 @@ namespace ComicsViewer.Pages {
             this.ViewModel = new ComicInfoPageViewModel(args.ParentViewModel, args.ComicItem);
         }
 
-        private async void OpenButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel.OpenComic();
+        private async void Page_Loaded(object sender, RoutedEventArgs e) {
+            try {
+                await this.ViewModel!.Initialize();
+            } catch (UnauthorizedAccessException) {
+                _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
+            }
+        }
+
+        private async void ListView_ItemClick(object sender, ItemClickEventArgs e) {
+            if (!(e.ClickedItem is ComicSubitem item)) {
+                throw new ApplicationLogicException();
+            }
+
+            await this.ViewModel!.OpenItem(item);
         }
     }
 }
