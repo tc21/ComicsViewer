@@ -113,7 +113,7 @@
                   IsRightTapEnabled="True"
                   Tapped="VisibleComicsGrid_Tapped"
                   RightTapped="VisibleComicsGrid_RightTapped"
-                  DoubleTapped="VisibleComicsGrid_DoubleTapped"
+                  PointerReleased="VisibleComicsGrid_PointerReleased"
                   ItemTemplate="{StaticResource ComicItemTemplate}"
                   ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                   ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"

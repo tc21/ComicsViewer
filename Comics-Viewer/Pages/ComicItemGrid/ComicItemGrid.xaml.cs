@@ -65,23 +65,23 @@ namespace ComicsViewer {
             this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
                 new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem));
             flyout.ShowAt(tappedElement, new FlyoutShowOptions { ExclusionRect = new Rect(0, 0, 0, 0) });
+
+            // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
+            // dismisses the flyout, so we only end up capturing a PointerReleased event
+            this.doubleTapPointerReleased = false;
+            await Task.Delay(200);
+
+            if (this.doubleTapPointerReleased == true) {
+                flyout.Hide();
+                await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
+            }
+
         }
 
-        private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _) {
-            if (!(sender is GridView grid)) {
-                throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
-            }
+        private bool doubleTapPointerReleased;
 
-            if (grid.SelectedItems.Count == 0) {
-                return;
-            }
-
-            if (((ComicItem)grid.SelectedItems[0]).ItemType == ComicItemType.Navigation) {
-                // already handled by single tap
-                return;
-            }
-
-            await this.ViewModel!.OpenItemsAsync(grid.SelectedItems);
+        private void VisibleComicsGrid_PointerReleased(object sender, PointerRoutedEventArgs e) {
+            this.doubleTapPointerReleased = true;
         }
 
         // Prepares the grid before the right click context menu is shown
