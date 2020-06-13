@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.ViewModels {
-    public class ComicItem {
+    public class ComicItem : ViewModelBase {
         public string Title { get; }
-        public string Subtitle { get; }
+        public string Subtitle { get; private set; }
         public ComicItemType ItemType { get; }
-        public IList<Comic> Comics { get; }
+        internal IList<Comic> Comics { get; }
 
         public string ThumbnailPath => Thumbnail.ThumbnailPath(this.TitleComic);
         public Comic TitleComic => this.Comics[0];
@@ -49,6 +49,17 @@ namespace ComicsViewer.ViewModels {
                 ComicItemType.Navigation,
                 comics.ToList()
             );
+        }
+
+        /* ComicItem will not modify itself. If external code modifies ComicItem, it should call this method
+         * to send a NotifyPropertyChanged event */
+        public void DoNotifyPropertiesChanged() {
+            if (this.ItemType == ComicItemType.Navigation) {
+                var s = this.Comics.Count() == 1 ? "" : "s";
+                this.Subtitle = $"{this.Comics.Count()} Item{s}";
+            }
+
+            this.OnPropertyChanged("");
         }
     }
 

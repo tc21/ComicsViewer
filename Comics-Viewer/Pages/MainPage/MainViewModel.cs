@@ -9,6 +9,7 @@ using ComicsViewer.ViewModels;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -95,9 +96,17 @@ namespace ComicsViewer {
             ;
         }
 
-        public void NavigateOut() {
+        public void NavigateOut(bool ignoreCache = false) {
+            if (ignoreCache) {
+                this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+                return;
+            }
+
             this.NavigationLevel = 0;
-            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Back });
+            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { 
+                NavigationType = NavigationType.Back,
+                Tag = this.selectedTopLevelNavigationTag
+            });
         }
 
         public void NavigateInto(ComicItem item, NavigationTransitionInfo? transitionInfo = null) {
@@ -194,6 +203,34 @@ namespace ComicsViewer {
             return new FilterViewAuxiliaryInfo(categories, authors, tags);
         }
         #endregion
+
+        #region Propagating changes to comics
+
+        /* The purpose of this section is to allow for ComicItemGrids to be notified of changes to the master list of
+         * comics, so we don't have to reload the entire list of comics each time something is changed. */
+
+        /* Example functions subject to change */
+        public void AddComics(IEnumerable<Comic> comics) {
+            var copy = comics.ToList();
+            // TODO validation?
+            this.comics.AddRange(copy);
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, copy));
+        }
+
+        public void RemoveComics(IEnumerable<Comic> comics) {
+            var copy = comics.ToList();
+            // TODO validation
+            foreach (var item in copy) {
+                this.comics.Remove(item);
+            }
+
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, copy));
+        }
+
+        public event ComicsModifiedEventHandler ComicsModified = delegate { };
+        public delegate void ComicsModifiedEventHandler(MainViewModel sender, ComicsModifiedEventArgs e);
+
+        #endregion
     }
 
     public class ProfileChangedEventArgs {
@@ -216,5 +253,21 @@ namespace ComicsViewer {
 
     public enum NavigationType {
         Back, New, Scroll
+    }
+
+    public class ComicsModifiedEventArgs {
+        public ComicModificationType ModificationType { get; }
+        public IEnumerable<Comic> ModifiedComics { get; }
+
+        public ComicsModifiedEventArgs(ComicModificationType modificationType, IEnumerable<Comic> modifiedComics) {
+            this.ModificationType = modificationType;
+            this.ModifiedComics = modifiedComics;
+        }
+    }
+
+    public enum ComicModificationType {
+        ItemsAdded, ItemsRemoved
+        // ItemsModified: handled by ComicItem, so we don't need to do anything here.
+        // Note: if we implement the feature to combine multiple works into one, we will need more complicated behavior
     }
 }

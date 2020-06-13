@@ -99,8 +99,18 @@ namespace ComicsViewer {
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
             switch (e.NavigationType) {
                 case NavigationType.Back:
+                    if (e.Tag == null) {
+                        throw new ApplicationLogicException();
+                    }
+
                     if (!this.ContentFrame.CanGoBack) {
-                        throw new ApplicationLogicException("Should not be possible to navigate out when there is no page to navigate back to.");
+                        // It turns out this is actually possible for some unknown reason. It's pretty much a bug, but
+                        // I can't figure out why, and doing this works too:
+                        // Note: most likely it's because two separate viewModels are calling NavigateOut twice. It works because
+                        // There's enough pages in the buffer and caching is enabled. The question is: why is a top level
+                        // view modle able to call NavigateOut?
+                        this.ViewModel.Navigate(e.Tag!);
+                        return;
                     }
 
                     this.ContentFrame.GoBack();

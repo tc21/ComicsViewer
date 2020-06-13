@@ -26,7 +26,7 @@ namespace ComicsViewer.ViewModels {
             return copy;
         }
 
-        private static Comparison<ComicItem> ComicItemComparisonForSortSelector(SortSelector sortSelector) {
+        public static Comparison<ComicItem> ComicItemComparisonForSortSelector(SortSelector sortSelector) {
             return sortSelector switch {
                 SortSelector.Title => CompareTitle,
                 SortSelector.Author => CompareAuthor,

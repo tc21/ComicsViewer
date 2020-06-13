@@ -2,8 +2,10 @@
 using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
 using ComicsViewer.ViewModels;
+using Microsoft.Toolkit.Uwp.UI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -31,14 +33,14 @@ namespace ComicsViewer {
         }
 
         /* semi-manually managed properties */
-        public List<ComicItem> ComicItems { get; private set; } = new List<ComicItem>();
-        internal void SetComicItems(List<ComicItem> items) {
-            if (items == this.ComicItems) {
-                return;
+        public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
+        internal void SetComicItems(IEnumerable<ComicItem> items) {
+            this.ComicItems.Clear();
+
+            foreach (var item in items) {
+                this.ComicItems.Add(item);
             }
 
-            this.ComicItems = items;
-            this.OnPropertyChanged(nameof(this.ComicItems));
             this.OnPropertyChanged(nameof(this.VisibleItemCount));
         }
 
@@ -67,8 +69,9 @@ namespace ComicsViewer {
 
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
-            this.MainViewModel.ProfileChanged += this.AppViewModel_ProfileChanged;
+            this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
             this.MainViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
+            this.MainViewModel.ComicsModified += this.MainViewModel_ComicsModified;
 
             var allComicItems = CreateComicItems(this.comics, null, this.navigationTag);
             this.randomSortSelectors = allComicItems.Select(item => item.Title).Distinct().ToDictionary(e => e, _ => 0);
@@ -80,14 +83,17 @@ namespace ComicsViewer {
         }
 
         private void RefreshComicItems() {
-            var comicItems = CreateComicItems(comics, this.MainViewModel.Filter, this.navigationTag);
+            var comicItems = CreateComicItems(this.comics, this.MainViewModel.Filter, this.navigationTag);
 
             if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
-                this.SetComicItems(comicItems.OrderBy(i => this.randomSortSelectors[i.Title]).ToList());
+                // GetValueOrDefault is used here since items may have been added. to this.comics and we want the application to keep working
+                this.SetComicItems(comicItems.OrderBy(i => this.randomSortSelectors.GetValueOrDefault(i.Title, 0)).ToList());
             } else {
                 this.SetComicItems(Sorting.Sorted(comicItems, (Sorting.SortSelector)this.SelectedSortIndex));
             }
         }
+
+        #region Filtering and grouping
 
         private static IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {
             return navigationTag switch {
@@ -132,6 +138,10 @@ namespace ComicsViewer {
             }
         }
 
+        #endregion
+
+        #region Opening items 
+
         // Helper function to open GridView.SelectedItems
         internal Task OpenItemsAsync(IEnumerable<object> items) {
             return this.OpenItemsAsync(items.Cast<ComicItem>());
@@ -161,6 +171,8 @@ namespace ComicsViewer {
             }
         }
 
+        #endregion
+
         /* Instead of putting logic in each observable property's setter, we put them here, to keep setter code the
          * same for each property */
         private void ComicViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
@@ -181,10 +193,71 @@ namespace ComicsViewer {
             this.RefreshComicItems();
         }
 
-        private void AppViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
+        private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             this.OnPropertyChanged(nameof(this.ImageHeight));
             this.OnPropertyChanged(nameof(this.ImageWidth));
             this.OnPropertyChanged(nameof(this.ProfileName));
+        }
+
+        private void MainViewModel_ComicsModified(MainViewModel sender, ComicsModifiedEventArgs e) {
+            switch (e.ModificationType) {
+                case ComicModificationType.ItemsAdded:
+                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                        // We can't handle this. The parent will have handled it, though.
+                        this.MainViewModel.NavigateOut();
+                        return;
+                    }
+
+                    this.comics.AddRange(e.ModifiedComics);
+                    this.RefreshComicItems();
+
+                    break;
+                case ComicModificationType.ItemsRemoved:
+                    // We remove these items directly from this.ComicItems without having to call RefreshComicItems
+                    var removedUniqueIds = new HashSet<string>();
+                    var removedComicItemIndices = new Stack<int>();
+
+                    foreach (var item in e.ModifiedComics) {
+                        this.comics.Remove(item);
+                        removedUniqueIds.Add(item.UniqueIdentifier);
+                    }
+
+                    for (var i_comicItem = 0; i_comicItem < this.ComicItems.Count; i_comicItem++) {
+                        var comicItem = this.ComicItems[i_comicItem];
+                        var removedComicIndices = new Stack<int>();
+
+                        for (var i_comic = 0; i_comic < comicItem.Comics.Count; i_comic++) {
+                            if (removedUniqueIds.Contains(comicItem.Comics[i_comic].UniqueIdentifier)) {
+                                removedComicIndices.Push(i_comic);
+                            }
+                        }
+
+                        if (removedComicIndices.Count > 0) {
+                            while (removedComicIndices.Count > 0) {
+                                comicItem.Comics.RemoveAt(removedComicIndices.Pop());
+                            }
+
+                            if (comicItem.Comics.Count == 0) {
+                                removedComicItemIndices.Push(i_comicItem);
+                            } else {
+                                comicItem.DoNotifyPropertiesChanged();
+                            }
+                        }
+
+                    }
+
+                    while (removedComicItemIndices.Count > 0) {
+                        this.ComicItems.RemoveAt(removedComicItemIndices.Pop());
+                    }
+
+                    if (this.ComicItems.Count == 0) {
+                        this.MainViewModel.NavigateOut();
+                    }
+
+                    break;
+                default:
+                    throw new ApplicationLogicException("Unhandled switch case");
+            }
         }
     }
 }

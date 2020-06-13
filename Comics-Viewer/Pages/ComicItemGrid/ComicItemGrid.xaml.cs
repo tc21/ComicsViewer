@@ -68,8 +68,6 @@ namespace ComicsViewer {
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
-            // TODO: currently if the user clicks an item but then clicks again outside of the item, it is still
-            // interpreted as a double-click. We should detect and ignore those kinds of situations.
             this.doubleTapPointerReleased = false;
             this.singleTapPosition = e.GetPosition(this.VisibleComicsGrid);
 
@@ -156,6 +154,8 @@ namespace ComicsViewer {
                 // Initialize this page only when creating a new page, 
                 // not when the user returned to this page by pressing the back button
                 this.ViewModel = args.ViewModel;
+            } else {
+                Debug.WriteLine("!");
             }
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
@@ -180,6 +180,8 @@ namespace ComicsViewer {
         public class ComicItemGridCommands {
             public XamlUICommand OpenItemsCommand { get; }
             public XamlUICommand SearchSelectedCommand { get; }
+            /* Temporary command for testing purposes */
+            public XamlUICommand TestRemoveItemCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -201,6 +203,15 @@ namespace ComicsViewer {
                 this.SearchSelectedCommand.ExecuteRequested += (sender, args) => parent.MainViewModel!.NavigateIntoSelected(this.SelectedItems);
                 this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
+
+                // Temporary command to test adding and removing items on the ViewModel level
+                this.TestRemoveItemCommand = new XamlUICommand();
+                this.TestRemoveItemCommand.ExecuteRequested += async (sender, args) => {
+                    var comics = this.SelectedItems.SelectMany(item => item.Comics).ToList();
+                    parent.MainViewModel!.RemoveComics(comics);
+                    await Task.Delay(1000);
+                    parent.MainViewModel!.AddComics(comics);
+                };
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {

@@ -22,13 +22,13 @@
 
                     <Border Grid.Row="0">
                         <Image x:Name="ComicItemThumbnail"
-                               Source="{x:Bind ThumbnailPath}" />
+                               Source="{x:Bind ThumbnailPath, Mode=OneWay}" />
                     </Border>
                     <TextBlock Grid.Row="1" 
-                               Text="{x:Bind Title}" 
+                               Text="{x:Bind Title, Mode=OneWay}" 
                                Style="{StaticResource ItemTitleStyle}"/>
                     <TextBlock Grid.Row="2" 
-                               Text="{x:Bind Subtitle}"
+                               Text="{x:Bind Subtitle, Mode=OneWay}"
                                Style="{StaticResource ItemSubtitleStyle}"/>
                 </Grid>
             </DataTemplate>
@@ -60,8 +60,15 @@
                 <!-- Can we figure out why applying helpers:Bindings don't work when used in a style? -->
                 <!-- Design note: we use the tag to dynamically generate text. To opt out, don't include a tag. 
                      Optionally, we can dynamically generate even the ones that are supposed stay static.  -->
-                <MenuFlyoutItem Tag="open" Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" helpers:Bindings.VisibilityToEnabled="True" />
-                <MenuFlyoutItem Text="Search selected" Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutItem Tag="open" 
+                                Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" 
+                                helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutItem Text="Search selected" 
+                                Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
+                                helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="*Test* remove/add ViewModel items" 
+                                Command="{x:Bind ContextMenuCommands.TestRemoveItemCommand}" />
             </MenuFlyout>
             <Flyout x:Key="ComicInfoFlyout" ShouldConstrainToRootBounds="False">
                 <Flyout.FlyoutPresenterStyle>
