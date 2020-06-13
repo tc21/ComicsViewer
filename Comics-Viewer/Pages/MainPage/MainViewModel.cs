@@ -76,8 +76,9 @@ namespace ComicsViewer {
         public int NavigationLevel { get; private set; }
         public string ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : SecondLevelNavigationTag;
 
-        public void Navigate(string navigationTag, NavigationTransitionInfo? transitionInfo = null) {
-            var navigationType = (navigationTag == this.ActiveNavigationTag) ? NavigationType.Scroll : NavigationType.New;
+        public void Navigate(string navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {
+            var navigationType = (ignoreCache || navigationTag != this.ActiveNavigationTag) 
+                ? NavigationType.New : NavigationType.Scroll;
 
             this.selectedTopLevelNavigationTag = navigationTag;
             this.NavigationLevel = 0;

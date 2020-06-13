@@ -91,8 +91,9 @@ namespace ComicsViewer {
 
             this.NavigationView.SelectedItem = this.ProfileNavigationViewItem;
 
-            // This will fire ViewModel.NavigationRequested
-            this.ViewModel.Navigate(MainViewModel.DefaultNavigationTag);
+            // This will fire ViewModel.NavigationRequested. 
+            // ignoreCache: true bypasses the default behavior of scrolling up to the top when "reloading"
+            this.ViewModel.Navigate(MainViewModel.DefaultNavigationTag, ignoreCache: true);
         }
 
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
