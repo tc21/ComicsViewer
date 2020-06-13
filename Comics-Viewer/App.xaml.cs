@@ -26,16 +26,13 @@ namespace ComicsViewer
     {
 
         /*
-         * TODOS:
-         * - Expansion panel on single click i.e. the entire reason for this rewrite
-         * - Which in turn will enable subworks and alternative works
-         * - Finish the filter system
+         * TODOS:         
+         * - allow writing to the database and all the features that come with it
+         * - Edit item details
          * - Add the ability to save filters into a list of bookmarks
-         * - Allow for importing libraries between this version and the WPF version
          * - Supporting opening stuff properly, rathor than telling Windows to open the first file 
          *   (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
          * - We will likely have to rely on the above two links to enable Python-based extensions.
-         * - (Low priority for now, since we have the WPF version) allow writing to the database and all the features that come with it
          * 
          * Feature Requests:
          * - Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)

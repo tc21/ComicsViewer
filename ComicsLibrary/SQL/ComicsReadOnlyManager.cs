@@ -10,12 +10,11 @@ namespace ComicsLibrary.SQL {
     public class ComicsReadOnlyManager {
         public ComicsDatabaseConnection Connection { get; }
 
-        public ComicsReadOnlyManager(SqliteConnection connection) {
-            this.Connection = new ComicsDatabaseConnection(new SqliteDatabaseConnection(connection));
+        internal ComicsReadOnlyManager(SqliteDatabaseConnection databaseConnection) {
+            this.Connection = new ComicsDatabaseConnection(databaseConnection);
         }
 
         public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
-            // TODO: intentionally not working for testing purposes
             return await this.Connection.GetAllComicsAsync();
         }
     }

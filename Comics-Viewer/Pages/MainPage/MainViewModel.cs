@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TC.Database.MicrosoftSqlite;
 using Windows.UI.Xaml.Media.Animation;
 
 #nullable enable
@@ -48,9 +49,10 @@ namespace ComicsViewer {
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
 
-            var databaseConnection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
-            var manager = new ComicsReadOnlyManager(databaseConnection);
-            await manager.Connection.OpenAsync();
+            
+            using var connection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
+            await connection.OpenAsync();
+            var manager = ComicsManager.MigratedComicsManager(new SqliteDatabaseConnection(connection));
             this.comics = (await manager.GetAllComicsAsync()).ToList();
 
             this.Filter.Clear();
