@@ -243,13 +243,13 @@ namespace ComicsViewer {
         private string GetDynamicFlyoutText(string tag) {
             var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
 
-            return tag switch
-            {
+            return tag switch {
                 "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") +
                           (this.VisibleComicsGrid.SelectedItems.Count > 1 ? $" {this.VisibleComicsGrid.SelectedItems.Count} items" : ""),
                 "search" => "Search selected",
+                // why exactly can't we use blocks in a switch expression?
                 "remove" => (type == ComicItemType.Work && this.VisibleComicsGrid.SelectedItems.Count == 1) ? "Remove" : 
-                            $"Remove {this.VisibleComicsGrid.SelectedItems.Count.PluralString("comic")}",
+                            $"Remove {this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count().PluralString("comic")}",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }
