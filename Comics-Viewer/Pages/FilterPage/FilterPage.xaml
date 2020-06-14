@@ -12,16 +12,17 @@
     x:Name="ThisPage"
     RequestedTheme="Dark">
     <Page.Resources>
+        <helpers:IntToPluralStringConverter x:Key="IntToPluralStringConverter"/>
         <DataTemplate x:Key="FilterItemListTemplate" x:DataType="helpers:CountedString">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Name}"/>
+                <TextBlock Text="{x:Bind Path=Name}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock Text="(" Foreground="{ThemeResource SystemBaseMediumColor}"/>
-                    <TextBlock Text="{x:Bind Count}" Foreground="{ThemeResource SystemBaseMediumColor}"/>
+                    <TextBlock Text="{x:Bind Path=Count}" Foreground="{ThemeResource SystemBaseMediumColor}"/>
                     <TextBlock Text=")" Foreground="{ThemeResource SystemBaseMediumColor}"/>
                 </StackPanel>
             </Grid>
@@ -30,22 +31,16 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
         <Style TargetType="CheckBox">
-            <Style.Setters>
-                <Setter Property="Margin" Value="12 4"/>
-            </Style.Setters>
+            <Setter Property="Margin" Value="12 4"/>
         </Style>
         <Style TargetType="controls:Expander">
-            <Style.Setters>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            </Style.Setters>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         </Style>
         <Style TargetType="ListView">
-            <Style.Setters>
-                <Setter Property="ItemTemplate" Value="{StaticResource FilterItemListTemplate}"/>
-                <Setter Property="ItemContainerStyle" Value="{StaticResource ListViewItemStyle}"/>
-                <Setter Property="SelectionMode" Value="Multiple"/>
-            </Style.Setters>
+            <Setter Property="ItemTemplate" Value="{StaticResource FilterItemListTemplate}"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ListViewItemStyle}"/>
+            <Setter Property="SelectionMode" Value="Multiple"/>
         </Style>
     </Page.Resources>
 

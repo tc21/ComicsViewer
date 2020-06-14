@@ -13,7 +13,6 @@
     RequestedTheme="Dark"
     d:DesignWidth="400">
     <UserControl.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <Style TargetType="HyperlinkButton">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="4 0"/>

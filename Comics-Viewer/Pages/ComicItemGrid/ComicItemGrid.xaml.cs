@@ -2,6 +2,7 @@
 using ComicsViewer.Pages;
 using ComicsViewer.Profiles;
 using ComicsViewer.Support;
+using ComicsViewer.Support.ClassExtensions;
 using ComicsViewer.ViewModels;
 using Microsoft.Toolkit.Uwp.UI;
 using System;
@@ -184,8 +185,7 @@ namespace ComicsViewer {
         public class ComicItemGridCommands {
             public XamlUICommand OpenItemsCommand { get; }
             public XamlUICommand SearchSelectedCommand { get; }
-            /* Temporary command for testing purposes */
-            public XamlUICommand TestRemoveItemCommand { get; }
+            public XamlUICommand RemoveItemCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -208,13 +208,13 @@ namespace ComicsViewer {
                 this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
 
-                // Temporary command to test adding and removing items on the ViewModel level
-                this.TestRemoveItemCommand = new XamlUICommand();
-                this.TestRemoveItemCommand.ExecuteRequested += async (sender, args) => {
-                    var comics = this.SelectedItems.SelectMany(item => item.Comics).ToList();
-                    parent.MainViewModel!.RemoveComics(comics);
-                    await Task.Delay(1000);
-                    parent.MainViewModel!.AddComics(comics);
+                // Removes comics by asking the view model to do it for us
+                this.RemoveItemCommand = new StandardUICommand(StandardUICommandKind.Delete);
+                this.RemoveItemCommand.ExecuteRequested += async (sender, args) => {
+                    if ((await parent.ConfirmRemoveItemDialog.ShowAsync()) == ContentDialogResult.Primary) {
+                        var comics = this.SelectedItems.SelectMany(item => item.Comics).ToList();
+                        parent.MainViewModel!.RemoveComics(comics);
+                    }
                 };
             }
 
@@ -248,6 +248,8 @@ namespace ComicsViewer {
                 "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") +
                           (this.VisibleComicsGrid.SelectedItems.Count > 1 ? $" {this.VisibleComicsGrid.SelectedItems.Count} items" : ""),
                 "search" => "Search selected",
+                "remove" => (type == ComicItemType.Work && this.VisibleComicsGrid.SelectedItems.Count == 1) ? "Remove" : 
+                            $"Remove {this.VisibleComicsGrid.SelectedItems.Count.PluralString("comic")}",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

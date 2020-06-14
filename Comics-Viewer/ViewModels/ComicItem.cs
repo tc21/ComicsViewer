@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Support.ClassExtensions;
 using ComicsViewer.Thumbnails;
 using System;
 using System.Collections.Generic;
@@ -41,22 +42,19 @@ namespace ComicsViewer.ViewModels {
                 throw new ApplicationLogicException("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
             }
 
-            var s = comics.Count() == 1 ? "" : "s";
-
             return new ComicItem(
                 name,
-                $"{comics.Count()} Item{s}",
+                comics.Count().PluralString("Item"),
                 ComicItemType.Navigation,
                 comics.ToList()
-            );
+            );;
         }
 
         /* ComicItem will not modify itself. If external code modifies ComicItem, it should call this method
          * to send a NotifyPropertyChanged event */
         public void DoNotifyPropertiesChanged() {
             if (this.ItemType == ComicItemType.Navigation) {
-                var s = this.Comics.Count() == 1 ? "" : "s";
-                this.Subtitle = $"{this.Comics.Count()} Item{s}";
+                this.Subtitle = this.Comics.Count().PluralString("Item");
             }
 
             this.OnPropertyChanged("");

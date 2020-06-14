@@ -80,6 +80,9 @@ namespace ComicsViewer.Support {
             var invalidComics = new List<Comic>();
             var i = 0;
 
+            // Make a copy in case the user decides to modify the underlying list
+            comics = comics.ToList();
+
             foreach (var comic in comics) {
                 try {
                     var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);

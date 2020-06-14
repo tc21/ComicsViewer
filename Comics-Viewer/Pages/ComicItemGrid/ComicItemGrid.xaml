@@ -67,8 +67,8 @@
                                 Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="*Test* remove/add ViewModel items" 
-                                Command="{x:Bind ContextMenuCommands.TestRemoveItemCommand}" />
+                <MenuFlyoutItem Tag="remove" 
+                                Command="{x:Bind ContextMenuCommands.RemoveItemCommand}" />
             </MenuFlyout>
             <Flyout x:Key="ComicInfoFlyout" ShouldConstrainToRootBounds="False">
                 <Flyout.FlyoutPresenterStyle>
@@ -81,56 +81,66 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid x:Name="ContainerGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
-            <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-            <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
-                      SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}">
-                <ComboBox.Resources>
-                    <ResourceDictionary>
-                        <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
-                        <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
-                        <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
-                        <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
-                        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
-                        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
-                        <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
-                    </ResourceDictionary>
-                </ComboBox.Resources>
-                <ComboBox.Style>
-                    <Style TargetType="ComboBox">
-                        <Style.Setters>
-                            <Setter Property="Padding" Value="4 0" />
-                            <Setter Property="BorderThickness" Value="1" />
-                        </Style.Setters>
-                    </Style>
-                </ComboBox.Style>
-            </ComboBox>
-        </StackPanel>
+    <Grid>
+        <Grid x:Name="ContainerGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
+                <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}">
+                    <ComboBox.Resources>
+                        <ResourceDictionary>
+                            <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
+                            <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
+                            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
+                        </ResourceDictionary>
+                    </ComboBox.Resources>
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox">
+                            <Style.Setters>
+                                <Setter Property="Padding" Value="4 0" />
+                                <Setter Property="BorderThickness" Value="1" />
+                            </Style.Setters>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
+            </StackPanel>
 
-        <GridView x:Name="VisibleComicsGrid"
-                  Grid.Row="1"
-                  SelectionMode="Extended"
-                  ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
-                  SizeChanged="VisibleComicsGrid_SizeChanged"
-                  IsRightTapEnabled="True"
-                  Tapped="VisibleComicsGrid_Tapped"
-                  RightTapped="VisibleComicsGrid_RightTapped"
-                  PointerReleased="VisibleComicsGrid_PointerReleased"
-                  CanDragItems="True"
-                  DragItemsStarting="VisibleComicsGrid_DragItemsStarting"
-                  DragItemsCompleted="VisibleComicsGrid_DragItemsCompleted"
-                  AllowDrop="True"
-                  DragOver="VisibleComicsGrid_DragOver"
-                  Drop="VisibleComicsGrid_Drop"
-                  ItemTemplate="{StaticResource ComicItemTemplate}"
-                  ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
-                  ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"
-                  ContextFlyout="{StaticResource ComicItemGridContextFlyout}">
-        </GridView>
+            <GridView x:Name="VisibleComicsGrid"
+                      Grid.Row="1"
+                      SelectionMode="Extended"
+                      ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
+                      SizeChanged="VisibleComicsGrid_SizeChanged"
+                      IsRightTapEnabled="True"
+                      Tapped="VisibleComicsGrid_Tapped"
+                      RightTapped="VisibleComicsGrid_RightTapped"
+                      PointerReleased="VisibleComicsGrid_PointerReleased"
+                      CanDragItems="True"
+                      DragItemsStarting="VisibleComicsGrid_DragItemsStarting"
+                      DragItemsCompleted="VisibleComicsGrid_DragItemsCompleted"
+                      AllowDrop="True"
+                      DragOver="VisibleComicsGrid_DragOver"
+                      Drop="VisibleComicsGrid_Drop"
+                      ItemTemplate="{StaticResource ComicItemTemplate}"
+                      ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
+                      ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"
+                      ContextFlyout="{StaticResource ComicItemGridContextFlyout}">
+            </GridView>
+        </Grid>
+
+        <ContentDialog x:Name="ConfirmRemoveItemDialog" 
+                       Title="Confirm remove items"
+                       RequestedTheme="Dark"
+                       Content="Are you sure you want to remove these items? You will have to import them again if you want them to show up in this library."
+                       PrimaryButtonText="Delete"
+                       CloseButtonText="Cancel"
+                       DefaultButton="Close"/>
     </Grid>
 </Page>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Toolkit.Uwp.UI.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +31,7 @@ namespace ComicsViewer.Pages.Helpers {
                 var binding = new Binding {
                     Source = control,
                     Path = new PropertyPath(nameof(Control.IsEnabled)),
-                    Converter = new BooleanToVisibilityConverter()
+                    Converter = new BoolToVisibilityConverter()
                 };
 
                 control.SetBinding(UIElement.VisibilityProperty, binding);
