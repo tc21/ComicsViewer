@@ -139,7 +139,7 @@
                        Title="Confirm remove items"
                        RequestedTheme="Dark"
                        Content="Are you sure you want to remove these items? You will have to import them again if you want them to show up in this library."
-                       PrimaryButtonText="Delete"
+                       PrimaryButtonText="Remove"
                        CloseButtonText="Cancel"
                        DefaultButton="Close"/>
     </Grid>

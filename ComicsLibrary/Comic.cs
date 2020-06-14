@@ -3,19 +3,22 @@ using System.Collections.Generic;
 
 namespace ComicsLibrary {
     public class Comic {
-        public string Path { get; }
+        /* title and author are part of the comic's identity. to replace these, remove the comic and create a new one */
         public string Title { get; }
         public string Author { get; }
-        public string Category { get; }
-        public ComicMetadata Metadata { get; }
         public string UniqueIdentifier => $"[{this.Author}]{this.Title}";
 
-        public Comic(string path, string title, string author, string category, ComicMetadata metadata) {
+        /* path, category, and metadata may be set by the viewmodel, as long as it knows to properly save and update stuff */
+        public string Path { get; set; }
+        public string Category { get; set; }
+        public ComicMetadata Metadata { get; set; }
+
+        public Comic(string path, string title, string author, string category, ComicMetadata? metadata = null) {
             this.Path = path;
             this.Title = title;
             this.Author = author;
             this.Category = category;
-            this.Metadata = metadata;
+            this.Metadata = metadata ?? new ComicMetadata();
         }
 
         public Comic(string path, string title, string author, string category)
@@ -48,7 +51,7 @@ namespace ComicsLibrary {
 
         public ComicMetadata() {
             // an estimate of the actual dateAdded, assuming the comic is saved immediately, in SQLite's default format
-            this.DateAdded = DateTime.Now.ToString("yyyy-mm-dd HH:mm:ss");
+            this.DateAdded = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         }
     }
 }

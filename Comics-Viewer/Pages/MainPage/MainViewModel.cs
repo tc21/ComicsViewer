@@ -24,7 +24,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace ComicsViewer {
     public class MainViewModel : ViewModelBase {
-        private List<Comic> comics = new List<Comic>();
+        private ComicList comics = new ComicList();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -60,8 +60,8 @@ namespace ComicsViewer {
                 var result = await new ContentDialog() {
                     Title = "Task still running",
                     Content = "Do you want to stop the currently running task and switch profiles?",
-                    PrimaryButtonText = "Stop Task and Switch Profile",
-                    CloseButtonText = "Continue Running Task",
+                    PrimaryButtonText = "Stop Task and Switch Profiles",
+                    CloseButtonText = "Don't Switch Profiles",
                     DefaultButton = ContentDialogButton.Close
                 }.ShowAsync();
 
@@ -93,14 +93,25 @@ namespace ComicsViewer {
             this.TaskName = null;
             this.OnPropertyChanged(nameof(this.IsTaskRunning));
 
-            using var connection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
-            await connection.OpenAsync();
-            var manager = ComicsManager.MigratedComicsManager(new SqliteDatabaseConnection(connection));
-            this.comics = (await manager.GetAllComicsAsync()).ToList();
+            var manager = await this.GetComicsManagerAsync(migrate: true);
+            this.comics = new ComicList(await manager.GetAllComicsAsync());
 
             this.Filter.Clear();
 
             await this.RequestValidateAndRemoveComics();
+        }
+
+        /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
+        private async Task<ComicsManager> GetComicsManagerAsync(bool migrate = false) {
+            var connection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
+            await connection.OpenAsync();
+            var dbconnection = new SqliteDatabaseConnection(connection);
+
+            if (migrate) {
+                return ComicsManager.MigratedComicsManager(dbconnection);
+            }
+
+            return new ComicsManager(dbconnection);
         }
 
         public event ProfileChangedEventHandler? ProfileChanged;
@@ -299,24 +310,33 @@ namespace ComicsViewer {
                 return;
             }
 
-            // TODO we should diff with this.comics, do whatever we need to, update the database, etc...
-            this.comics = comics.ToList();
+            // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
+            // (TODO) We will need to update the database though
+            this.comics = new ComicList(comics);
+
+            // Gathers known metadata
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AssignKnownMetadata(this.comics);
+
             this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
-            var comics = await this.StartTaskAsync($"Reloading category '{category.Name}'...", 
+            var newComics = await this.StartTaskAsync($"Reloading category '{category.Name}'...", 
                 (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p));
 
-            if (comics == null) {
+            if (newComics == null) {
                 return;
             }
 
-            // TODO diff, etc.
-            this.comics = comics.ToList();
-            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
-        }
+            var added = newComics;
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AssignKnownMetadata(added);
 
+            this.RemoveComics(this.comics.Where(comic => comic.Category == category.Name));
+            this.AddComics(added);
+
+        }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
             var comics = await this.StartTaskAsync($"Adding comics from {folders.Count()} folders...",
@@ -326,9 +346,12 @@ namespace ComicsViewer {
                 return;
             }
 
-            // TODO check for duplicates
-            this.comics.AddRange(comics);
-            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AssignKnownMetadata(comics);
+
+            /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
+            this.RemoveComics(comics.Where(this.comics.Contains));
+            this.AddComics(comics);
         }
 
         public async Task RequestValidateAndRemoveComics() {
@@ -344,20 +367,31 @@ namespace ComicsViewer {
 
         /* Example functions subject to change */
         public void AddComics(IEnumerable<Comic> comics) {
-            var copy = comics.ToList();
-            // TODO validation?
-            this.comics.AddRange(copy);
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, copy));
+            var added = new List<Comic>();
+
+            // we have to make a copy of comics, since the user might just pass this.comics (or more likely a query
+            // based on it) to this function
+            foreach (var comic in comics.ToList()) {
+                if (this.comics.Add(comic)) {
+                    added.Add(comic);
+                } else {
+                    // May have updated info? see also ComicList.Add
+                }
+            }
+
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, added));
         }
 
         public void RemoveComics(IEnumerable<Comic> comics) {
-            var copy = comics.ToList();
-            // TODO validation
-            foreach (var item in copy) {
-                this.comics.Remove(item);
+            var removed = new List<Comic>();
+
+            foreach (var comic in comics.ToList()) {
+                if (this.comics.Remove(comic)) {
+                    removed.Add(comic);
+                }
             }
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, copy));
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, removed));
         }
 
         public event ComicsModifiedEventHandler ComicsModified = delegate { };

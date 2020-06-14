@@ -46,7 +46,7 @@ namespace ComicsLibrary.SQL {
         public void Close() => this.connection.Connection.Close();
 
         public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
-            var reader = await this.GetComicReaderWithContraintAsync(key_active, 1);
+            using var reader = await this.GetComicReaderWithContraintAsync(key_active, 1);
 
             var comics = new List<Comic>();
 
@@ -58,6 +58,17 @@ namespace ComicsLibrary.SQL {
             }
 
             return comics;
+        }
+
+        public async Task<ComicMetadata?> TryGetComicMetadataAsync(Comic comic) {
+            using var reader = await this.GetComicReaderWithContraintAsync(key_unique_id, comic.UniqueIdentifier);
+
+            if (!reader.HasRows) {
+                return null;
+            }
+
+            await reader.ReadAsync();
+            return await this.ReadComicMetadataFromRowAsync(reader);
         }
 
         private async Task<Comic> ReadComicFromRowAsync(DictionaryReader<SqliteDataReader> reader) {

@@ -17,5 +17,9 @@ namespace ComicsLibrary.SQL {
         public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
             return await this.Connection.GetAllComicsAsync();
         }
+
+        public Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
+            return this.Connection.TryGetComicMetadataAsync(comic);
+        }
     }
 }

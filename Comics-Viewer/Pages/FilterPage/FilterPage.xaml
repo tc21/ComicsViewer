@@ -12,7 +12,6 @@
     x:Name="ThisPage"
     RequestedTheme="Dark">
     <Page.Resources>
-        <helpers:IntToPluralStringConverter x:Key="IntToPluralStringConverter"/>
         <DataTemplate x:Key="FilterItemListTemplate" x:DataType="helpers:CountedString">
             <Grid>
                 <Grid.ColumnDefinitions>
