@@ -303,22 +303,21 @@ namespace ComicsViewer {
         public async Task RequestReloadAllComicsAsync() {
             // Design philosophy: we could have this method return bool, and the caller show message boxes, but that
             // doesn't actually make the code more elegant in any way
-            var comics = await this.StartTaskAsync("Reloading all comics...", 
+            var newComics = await this.StartTaskAsync("Reloading all comics...", 
                 (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p));
 
-            if (comics == null) {
+            if (newComics == null) {
                 return;
             }
 
             // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
-            // (TODO) We will need to update the database though
-            this.comics = new ComicList(comics);
 
-            // Gathers known metadata
+            // TODO: we should probably figure out how to only update what we need
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(this.comics);
+            await manager.AssignKnownMetadataAsync(newComics);
 
-            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+            await this.RemoveComicsAsync(this.comics);
+            await this.AddComicsAsync(newComics);
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
@@ -329,39 +328,38 @@ namespace ComicsViewer {
                 return;
             }
 
-            var added = newComics;
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(added);
+            await manager.AssignKnownMetadataAsync(newComics);
 
             await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
-            await this.AddComicsAsync(added);
+            await this.AddComicsAsync(newComics);
         }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
-            var comics = await this.StartTaskAsync($"Adding comics from {folders.Count()} folders...",
+            var newComics = await this.StartTaskAsync($"Adding comics from {folders.Count()} folders...",
                 (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p));
 
-            if (comics == null) {
+            if (newComics == null) {
                 return;
             }
 
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(comics);
+            await manager.AssignKnownMetadataAsync(newComics);
 
             /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
-            await this.RemoveComicsAsync(comics.Where(this.comics.Contains));
-            await this.AddComicsAsync(comics);
+            await this.RemoveComicsAsync(newComics.Where(this.comics.Contains));
+            await this.AddComicsAsync(newComics);
         }
 
         public async Task RequestValidateAndRemoveComicsAsync() {
-            var comics = await this.StartTaskAsync($"Validating {this.comics.Count} comics...",
+            var missingComics = await this.StartTaskAsync($"Validating {this.comics.Count} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p));
 
-            if (comics == null) {
+            if (missingComics == null) {
                 return;
             }
 
-            await this.RemoveComicsAsync(comics);
+            await this.RemoveComicsAsync(missingComics);
         }
 
         /* Example functions subject to change */

@@ -28,7 +28,7 @@
                       IsItemClickEnabled="True"
                       ItemClick="ListView_ItemClick">
             </ListView>
-            <controls:Loading IsLoading="{x:Bind ViewModel.IsInitialized}" HorizontalAlignment="Left">
+            <controls:Loading IsLoading="{x:Bind ViewModel.IsLoading, Mode=OneWay}" HorizontalAlignment="Left">
                 <StackPanel Orientation="Horizontal">
                     <ProgressRing IsActive="True" Margin="4" />
                     <TextBlock Text="Loading..." VerticalAlignment="Center"/>

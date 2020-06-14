@@ -29,7 +29,7 @@ namespace ComicsViewer.Pages {
             this.Item = item;
         }
 
-        public bool IsInitialized { get; private set; } = false;
+        public bool IsLoading { get; private set; } = true;
 
 
         public async Task Initialize() {
@@ -37,8 +37,8 @@ namespace ComicsViewer.Pages {
                 this.ComicSubitems.Add(item);
             }
 
-            this.IsInitialized = true;
-            this.OnPropertyChanged(nameof(this.IsInitialized));
+            this.IsLoading = false;
+            this.OnPropertyChanged(nameof(this.IsLoading));
         }
 
         public Task OpenItem(ComicSubitem item) {
