@@ -21,8 +21,12 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0">
-                        <Image x:Name="ComicItemThumbnail"
-                               Source="{x:Bind ThumbnailPath, Mode=OneWay}" />
+                        <Image x:Name="ComicItemThumbnail">
+                            <Image.Source>
+                                <BitmapImage UriSource="{x:Bind ThumbnailPath, Mode=OneWay}"
+                                             CreateOptions="IgnoreImageCache"/>
+                            </Image.Source>
+                        </Image>
                     </Border>
                     <TextBlock Grid.Row="1" 
                                Text="{x:Bind Title, Mode=OneWay}" 

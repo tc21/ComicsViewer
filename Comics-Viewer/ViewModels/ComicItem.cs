@@ -17,8 +17,8 @@ namespace ComicsViewer.ViewModels {
         public string Subtitle { get; private set; }
         public ComicItemType ItemType { get; }
         internal List<Comic> Comics { get; }
+        public string ThumbnailPath { get; private set; }
 
-        public string ThumbnailPath => Thumbnail.ThumbnailPath(this.TitleComic);
         public Comic TitleComic => this.Comics[0];
 
         private ComicItem(string title, string subtitle, ComicItemType itemType, List<Comic> comics) {
@@ -26,6 +26,7 @@ namespace ComicsViewer.ViewModels {
             this.Subtitle = subtitle;
             this.ItemType = itemType;
             this.Comics = comics;
+            this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
         }
 
         public static ComicItem WorkItem(Comic comic) {
@@ -58,6 +59,13 @@ namespace ComicsViewer.ViewModels {
             }
 
             this.OnPropertyChanged("");
+        }
+
+        public void DoNotifyThumbnailChanged() {
+            this.ThumbnailPath = "ms-appx:///Assets/LargeTile.scale-200.png";
+            this.OnPropertyChanged(nameof(this.ThumbnailPath));
+            this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
+            this.OnPropertyChanged(nameof(this.ThumbnailPath));
         }
     }
 

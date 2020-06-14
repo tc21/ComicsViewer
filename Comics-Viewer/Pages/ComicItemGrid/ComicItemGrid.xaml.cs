@@ -234,10 +234,11 @@ namespace ComicsViewer {
                 this.GenerateThumbnailCommand = new XamlUICommand();
                 this.GenerateThumbnailCommand.ExecuteRequested += async (sender, args) => {
                     foreach (var item in this.SelectedItems) {
-                        await Thumbnail.GenerateThumbnailAsync(item.TitleComic);
+                        await Thumbnail.GenerateThumbnailAsync(item.TitleComic, 2 * parent.MainViewModel!.Profile.ImageWidth);
+                        item.DoNotifyThumbnailChanged();
                     }
 
-                    parent.ViewModel!.RefreshComicItems();
+                    //parent.ViewModel!.RefreshComicItems();
                 };
                 this.GenerateThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);

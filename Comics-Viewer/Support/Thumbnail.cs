@@ -7,8 +7,10 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
+using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
@@ -19,7 +21,7 @@ namespace ComicsViewer.Thumbnails {
             return Path.Combine(Defaults.ThumbnailFolderPath, $"{comic.UniqueIdentifier}.thumbnail.jpg");
         }
 
-        public static async Task GenerateThumbnailAsync(Comic comic) {
+        public static async Task GenerateThumbnailAsync(Comic comic, int width = 512) {
             var thumbnailsFolder = await Defaults.GetThumbnailFolderAsync();
             try {
                 var existingThumbnail = await thumbnailsFolder.GetFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
@@ -34,14 +36,20 @@ namespace ComicsViewer.Thumbnails {
                 return;
             }
 
-            using var thumbnail = await imageFile.GetThumbnailAsync(ThumbnailMode.SingleItem, 500);
-            var buffer = new byte[thumbnail.Size];
-            var readBuffer = await thumbnail.ReadAsync(buffer.AsBuffer(), (uint)buffer.Length, Windows.Storage.Streams.InputStreamOptions.None);
+            using var inStream = await imageFile.OpenAsync(FileAccessMode.Read);
+            var decoder = await BitmapDecoder.CreateAsync(inStream);
+            var bitmap = await decoder.GetSoftwareBitmapAsync();
 
             var thumbnailFile = await thumbnailsFolder.CreateFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
-            using var stream = await thumbnailFile.OpenStreamForWriteAsync();
-            await stream.WriteAsync(readBuffer.ToArray(), 0, (int)readBuffer.Length);
-            await stream.FlushAsync();
+            using var outStream = await thumbnailFile.OpenAsync(FileAccessMode.ReadWrite);
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, outStream);
+
+            encoder.SetSoftwareBitmap(bitmap);
+            encoder.BitmapTransform.ScaledWidth = (uint)width;
+            encoder.BitmapTransform.ScaledHeight = (uint)(bitmap.PixelHeight * width / bitmap.PixelWidth);
+            encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Fant;
+
+            await encoder.FlushAsync();
         }
     }
 
