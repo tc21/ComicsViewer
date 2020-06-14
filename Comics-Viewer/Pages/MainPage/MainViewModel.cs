@@ -129,7 +129,7 @@ namespace ComicsViewer {
         internal const string SecondLevelNavigationTag = "default";
 
         private string selectedTopLevelNavigationTag = "";
-        public int NavigationLevel { get; private set; }
+        public int NavigationLevel { get; set; }
         public string ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : SecondLevelNavigationTag;
 
         public void Navigate(string navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {

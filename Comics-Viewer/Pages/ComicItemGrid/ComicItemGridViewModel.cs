@@ -174,7 +174,7 @@ namespace ComicsViewer {
         private void ComicViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
-                    Defaults.SettingsAccessor.SetLastSortSelection(this.MainViewModel.ActiveNavigationTag, this.SelectedSortIndex);
+                    Defaults.SettingsAccessor.SetLastSortSelection(this.navigationTag, this.SelectedSortIndex);
 
                     if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
                         this.randomSortSelectors = this.randomSortSelectors.Keys.ToDictionary(e => e, _ => App.Randomizer.Next());

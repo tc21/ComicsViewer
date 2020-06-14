@@ -149,6 +149,7 @@ namespace ComicsViewer {
             if (args.IsSettingsInvoked) {
                 // Don't navigate to settings twice
                 if (!(this.ContentFrame.Content is SettingsPage)) {
+                    this.ViewModel.NavigationLevel = 2;
                     this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
                     this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel!, this.ViewModel!.Profile));
                 }
