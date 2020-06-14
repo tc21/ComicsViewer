@@ -66,9 +66,13 @@
                 <MenuFlyoutItem Text="Search selected" 
                                 Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutItem Tag="showInExplorer"
+                                Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Tag="remove" 
-                                Command="{x:Bind ContextMenuCommands.RemoveItemCommand}" />
+                                Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
             </MenuFlyout>
             <Flyout x:Key="ComicInfoFlyout" ShouldConstrainToRootBounds="False">
                 <Flyout.FlyoutPresenterStyle>

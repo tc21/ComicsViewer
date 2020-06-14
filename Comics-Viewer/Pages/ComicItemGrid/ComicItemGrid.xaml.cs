@@ -186,6 +186,7 @@ namespace ComicsViewer {
             public XamlUICommand OpenItemsCommand { get; }
             public XamlUICommand SearchSelectedCommand { get; }
             public XamlUICommand RemoveItemCommand { get; }
+            public XamlUICommand ShowInExplorerCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -216,6 +217,17 @@ namespace ComicsViewer {
                         await parent.MainViewModel!.RemoveComicsAsync(comics);
                     }
                 };
+
+                // Opens the containing folder in Windows Explorer
+                this.ShowInExplorerCommand = new XamlUICommand();
+                this.ShowInExplorerCommand.ExecuteRequested += (sender, args) => {
+                    foreach (var item in this.SelectedItems) {
+                        Startup.OpenContainingFolderAsync(item.TitleComic);
+                    }
+                };
+                this.ShowInExplorerCommand.CanExecuteRequested += this.CanExecuteHandler(() 
+                    => this.SelectedItemType == ComicItemType.Work);
+
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -242,14 +254,15 @@ namespace ComicsViewer {
 
         private string GetDynamicFlyoutText(string tag) {
             var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
+            var count = this.VisibleComicsGrid.SelectedItems.Count;
 
             return tag switch {
-                "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") +
-                          (this.VisibleComicsGrid.SelectedItems.Count > 1 ? $" {this.VisibleComicsGrid.SelectedItems.Count} items" : ""),
+                "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") + (count > 1 ? $" {count} items" : ""),
                 "search" => "Search selected",
                 // why exactly can't we use blocks in a switch expression?
-                "remove" => (type == ComicItemType.Work && this.VisibleComicsGrid.SelectedItems.Count == 1) ? "Remove" : 
+                "remove" => (type == ComicItemType.Work && count == 1) ? "Remove" : 
                             $"Remove {this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count().PluralString("comic")}",
+                "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

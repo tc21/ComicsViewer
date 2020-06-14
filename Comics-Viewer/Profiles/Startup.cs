@@ -35,5 +35,9 @@ namespace ComicsViewer.Profiles {
                     // TODO More cases
             }
         }
+
+        public static void OpenContainingFolderAsync(Comic comic) {
+            _ = Launcher.LaunchFolderPathAsync(comic.Path);
+        }
     }
 }
