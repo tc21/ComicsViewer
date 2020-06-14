@@ -213,7 +213,7 @@ namespace ComicsViewer {
                 this.RemoveItemCommand.ExecuteRequested += async (sender, args) => {
                     if ((await parent.ConfirmRemoveItemDialog.ShowAsync()) == ContentDialogResult.Primary) {
                         var comics = this.SelectedItems.SelectMany(item => item.Comics).ToList();
-                        parent.MainViewModel!.RemoveComics(comics);
+                        await parent.MainViewModel!.RemoveComicsAsync(comics);
                     }
                 };
             }

@@ -98,7 +98,7 @@ namespace ComicsViewer {
 
             this.Filter.Clear();
 
-            await this.RequestValidateAndRemoveComics();
+            await this.RequestValidateAndRemoveComicsAsync();
         }
 
         /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
@@ -316,7 +316,7 @@ namespace ComicsViewer {
 
             // Gathers known metadata
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadata(this.comics);
+            await manager.AssignKnownMetadataAsync(this.comics);
 
             this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
         }
@@ -331,11 +331,10 @@ namespace ComicsViewer {
 
             var added = newComics;
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadata(added);
+            await manager.AssignKnownMetadataAsync(added);
 
-            this.RemoveComics(this.comics.Where(comic => comic.Category == category.Name));
-            this.AddComics(added);
-
+            await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
+            await this.AddComicsAsync(added);
         }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
@@ -347,14 +346,14 @@ namespace ComicsViewer {
             }
 
             var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadata(comics);
+            await manager.AssignKnownMetadataAsync(comics);
 
             /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
-            this.RemoveComics(comics.Where(this.comics.Contains));
-            this.AddComics(comics);
+            await this.RemoveComicsAsync(comics.Where(this.comics.Contains));
+            await this.AddComicsAsync(comics);
         }
 
-        public async Task RequestValidateAndRemoveComics() {
+        public async Task RequestValidateAndRemoveComicsAsync() {
             var comics = await this.StartTaskAsync($"Validating {this.comics.Count} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p));
 
@@ -362,11 +361,11 @@ namespace ComicsViewer {
                 return;
             }
 
-            this.RemoveComics(comics);
+            await this.RemoveComicsAsync(comics);
         }
 
         /* Example functions subject to change */
-        public void AddComics(IEnumerable<Comic> comics) {
+        public async Task AddComicsAsync(IEnumerable<Comic> comics) {
             var added = new List<Comic>();
 
             // we have to make a copy of comics, since the user might just pass this.comics (or more likely a query
@@ -380,9 +379,12 @@ namespace ComicsViewer {
             }
 
             this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, added));
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AddOrUpdateComicsAsync(added);
         }
 
-        public void RemoveComics(IEnumerable<Comic> comics) {
+        public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
             var removed = new List<Comic>();
 
             foreach (var comic in comics.ToList()) {
@@ -392,6 +394,9 @@ namespace ComicsViewer {
             }
 
             this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, removed));
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.RemoveComicsAsync(removed);
         }
 
         public event ComicsModifiedEventHandler ComicsModified = delegate { };

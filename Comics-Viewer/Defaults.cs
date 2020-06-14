@@ -209,7 +209,7 @@ namespace ComicsViewer {
             ["SavedSearches"] = "",
         };
 
-        private static DefaultSettingsAccessor defaultSettingsAccessor = new DefaultSettingsAccessor(defaultSettings);
+        private static readonly DefaultSettingsAccessor defaultSettingsAccessor = new DefaultSettingsAccessor(defaultSettings);
 
         public static class SettingsAccessor {
             public static string LastProfile {

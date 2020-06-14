@@ -16,12 +16,12 @@ namespace ComicsViewer.ViewModels {
         public string Title { get; }
         public string Subtitle { get; private set; }
         public ComicItemType ItemType { get; }
-        internal IList<Comic> Comics { get; }
+        internal List<Comic> Comics { get; }
 
         public string ThumbnailPath => Thumbnail.ThumbnailPath(this.TitleComic);
         public Comic TitleComic => this.Comics[0];
 
-        private ComicItem(string title, string subtitle, ComicItemType itemType, IList<Comic> comics) {
+        private ComicItem(string title, string subtitle, ComicItemType itemType, List<Comic> comics) {
             this.Title = title;
             this.Subtitle = subtitle;
             this.ItemType = itemType;

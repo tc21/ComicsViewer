@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using Microsoft.Toolkit.Uwp.UI;
 using System;
@@ -52,7 +53,7 @@ namespace ComicsViewer {
         public int VisibleItemCount => this.ComicItems.Count;
 
         internal readonly MainViewModel MainViewModel;
-        private readonly List<Comic> comics;
+        private readonly ComicList comics;
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         private readonly string navigationTag;
         // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
@@ -64,7 +65,7 @@ namespace ComicsViewer {
          * It's not pretty but it's a very tiny part of the program. */
         public ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<Comic> comics) {
             this.MainViewModel = appViewModel;
-            this.comics = comics.ToList();
+            this.comics = new ComicList(comics);
             this.navigationTag = appViewModel.ActiveNavigationTag;
 
             // Note: please keep this line before setting SelectedSortIndex...
@@ -203,20 +204,33 @@ namespace ComicsViewer {
                         return;
                     }
 
-                    this.comics.AddRange(e.ModifiedComics);
-                    this.RefreshComicItems();
+                    foreach (var comic in e.ModifiedComics) {
+                        this.comics.Add(comic);
+                    }
+
+                    /* If we are on the comics tab, we just need to add the comics to the view.
+                     * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
+                     * to handle new item groups, and we say fuck that */
+                    if (this.navigationTag == MainViewModel.DefaultNavigationTag) {
+                        foreach (var comic in e.ModifiedComics) {
+                            this.ComicItems.Add(ComicItem.WorkItem(comic));
+                        }
+                    } else {
+                        this.RefreshComicItems();
+                    }
 
                     break;
                 case ComicModificationType.ItemsRemoved:
                     // We remove these items directly from this.ComicItems without having to call RefreshComicItems
                     var removedUniqueIds = new HashSet<string>();
-                    var removedComicItemIndices = new Stack<int>();
 
                     foreach (var item in e.ModifiedComics) {
                         this.comics.Remove(item);
                         removedUniqueIds.Add(item.UniqueIdentifier);
                     }
 
+                    // comicitems
+                    var removedComicItemIndices = new Stack<int>();
                     for (var i_comicItem = 0; i_comicItem < this.ComicItems.Count; i_comicItem++) {
                         var comicItem = this.ComicItems[i_comicItem];
                         var removedComicIndices = new Stack<int>();
