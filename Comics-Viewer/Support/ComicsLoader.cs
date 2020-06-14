@@ -16,12 +16,29 @@ namespace ComicsViewer.Support {
     /* As much as I want to move this class into ComicsLibrary, it's very integrated with File I/O, and UWP, WPF, etc.
      * uses different methods to do File I/O (StorageFile vs FileInfo) */
     public static class ComicsLoader {
+        /* A summary of how file searching works:
+         * The user provides a folder, or a list of folders. The directory structure must be:
+         *  <category folder>\<author folder>\<work folder>\<work files>
+         * 
+         * For FromProfilePaths, the user configures a Mapping : <category display name> -> <category folder>
+         * For FromRootPath, the user manually passes in a NamedPath { Name = <category display name>, Path = <category folder> }
+         * For FromImportedFolders, the supplied folder can be the category, author, or work folder. The program simply
+         *     assumes that the first folder it finds that contains work files is the work folder.
+         *     
+         * Folders starting with an ignored prefix will be ignored. However exceptions are made when the user explicitly
+         *     requests a folder with an ignored prefix, either by naming it as a category or dropping it in.
+         */
+
         /* Used when the user manually imports some folders. Automatically detects category/author according to the predefined structure. */
-        public static async Task<IEnumerable<Comic>> FromImportedFolderAsync(
-            UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress = null
+        public static async Task<IEnumerable<Comic>> FromImportedFoldersAsync(
+            UserProfile profile, IEnumerable<StorageFolder> folders, CancellationToken cc, IProgress<int>? progress = null
         ) {
             var result = new List<Comic>();
-            await FinishFromImportedFolderAsync(result, profile, folder, cc, progress, 2);
+
+            foreach (var folder in folders) {
+                await FinishFromImportedFolderAsync(result, profile, folder, cc, progress, 2);
+            }
+
             return result;
         }
 
@@ -83,6 +100,10 @@ namespace ComicsViewer.Support {
             }
 
             foreach (var subfolder in await folder.GetFoldersAsync()) {
+                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => subfolder.Name.StartsWith(prefix))) {
+                    continue;
+                }
+
                 await FinishFromImportedFolderAsync(comics, profile, subfolder, cc, progress, maxRecursionDepth - 1);
 
                 if (cc.IsCancellationRequested) {
@@ -99,6 +120,10 @@ namespace ComicsViewer.Support {
             var folder = await StorageFolder.GetFolderFromPathAsync(rootPath.Path);
 
             foreach (var authorFolder in await folder.GetFoldersAsync()) {
+                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => authorFolder.Name.StartsWith(prefix))) {
+                    continue;
+                }
+
                 await FinishFromAuthorFolderAsync(comics, profile, authorFolder, rootPath.Name, authorFolder.Name, cc, progress);
 
                 if (cc.IsCancellationRequested) {
@@ -113,7 +138,11 @@ namespace ComicsViewer.Support {
             List<Comic> comics, UserProfile profile, StorageFolder folder, string category, string author, 
             CancellationToken cc, IProgress<int>? progress
         ) {
-            foreach (var comicFolder in await folder.GetFoldersAsync()) {
+            foreach (var comicFolder in await folder.GetFoldersAsync()) { 
+                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => comicFolder.Name.StartsWith(prefix))) {
+                    continue;
+                }
+
                 if ((await profile.GetFilesForComicFolderAsync(comicFolder)).Count() > 0) {
                     var comic = new Comic(comicFolder.Path, comicFolder.Name, author, category);
                     comics.Add(comic);
@@ -128,20 +157,8 @@ namespace ComicsViewer.Support {
             return;
         }
 
-        // We trust that the we pass in consistently formatted names
         private static bool IsChildOf(string parent, string child) {
-            if (!Path.IsPathRooted(parent) || !Path.IsPathRooted(child)) {
-                throw new ApplicationLogicException();
-            }
-
-            if (parent.Length < child.Length) {
-                child = Path.GetDirectoryName(child);
-                if (parent.Equals(child, StringComparison.OrdinalIgnoreCase)) {
-                    return true;
-                }
-            }
-
-            return false;
+            return Path.GetFullPath(child).StartsWith(Path.GetFullPath(parent), StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TC.Database.MicrosoftSqlite;
+using Windows.Storage;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Media.Animation;
 
@@ -218,6 +219,11 @@ namespace ComicsViewer {
         /* Starts a cpu-heavy task that can be cancelled. We only allow one such task per application.
          * Returnus null if the task was cancelled. */
         private async Task<T?> StartTaskAsync<T>(string name, Func<CancellationToken, IProgress<int>, Task<T>> task) where T : class {
+            if (this.IsTaskRunning) {
+                _ = await new MessageDialog("A task is already running. Please wait for it to finish.", "Cannot start task").ShowAsync();
+                return null;
+            }
+
             this.TaskName = name;
             this.taskCancellationTokenSource = new CancellationTokenSource();
             var taskProgress = new Progress<int>(progress => {
@@ -247,7 +253,9 @@ namespace ComicsViewer {
         public async Task RequestReloadAllComicsAsync() {
             // Design philosophy: we could have this method return bool, and the caller show message boxes, but that
             // doesn't actually make the code more elegant in any way
-            var comics = await this.StartTaskAsync("Reloading all comics...", (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p));
+            var comics = await this.StartTaskAsync("Reloading all comics...", 
+                (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p));
+
             if (comics == null) {
                 return;
             }
@@ -258,8 +266,30 @@ namespace ComicsViewer {
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
-            _ = await new MessageDialog("This operation has not yet been implemented", "Unsupported operation").ShowAsync();
-            //var comics = await ComicsLoader.FromRootPathAsync(this.Profile, category, CancellationToken.None);
+            var comics = await this.StartTaskAsync($"Reloading category '{category.Name}'...", 
+                (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p));
+
+            if (comics == null) {
+                return;
+            }
+
+            // TODO diff, etc.
+            this.comics = comics.ToList();
+            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+        }
+
+
+        public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
+            var comics = await this.StartTaskAsync($"Adding comics from {folders.Count()} folders...",
+                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p));
+
+            if (comics == null) {
+                return;
+            }
+
+            // TODO check for duplicates
+            this.comics.AddRange(comics);
+            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
         }
 
         /* Example functions subject to change */

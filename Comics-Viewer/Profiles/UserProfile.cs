@@ -27,6 +27,9 @@ namespace ComicsViewer.Profiles {
 
         // static values and methods
         public static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+        // Although it's probably best practice to allow the user to configure this, I've never needed to do so yet,
+        // and considering I'm the only user
+        public static readonly string[] IgnoredFilenamePrefixes = { "~", "(" };
 
         public UserProfile() { }
 

@@ -1,7 +1,9 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Pages;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
+using Microsoft.Toolkit.Uwp.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,9 +11,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -272,6 +276,60 @@ namespace ComicsViewer {
             var itemsWrapGrid = (ItemsWrapGrid)grid.ItemsPanelRoot;
             itemsWrapGrid.ItemWidth = grid.ActualWidth / columns;
             itemsWrapGrid.ItemHeight = itemsWrapGrid.ItemWidth * idealItemHeight / idealItemWidth;
+        }
+
+        #endregion
+
+        #region Drag and drop
+
+        private void VisibleComicsGrid_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args) {
+            Debug.Write("DragItemsCompleted");
+        }
+
+        private void VisibleComicsGrid_DragItemsStarting(object sender, DragItemsStartingEventArgs e) {
+            var comicItems = e.Items.Cast<ComicItem>().ToList();
+
+            e.Data.RequestedOperation = DataPackageOperation.Copy;
+
+            e.Data.SetDataProvider(StandardDataFormats.StorageItems, async request => {
+                var items = new List<IStorageItem>();
+
+                // Required to call async functions
+                var deferral = request.GetDeferral();
+
+                foreach (var comicItem in comicItems) {
+                    foreach (var comic in comicItem.Comics) {
+                        items.Add(await StorageFolder.GetFolderFromPathAsync(comic.Path));
+                    }
+                }
+
+                request.SetData(items.AsReadOnly());
+
+                deferral.Complete();
+            });
+
+            Debug.Write("DragItemsStarting");
+        }
+
+        private void VisibleComicsGrid_DragOver(object sender, DragEventArgs e) {
+            e.AcceptedOperation = DataPackageOperation.Copy;
+        }
+
+        private async void VisibleComicsGrid_Drop(object sender, DragEventArgs e) {
+            if (!e.DataView.Contains(StandardDataFormats.StorageItems)) {
+                return;
+            }
+
+            var items = await e.DataView.GetStorageItemsAsync();
+
+            if (items.Count == 0) {
+                return;
+            }
+
+            var folders = items.Where(item => item.IsOfType(StorageItemTypes.Folder))
+                               .Cast<StorageFolder>();
+
+            await this.MainViewModel!.RequestLoadComicsFromFoldersAsync(folders);
         }
 
         #endregion
