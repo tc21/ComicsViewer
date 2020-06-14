@@ -142,11 +142,6 @@ namespace ComicsViewer {
 
         #region Opening items 
 
-        // Helper function to open GridView.SelectedItems
-        internal Task OpenItemsAsync(IEnumerable<object> items) {
-            return this.OpenItemsAsync(items.Cast<ComicItem>());
-        }
-
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
             if (items.First().ItemType == ComicItemType.Navigation) {
                 if (items.Count() != 1) {

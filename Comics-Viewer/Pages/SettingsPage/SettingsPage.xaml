@@ -60,11 +60,25 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-         
+
         <TextBlock Margin="12 12 0 0" Text="Edit Categories"/>
         <controls:DataGrid Margin="12 12 0 0" 
                            ItemsSource="{x:Bind ViewModel.RootPaths}" 
+                           AutoGenerateColumns="False"
                            CellEditEnded="ProfileCategoryDataGrid_CellEditEnded">
+            <controls:DataGrid.Columns>
+                <controls:DataGridTextColumn Header="Name" Binding="{Binding Name}" Tag="name"/>
+                <controls:DataGridTextColumn Header="Path" Binding="{Binding Path}" Tag="path"/>
+                <controls:DataGridTemplateColumn>
+                    <controls:DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <HyperlinkButton Click="ReloadCategoryButton_Click">
+                                <SymbolIcon Symbol="Refresh"/>
+                            </HyperlinkButton>
+                        </DataTemplate>
+                    </controls:DataGridTemplateColumn.CellTemplate>
+                </controls:DataGridTemplateColumn>
+            </controls:DataGrid.Columns>
         </controls:DataGrid>
         <StackPanel Orientation="Horizontal">
             <Button Margin="12 12 0 0" Content="Add Category" Click="AddProfileCategoryButton_Click"/>
@@ -72,21 +86,28 @@
                     Margin="12 12 0 0" 
                     Content="Save Changes" 
                     Click="SaveProfileCategoriesButton_Click" Visibility="Collapsed"/>
+            <Button Margin="12 12 0 0" Content="Reload All Categories" Click="ReloadAllCategoriesButton_Click"/>
         </StackPanel>
 
         <TextBlock Text="App Settings" Margin="0 12 0 0" Style="{StaticResource SubtitleTextBlockStyle}"/>
         
         <!-- Horizontal space -->
         <Rectangle Margin="0 12"/>
-        
-        <Button Content="New Profile" Click="NewProfileButton_Click"/>
+
+        <Button Content="New Profile" Margin="12 12 0 0" Click="NewProfileButton_Click"/>
+
+        <ContentDialog x:Name="ReloadConfirmationContentDialog"
+                       Title="Are you sure you want to reload these items?"
+                       Content="This can take a long time if a category has a large folder. If you are only adding a small amount of items, consider dragging them into the application window."
+                       PrimaryButtonText="Reload"
+                       CloseButtonText="Cancel"
+                       DefaultButton="Close"/>
 
         <ContentDialog x:Name="NewProfileDialog"
                        Title="New Profile"
                        PrimaryButtonText="Create Profile"
                        CloseButtonText="Cancel"
-                       Visibility="Collapsed"
-                       >
+                       DefaultButton="Close">
             <StackPanel>
                 <muxc:RadioButtons x:Name="NewProfileRadioButtons" 
                                    Header="Create a new profile based on:" 

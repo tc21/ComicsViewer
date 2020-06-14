@@ -17,15 +17,15 @@ namespace ComicsViewer.Pages {
         public string ProfileName => this.profile.Name;
 
         private UserProfile profile;
-        private readonly MainViewModel mainViewModel;
+        internal readonly MainViewModel MainViewModel;
 
         // We will directly edit this list. We will need to save the profile and notify others of changes. 
         public ObservableCollection<NamedPath> RootPaths { get; private set; } = new ObservableCollection<NamedPath>();
 
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
-            this.mainViewModel = mainViewModel;
+            this.MainViewModel = mainViewModel;
 
-            this.mainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
+            this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
 
             this.profile = profile;
             this.SetProfile(profile);
@@ -59,15 +59,15 @@ namespace ComicsViewer.Pages {
         }
 
         public async Task ProfileModifiedAsync() {
-            this.mainViewModel.NotifyProfileChanged(ProfileChangeType.SettingsChanged);
+            this.MainViewModel.NotifyProfileChanged(ProfileChangeType.SettingsChanged);
             await ProfileManager.SaveProfileAsync(profile);
         }
 
         public List<SettingsItemViewModel> ProfileSettings { get; private set; } = new List<SettingsItemViewModel>();
 
         public async Task CreateProfileAsync(string suggestedName, bool copyCurrent = false) {
-            var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? mainViewModel.Profile : null);
-            await this.mainViewModel.SetProfileAsync(profile.Name);
+            var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? MainViewModel.Profile : null);
+            await this.MainViewModel.SetProfileAsync(profile.Name);
         }
 
         public void AddEmptyProfileCategory() {

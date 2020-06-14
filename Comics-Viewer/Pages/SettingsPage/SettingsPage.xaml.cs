@@ -27,6 +27,7 @@ namespace ComicsViewer.Pages {
         }
 
         public SettingsPageViewModel? ViewModel;
+        private MainViewModel? MainViewModel => ViewModel?.MainViewModel;
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is SettingsPageNavigationArguments args)) {
@@ -85,6 +86,30 @@ namespace ComicsViewer.Pages {
         private async void SaveProfileCategoriesButton_Click(object sender, RoutedEventArgs e) {
             await this.ViewModel!.SaveProfileCategories();
             this.SaveProfleCategoriesButton.Visibility = Visibility.Collapsed;
+        }
+
+        private async void ReloadAllCategoriesButton_Click(object sender, RoutedEventArgs e) {
+            var result = await this.ReloadConfirmationContentDialog.ShowAsync();
+
+            if (result != ContentDialogResult.Primary) {
+                return;
+            }
+
+            await this.MainViewModel!.RequestReloadAllComicsAsync();
+        }
+
+        private async void ReloadCategoryButton_Click(object sender, RoutedEventArgs e) {
+            var result = await this.ReloadConfirmationContentDialog.ShowAsync();
+
+            if (result != ContentDialogResult.Primary) {
+                return;
+            }
+
+            if (!(((FrameworkElement)sender).DataContext is NamedPath namedPath)) {
+                throw new ApplicationLogicException();
+            }
+
+            await this.MainViewModel!.RequestReloadCategoryAsync(namedPath);
         }
     }
 }

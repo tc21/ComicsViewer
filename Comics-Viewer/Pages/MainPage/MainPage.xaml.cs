@@ -224,12 +224,22 @@ namespace ComicsViewer {
             flyout.ShowAt(sender as FrameworkElement);
         }
 
+        private void ClearActiveTaskButton_Click(object sender, RoutedEventArgs e) {
+            this.ViewModel!.RequestClearActiveTask();
+            this.TaskProgressButton.ContextFlyout.Hide();
+        }
+
         /* reference: https://docs.microsoft.com/en-us/windows/uwp/design/shell/title-bar#full-customization-example */
         private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args) {
             this.LeftPaddingColumn.Width = new GridLength(sender.SystemOverlayLeftInset);
             this.RightPaddingColumn.Width = new GridLength(sender.SystemOverlayRightInset);
 
             this.AppTitleBar.Height = sender.Height;
+        }
+
+        private void TaskProgressButton_Tapped(object sender, TappedRoutedEventArgs e) {
+            // We just allow the context flyout to be shown with a left click
+            this.TaskProgressButton.ContextFlyout.ShowAt(this.TaskProgressButton);
         }
     }
 }

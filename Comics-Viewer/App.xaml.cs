@@ -40,6 +40,9 @@ namespace ComicsViewer
          * - To enable the above feature, we will need a settings pane for App-level (instead of / in addition to profile-level) settings.
          * - To enable progress tracking, we will probably need to implement a UWP-based image viewer too.
          *   This time we probably won't have to make it general-purpose.
+         * - Add an expiration date to generated thumbnails, so they don't just pile up
+         * - Assign "related works", allowing any two works to be related in the database and to show up in each other's 
+         *   single-click flyout
          */
         public static readonly Random Randomizer = new Random();
 

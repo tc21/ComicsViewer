@@ -29,8 +29,10 @@
                     </VisualState.StateTriggers>
 
                     <VisualState.Setters>
-                        <Setter Target="FilterButton.HorizontalAlignment" Value="Right"/>
-                        <Setter Target="FilterButton.VerticalAlignment" Value="Stretch"/>
+                        <Setter Target="NavigationViewCustomContent.HorizontalAlignment" Value="Right"/>
+                        <Setter Target="NavigationViewCustomContent.VerticalAlignment" Value="Stretch"/>
+                        <Setter Target="TaskProgressButton.(Grid.Column)" Value="0"/>
+                        <Setter Target="FilterButton.(Grid.Column)" Value="1"/>
                         <Setter Target="NavigationView.PaneDisplayMode" Value="Top"/>
                         <Setter Target="ContentFrame.Margin" Value="0"/>
                     </VisualState.Setters>
@@ -81,12 +83,47 @@
             </muxc:NavigationView.AutoSuggestBox>
 
             <muxc:NavigationView.PaneCustomContent>
-                <muxc:NavigationViewItem x:Name="FilterButton" 
-                                         Icon="Filter"
-                                         Content="Filters"
-                                         HorizontalAlignment="Stretch"
-                                         VerticalAlignment="Bottom" 
-                                         Tapped="FilterNavigationViewItem_Tapped"/>
+                <Grid x:Name="NavigationViewCustomContent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <muxc:NavigationViewItem x:Name="FilterButton" 
+                                             Grid.Column="0"
+                                             Icon="Filter"
+                                             Content="Filters"
+                                             HorizontalAlignment="Left"
+                                             Tapped="FilterNavigationViewItem_Tapped"/>
+                    <muxc:NavigationViewItem x:Name="TaskProgressButton" 
+                                             Grid.Column="1"
+                                             Visibility="{x:Bind ViewModel.IsTaskRunning, Mode=OneWay}"
+                                             HorizontalAlignment="Right"
+                                             Tapped="TaskProgressButton_Tapped">
+                        <ProgressRing IsActive="True" Foreground="{ThemeResource ButtonForegroundThemeBrush}"/>
+
+                        <muxc:NavigationViewItem.ContextFlyout>
+                            <Flyout>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{x:Bind ViewModel.TaskName, Mode=OneWay}"/>
+                                        <TextBlock Text=" ("/>
+                                        <TextBlock Text="{x:Bind ViewModel.TaskProgress, Mode=OneWay}"/>
+                                        <TextBlock Text=" item(s) processed)"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource RoundClearButton}"
+                                            Click="ClearActiveTaskButton_Click"/>
+                                </Grid>
+                            </Flyout>
+                        </muxc:NavigationViewItem.ContextFlyout>
+                    </muxc:NavigationViewItem>
+                </Grid>
             </muxc:NavigationView.PaneCustomContent>
 
             <Frame x:Name="ContentFrame" 

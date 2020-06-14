@@ -12,14 +12,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TC.Database.MicrosoftSqlite;
+using Windows.UI.Popups;
 using Windows.UI.Xaml.Media.Animation;
 
 #nullable enable
 
 namespace ComicsViewer {
-    public class MainViewModel {
+    public class MainViewModel : ViewModelBase {
         private List<Comic> comics = new List<Comic>();
 
         #region Profiles 
@@ -204,10 +206,61 @@ namespace ComicsViewer {
         }
         #endregion
 
-        #region Propagating changes to comics
+        #region Adding, removing, reloading comics
 
         /* The purpose of this section is to allow for ComicItemGrids to be notified of changes to the master list of
          * comics, so we don't have to reload the entire list of comics each time something is changed. */
+        public bool IsTaskRunning => this.TaskName != null;
+        public string? TaskName { get; private set; }
+        public int TaskProgress { get; private set; } = 0;
+        private CancellationTokenSource? taskCancellationTokenSource;
+
+        /* Starts a cpu-heavy task that can be cancelled. We only allow one such task per application.
+         * Returnus null if the task was cancelled. */
+        private async Task<T?> StartTaskAsync<T>(string name, Func<CancellationToken, IProgress<int>, Task<T>> task) where T : class {
+            this.TaskName = name;
+            this.taskCancellationTokenSource = new CancellationTokenSource();
+            var taskProgress = new Progress<int>(progress => {
+                this.TaskProgress = progress;
+                this.OnPropertyChanged(nameof(this.TaskProgress));
+            });
+
+            this.OnPropertyChanged(nameof(this.IsTaskRunning));
+            this.OnPropertyChanged(nameof(this.TaskName));
+
+            var result = await Task.Run(() => task(this.taskCancellationTokenSource.Token, taskProgress), this.taskCancellationTokenSource.Token);
+
+            this.TaskName = null;
+            this.OnPropertyChanged(nameof(this.IsTaskRunning));
+
+            if (this.taskCancellationTokenSource.IsCancellationRequested) {
+                return null;
+            }
+
+            return result;
+        }
+
+        public void RequestClearActiveTask() {
+            this.taskCancellationTokenSource!.Cancel();
+        }
+
+        public async Task RequestReloadAllComicsAsync() {
+            // Design philosophy: we could have this method return bool, and the caller show message boxes, but that
+            // doesn't actually make the code more elegant in any way
+            var comics = await this.StartTaskAsync("Reloading all comics...", (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p));
+            if (comics == null) {
+                return;
+            }
+
+            // TODO we should diff with this.comics, do whatever we need to, update the database, etc...
+            this.comics = comics.ToList();
+            this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+        }
+
+        public async Task RequestReloadCategoryAsync(NamedPath category) {
+            _ = await new MessageDialog("This operation has not yet been implemented", "Unsupported operation").ShowAsync();
+            //var comics = await ComicsLoader.FromRootPathAsync(this.Profile, category, CancellationToken.None);
+        }
 
         /* Example functions subject to change */
         public void AddComics(IEnumerable<Comic> comics) {
@@ -268,6 +321,7 @@ namespace ComicsViewer {
     public enum ComicModificationType {
         ItemsAdded, ItemsRemoved
         // ItemsModified: handled by ComicItem, so we don't need to do anything here.
+        // Refresh: handled by MainViewModel: there's nothing subviews can do anyway
         // Note: if we implement the feature to combine multiple works into one, we will need more complicated behavior
     }
 }

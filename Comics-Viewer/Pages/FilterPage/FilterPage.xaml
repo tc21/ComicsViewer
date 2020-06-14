@@ -62,12 +62,9 @@
                        Margin="0 0 12 0"
                        VerticalAlignment="Center"/>
 
-            <Button Grid.Column="1" Width="16" Height="16" CornerRadius="8" Margin="4" Padding="0"
-                        Click="ClearCustomFilterButton_Click">
-                <Viewbox MaxHeight="7">
-                    <SymbolIcon Symbol="Clear" />
-                </Viewbox>
-            </Button>
+            <Button Grid.Column="1"
+                    Style="{StaticResource RoundClearButton}"
+                    Click="ClearCustomFilterButton_Click"/>
         </Grid>
 
         <Grid Grid.Row="1">

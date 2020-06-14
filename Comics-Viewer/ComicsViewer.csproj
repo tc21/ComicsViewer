@@ -167,6 +167,7 @@
     </Compile>
     <Compile Include="Support\DefaultDictionary.cs" />
     <Compile Include="Support\DeferredNotify.cs" />
+    <Compile Include="Support\ComicsLoader.cs" />
     <Compile Include="Support\Search.cs" />
     <Compile Include="Support\ApplicationLogicException.cs" />
     <Compile Include="Support\Thumbnail.cs" />
