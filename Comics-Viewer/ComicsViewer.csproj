@@ -149,6 +149,7 @@
     <Compile Include="Pages\SettingsPage\SettingsPageNavigationArguments.cs" />
     <Compile Include="Pages\SettingsPage\SettingsPageViewModel.cs" />
     <Compile Include="Support\ClassExtensions\Int32_PluralString.cs" />
+    <Compile Include="Support\ClassExtensions\ObservableCollection_AddRange.cs" />
     <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>

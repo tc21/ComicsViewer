@@ -1,8 +1,10 @@
 ﻿using ComicsViewer.Profiles;
+using ComicsViewer.Support.ClassExtensions;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace ComicsViewer.Pages {
         internal readonly MainViewModel MainViewModel;
 
         // We will directly edit this list. We will need to save the profile and notify others of changes. 
-        public ObservableCollection<NamedPath> RootPaths { get; private set; } = new ObservableCollection<NamedPath>();
+        public readonly ObservableCollection<NamedPath> RootPaths = new ObservableCollection<NamedPath>();
 
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
             this.MainViewModel = mainViewModel;
@@ -36,7 +38,6 @@ namespace ComicsViewer.Pages {
 
             this.ProfileSettings = new List<SettingsItemViewModel>() {
                 new SettingsItemViewModel(this, "Profile name", () => this.profile.Name),
-                // Example of using default constructor vs genericized method
                 new SettingsItemViewModel(this, "Image height", () => this.profile.ImageHeight.ToString(),
                     str => this.profile.ImageHeight = int.Parse(str),
                     str => int.TryParse(str, out var i) && i > 40),
@@ -45,11 +46,11 @@ namespace ComicsViewer.Pages {
                     str => int.TryParse(str, out var i) && i > 40)
             };
 
-            this.RootPaths = new ObservableCollection<NamedPath>(this.profile.RootPaths);
+            this.RootPaths.Clear();
+            this.RootPaths.AddRange(this.profile.RootPaths);
 
             this.OnPropertyChanged(nameof(this.ProfileSettings));
             this.OnPropertyChanged(nameof(this.ProfileName));
-            this.OnPropertyChanged(nameof(this.RootPaths));
         }
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
@@ -75,12 +76,19 @@ namespace ComicsViewer.Pages {
         }
 
         public async Task SaveProfileCategories() {
-            this.profile.RootPaths = this.RootPaths.ToList();
+            // Only keep rooted paths
+            this.profile.RootPaths.Clear();
+            foreach (var item in this.RootPaths) {
+                if (Path.IsPathRooted(item.Path)) {
+                    this.profile.RootPaths.Add(new NamedPath { Name = item.Name, Path = Path.GetFullPath(item.Path) });
+                }
+            }
+
             // We don't actually have to notify this change
             await ProfileManager.SaveProfileAsync(this.profile);
 
-            this.RootPaths = new ObservableCollection<NamedPath>(this.profile.RootPaths);
-            this.OnPropertyChanged(nameof(this.RootPaths));
+            this.RootPaths.Clear();
+            this.RootPaths.AddRange(this.profile.RootPaths);
         }
     }
 
