@@ -141,6 +141,11 @@ namespace ComicsViewer {
         }
 
         private async void NavigationView_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args) {
+            if (args.InvokedItem == null) {
+                // Don't know why this happens yet, but it happens when you select "continue running task" and then switch profiles after that.
+                return;
+            }
+
             if (args.IsSettingsInvoked) {
                 // Don't navigate to settings twice
                 if (!(this.ContentFrame.Content is SettingsPage)) {

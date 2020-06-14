@@ -98,10 +98,19 @@
 
         <ContentDialog x:Name="ReloadConfirmationContentDialog"
                        Title="Are you sure you want to reload these items?"
-                       Content="This can take a long time if a category has a large folder. If you are only adding a small amount of items, consider dragging them into the application window."
                        PrimaryButtonText="Reload"
                        CloseButtonText="Cancel"
-                       DefaultButton="Close"/>
+                       DefaultButton="Close">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap">
+                    This can take a long time if a category has a large; folder. If you are only adding a small amount
+                    of items, consider dragging them into the application window.
+                </TextBlock>
+                <TextBlock Margin="0 12 0 0" TextWrapping="Wrap">
+                    You can cancel the reload anytime from the navigation bar.
+                </TextBlock>
+            </StackPanel>
+        </ContentDialog>
 
         <ContentDialog x:Name="NewProfileDialog"
                        Title="New Profile"

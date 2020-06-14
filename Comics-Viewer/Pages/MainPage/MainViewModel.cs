@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using TC.Database.MicrosoftSqlite;
 using Windows.Storage;
 using Windows.UI.Popups;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 
 #nullable enable
@@ -24,6 +25,10 @@ using Windows.UI.Xaml.Media.Animation;
 namespace ComicsViewer {
     public class MainViewModel : ViewModelBase {
         private List<Comic> comics = new List<Comic>();
+
+        public MainViewModel() {
+            this.ProfileChanged += this.MainViewModel_ProfileChanged;
+        }
 
         #region Profiles 
 
@@ -48,12 +53,46 @@ namespace ComicsViewer {
                 throw new ApplicationLogicException("The application should not allow the user to switch to a non-existent profile.");
             }
 
+            // Don't switch with a task running
+            if (this.IsTaskRunning) {
+                /* TODO: When the user select "Continue", the navigation menu item has already switched to the new
+                 * profile, leading to errors (ctrl+f "continue running task" in MainPage.xaml.cs) and visual bugs. */
+                var result = await new ContentDialog() {
+                    Title = "Task still running",
+                    Content = "Do you want to stop the currently running task and switch profiles?",
+                    PrimaryButtonText = "Stop Task and Switch Profile",
+                    CloseButtonText = "Continue Running Task",
+                    DefaultButton = ContentDialogButton.Close
+                }.ShowAsync();
+
+                if (result != ContentDialogResult.Primary) {
+                    return;
+                }
+
+                this.taskCancellationTokenSource?.Cancel();
+
+                // The task will cancel itself. We need to wait before switching profiles since it will run a new task.
+                while (this.IsTaskRunning) {
+                    await Task.Delay(50);
+                }
+            }
+
             // update internal modeling
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
-            
-            
+            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });
+        }
+
+        private async void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
+            if (e.NewProile != this.Profile) {
+                throw new ApplicationLogicException();
+            }
+
+            this.taskCancellationTokenSource?.Cancel();
+            this.TaskName = null;
+            this.OnPropertyChanged(nameof(this.IsTaskRunning));
+
             using var connection = new SqliteConnection($"Filename={this.Profile.DatabaseFileName}");
             await connection.OpenAsync();
             var manager = ComicsManager.MigratedComicsManager(new SqliteDatabaseConnection(connection));
@@ -61,7 +100,7 @@ namespace ComicsViewer {
 
             this.Filter.Clear();
 
-            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });
+            await this.RequestValidateAndRemoveComics();
         }
 
         public event ProfileChangedEventHandler? ProfileChanged;
@@ -290,6 +329,17 @@ namespace ComicsViewer {
             // TODO check for duplicates
             this.comics.AddRange(comics);
             this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+        }
+
+        public async Task RequestValidateAndRemoveComics() {
+            var comics = await this.StartTaskAsync($"Validating {this.comics.Count} comics...",
+                (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p));
+
+            if (comics == null) {
+                return;
+            }
+
+            this.RemoveComics(comics);
         }
 
         /* Example functions subject to change */
