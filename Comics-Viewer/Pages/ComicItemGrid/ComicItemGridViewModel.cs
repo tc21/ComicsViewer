@@ -83,7 +83,7 @@ namespace ComicsViewer {
             this.RefreshComicItems();
         }
 
-        private void RefreshComicItems() {
+        internal void RefreshComicItems() {
             var comicItems = CreateComicItems(this.comics, this.MainViewModel.Filter, this.navigationTag);
 
             if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {

@@ -3,6 +3,7 @@ using ComicsViewer.Pages;
 using ComicsViewer.Profiles;
 using ComicsViewer.Support;
 using ComicsViewer.Support.ClassExtensions;
+using ComicsViewer.Thumbnails;
 using ComicsViewer.ViewModels;
 using Microsoft.Toolkit.Uwp.UI;
 using System;
@@ -187,6 +188,7 @@ namespace ComicsViewer {
             public XamlUICommand SearchSelectedCommand { get; }
             public XamlUICommand RemoveItemCommand { get; }
             public XamlUICommand ShowInExplorerCommand { get; }
+            public XamlUICommand GenerateThumbnailCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -225,7 +227,19 @@ namespace ComicsViewer {
                         Startup.OpenContainingFolderAsync(item.TitleComic);
                     }
                 };
-                this.ShowInExplorerCommand.CanExecuteRequested += this.CanExecuteHandler(() 
+                this.ShowInExplorerCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Work);
+
+                // Opens the containing folder in Windows Explorer
+                this.GenerateThumbnailCommand = new XamlUICommand();
+                this.GenerateThumbnailCommand.ExecuteRequested += async (sender, args) => {
+                    foreach (var item in this.SelectedItems) {
+                        await Thumbnail.GenerateThumbnailAsync(item.TitleComic);
+                    }
+
+                    parent.ViewModel!.RefreshComicItems();
+                };
+                this.GenerateThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
             }
@@ -263,6 +277,7 @@ namespace ComicsViewer {
                 "remove" => (type == ComicItemType.Work && count == 1) ? "Remove" : 
                             $"Remove {this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count().PluralString("comic")}",
                 "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
+                "generateThumbnail" => count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {count} items",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

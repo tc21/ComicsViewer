@@ -70,6 +70,9 @@
                                 Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Tag="generateThumbnail" 
+                                Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutItem Tag="remove" 
                                 Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
