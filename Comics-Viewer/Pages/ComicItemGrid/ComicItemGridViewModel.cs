@@ -260,6 +260,16 @@ namespace ComicsViewer {
                     }
 
                     break;
+                case ComicModificationType.ItemsChanged:
+                    foreach (var comic in e.ModifiedComics) {
+                        foreach (var item in this.ComicItems) {
+                            if (item.TitleComic.UniqueIdentifier == comic.UniqueIdentifier) {
+                                item.DoNotifyUnderlyingComicsChanged();
+                            }
+                        }
+                    }
+                    break;
+
                 case ComicModificationType.ItemsRemoved:
                     // We remove these items directly from this.ComicItems without having to call RefreshComicItems
                     var removedUniqueIds = new HashSet<string>();
@@ -289,7 +299,7 @@ namespace ComicsViewer {
                             if (comicItem.Comics.Count == 0) {
                                 removedComicItemIndices.Push(i_comicItem);
                             } else {
-                                comicItem.DoNotifyPropertiesChanged();
+                                comicItem.DoNotifyUnderlyingComicsChanged();
                             }
                         }
 

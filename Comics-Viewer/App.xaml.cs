@@ -26,13 +26,21 @@ namespace ComicsViewer
     {
 
         /*
+         * Bugs:
+         * 1 When selecting "Only show loved" or "Show disliked", the filter button does not light up to indicate that there
+         *   is an active filter
+         * 2 Show search suggestions when opening an empty search box
+         * 
          * TODOS:         
-         * 1 allow writing to the database and all the features that come with it
          * 2 Edit item details
          * 3 Add the ability to save filters into a list of bookmarks
          * 4 Supporting opening stuff properly, rathor than telling Windows to open the first file 
          *   (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
          * 5 We will likely have to rely on the above two links to enable Python-based extensions.
+         * 6 Make search history per-profile instead of per-app
+         * 7 Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc. 
+         *   (e.g. opening an nonexistant comic)
+         * 8 Grouping should ignore casing
          * 
          * Feature Requests:
          * 1 Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)

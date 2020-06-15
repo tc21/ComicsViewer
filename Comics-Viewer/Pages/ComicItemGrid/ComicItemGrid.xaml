@@ -60,10 +60,10 @@
                     <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style.Setters>
             </Style>
-            <MenuFlyout x:Name="ComicItemGridContextFlyout" x:Key="ComicItemGridContextFlyout" Opening="ComicItemGridContextFlyout_Opening">
-                <!-- Can we figure out why applying helpers:Bindings don't work when used in a style? -->
-                <!-- Design note: we use the tag to dynamically generate text. To opt out, don't include a tag. 
-                     Optionally, we can dynamically generate even the ones that are supposed stay static.  -->
+            
+            <MenuFlyout x:Name="ComicItemGridContextFlyout" 
+                        x:Key="ComicItemGridContextFlyout"
+                        Opening="ComicItemGridContextFlyout_Opening">
                 <MenuFlyoutItem Tag="open" 
                                 Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
@@ -81,13 +81,19 @@
                                 Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
             </MenuFlyout>
-            <Flyout x:Key="ComicInfoFlyout" ShouldConstrainToRootBounds="False">
+
+            <Flyout x:Key="ComicInfoFlyout"
+                    x:Name="ComicInfoFlyout"
+                    ShouldConstrainToRootBounds="False">
                 <Flyout.FlyoutPresenterStyle>
                     <Style TargetType="FlyoutPresenter">
-                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                        <Style.Setters>
+                            <Setter Property="CornerRadius" Value="4"/>
+                            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+                        </Style.Setters>
                     </Style>
                 </Flyout.FlyoutPresenterStyle>
-                <Frame x:Name="ComicInfoFlyoutFrame" />
+                <Frame x:Name="ComicInfoFlyoutFrame"/>
             </Flyout>
         </ResourceDictionary>
     </Page.Resources>

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.ViewModels {
     public class ComicItem : ViewModelBase {
-        public string Title { get; }
+        public string Title { get; set; }
         public string Subtitle { get; private set; }
         public ComicItemType ItemType { get; }
         internal List<Comic> Comics { get; }
@@ -51,11 +51,15 @@ namespace ComicsViewer.ViewModels {
             );;
         }
 
-        /* ComicItem will not modify itself. If external code modifies ComicItem, it should call this method
-         * to send a NotifyPropertyChanged event */
-        public void DoNotifyPropertiesChanged() {
+        /* ComicItem will not modify its own comics. If external code modifies ComicItem, it should call this method
+         * to send a NotifyPropertyChanged event. Note that sorting and filtering may become temporarily broken if you
+         * changed a property that's being sorted by/filtered by */
+        public void DoNotifyUnderlyingComicsChanged() {
             if (this.ItemType == ComicItemType.Navigation) {
                 this.Subtitle = this.Comics.Count().PluralString("Item");
+            } else {
+                this.Title = this.TitleComic.DisplayTitle;
+                this.Subtitle = this.TitleComic.DisplayAuthor;
             }
 
             this.OnPropertyChanged("");

@@ -67,10 +67,10 @@ namespace ComicsViewer {
             }
 
             // When this is implemented, it will completely replace the DoubleTapped features. 
-            var flyout = (this.Resources["ComicInfoFlyout"] as Flyout)!;
+            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
             this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
-                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem));
-            flyout.ShowAt(tappedElement, new FlyoutShowOptions { ExclusionRect = new Rect(0, 0, 0, 0) });
+                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout));
+            this.ComicInfoFlyout.ShowAt(tappedElement, new FlyoutShowOptions { ExclusionRect = new Rect(0, 0, 0, 0) });
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
@@ -80,12 +80,11 @@ namespace ComicsViewer {
             await Task.Delay(500);
 
             if (this.doubleTapPointerReleased == true) {
-                flyout.Hide();
+                this.ComicInfoFlyout.Hide();
                 await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
             }
 
             this.singleTapPosition = null;
-
         }
 
         private Point? singleTapPosition;

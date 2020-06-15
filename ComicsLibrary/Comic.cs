@@ -49,6 +49,10 @@ namespace ComicsLibrary {
         public bool IsSame(Comic other) {
             return this.UniqueIdentifier == other.UniqueIdentifier;
         }
+
+        /* ComicsViewer needs to know when things have changed, so here's a solution */
+        public event Action<Comic, ComicChangeType> ComicChanged = delegate { };
+        public void DoComicChanged(ComicChangeType type) => this.ComicChanged(this, type);
     }
 
     public class ComicMetadata {
@@ -65,5 +69,9 @@ namespace ComicsLibrary {
             // an estimate of the actual dateAdded, assuming the comic is saved immediately, in SQLite's default format
             this.DateAdded = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         }
+    }
+
+    public enum ComicChangeType {
+        Thumbnail, Metadata
     }
 }

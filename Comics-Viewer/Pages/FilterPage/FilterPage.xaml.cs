@@ -57,6 +57,12 @@ namespace ComicsViewer.Pages {
             this.TagChecklist.SelectedItemsChanged += this.TagChecklist_SelectedItemsChanged;
         }
 
+        protected override void OnNavigatedFrom(NavigationEventArgs e) {
+            this.CategoryChecklist.SelectedItemsChanged -= this.CategoryChecklist_SelectedItemsChanged;
+            this.AuthorChecklist.SelectedItemsChanged -= this.AuthorChecklist_SelectedItemsChanged;
+            this.TagChecklist.SelectedItemsChanged -= this.TagChecklist_SelectedItemsChanged;
+        }
+
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {
             this.ViewModel!.GeneratedFilter = null;
         }

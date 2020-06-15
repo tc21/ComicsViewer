@@ -308,7 +308,9 @@ namespace ComicsViewer {
 
         public Task StartUniqueTask(
                 string tag, string name, ComicTask.ComicTaskDelegate asyncAction, Func<Task>? asyncCallback = null) {
-            return this.StartUniqueTask(tag, name, async (cc, p) => { await asyncAction(cc, p); return 0; }, null);
+            return this.StartUniqueTask(tag, name, 
+                async (cc, p) => { await asyncAction(cc, p); return 0; },
+                asyncCallback == null ? null : (Func<int, Task>)(_ => asyncCallback()));
         }
 
         public async Task StartUniqueTask<T>(
@@ -402,6 +404,14 @@ namespace ComicsViewer {
             await manager.RemoveComicsAsync(removed);
         }
 
+        /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
+        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics) {
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AddOrUpdateComicsAsync(comics);
+
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsChanged, comics));
+        }
+
         public event ComicsModifiedEventHandler ComicsModified = delegate { };
         public delegate void ComicsModifiedEventHandler(MainViewModel sender, ComicsModifiedEventArgs e);
 
@@ -441,8 +451,8 @@ namespace ComicsViewer {
     }
 
     public enum ComicModificationType {
-        ItemsAdded, ItemsRemoved
-        // ItemsModified: handled by ComicItem, so we don't need to do anything here.
+        ItemsAdded, ItemsRemoved,
+        ItemsChanged // specifically for metadata changes
         // Refresh: handled by MainViewModel: there's nothing subviews can do anyway
         // Note: if we implement the feature to combine multiple works into one, we will need more complicated behavior
     }
