@@ -67,6 +67,9 @@
                 <MenuFlyoutItem Tag="open" 
                                 Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
+                <MenuFlyoutItem Text="Edit info"
+                                Command="{x:Bind ContextMenuCommands.EditInfoCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutItem Text="Search selected" 
                                 Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
@@ -147,8 +150,7 @@
                       Drop="VisibleComicsGrid_Drop"
                       ItemTemplate="{StaticResource ComicItemTemplate}"
                       ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
-                      ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"
-                      ContextFlyout="{StaticResource ComicItemGridContextFlyout}">
+                      ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}">
             </GridView>
         </Grid>
 

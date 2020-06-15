@@ -34,6 +34,15 @@ namespace ComicsViewer.Pages {
             this.ContainerFlyout.Closing += this.ContainerFlyout_Closing;
 
             this.ViewModel = new ComicInfoPageViewModel(args.ParentViewModel, args.ComicItem);
+
+            switch (args.OpenToPane) {
+                case "open":
+                    this.Pivot.SelectedItem = this.OpenPivotItem;
+                    break;
+                case "edit info":
+                    this.Pivot.SelectedItem = this.EditInfoPivotItem;
+                    break;
+            }
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {

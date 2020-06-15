@@ -66,11 +66,7 @@ namespace ComicsViewer {
                 return;
             }
 
-            // When this is implemented, it will completely replace the DoubleTapped features. 
-            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
-                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout));
-            this.ComicInfoFlyout.ShowAt(tappedElement, new FlyoutShowOptions { ExclusionRect = new Rect(0, 0, 0, 0) });
+            this.ShowComicInfoFlyout(comicItem, tappedElement);
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
@@ -85,6 +81,16 @@ namespace ComicsViewer {
             }
 
             this.singleTapPosition = null;
+        }
+
+        private void ShowComicInfoFlyout(
+                ComicItem comicItem, FrameworkElement gridItem, FlyoutPlacementMode placement = FlyoutPlacementMode.Auto, string? page = null) {
+            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
+            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage),
+                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout, page));
+            this.ComicInfoFlyout.ShowAt(gridItem, new FlyoutShowOptions { 
+                Placement = placement
+            });
         }
 
         private Point? singleTapPosition;
@@ -119,6 +125,10 @@ namespace ComicsViewer {
                 grid.SelectedItems.Clear();
                 grid.SelectedItems.Add(comicItem);
             }
+
+            this.ComicItemGridContextFlyout.ShowAt(tappedElement, new FlyoutShowOptions {
+                Position = e.GetPosition(tappedElement)
+            });
         }
 
         #region Controlling from MainPage
@@ -160,7 +170,7 @@ namespace ComicsViewer {
                 // not when the user returned to this page by pressing the back button
                 this.ViewModel = args.ViewModel;
             } else {
-                Debug.WriteLine("!");
+                // ?
             }
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
@@ -188,6 +198,7 @@ namespace ComicsViewer {
             public XamlUICommand RemoveItemCommand { get; }
             public XamlUICommand ShowInExplorerCommand { get; }
             public XamlUICommand GenerateThumbnailCommand { get; }
+            public XamlUICommand EditInfoCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -236,6 +247,14 @@ namespace ComicsViewer {
                 this.GenerateThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
+                // Opens the comic info flyout to the "Edit Info" page
+                this.EditInfoCommand = new XamlUICommand();
+                this.EditInfoCommand.ExecuteRequested += (sender, args)
+                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
+                    => parent.ShowComicInfoFlyout(this.SelectedItems.First(), parent.VisibleComicsGrid, FlyoutPlacementMode.Full, "edit info");
+                this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
+
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -250,6 +269,11 @@ namespace ComicsViewer {
         private void ComicItemGridContextFlyout_Opening(object sender, object e) {
             if (!(sender is MenuFlyout)) {
                 throw new ApplicationLogicException("Only MenuFlyout should be allowed to call this handler");
+            }
+
+            // you can right click on empty space, but we don't want anything to happen
+            if (this.VisibleComicsGrid.SelectedItems.Count == 0) {
+                return;
             }
 
             // Update dynamic text when opening flyout

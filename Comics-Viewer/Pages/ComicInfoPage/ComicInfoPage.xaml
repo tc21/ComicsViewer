@@ -17,8 +17,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Pivot Margin="0 12">
-            <PivotItem Header="Open">
+        <Pivot x:Name="Pivot" Margin="0 12">
+            <PivotItem Header="Open" x:Name="OpenPivotItem" >
                 <StackPanel x:Name="OpenComicsContainer">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -44,7 +44,7 @@
                 </StackPanel>
             </PivotItem>
 
-            <PivotItem Header="Edit Info">
+            <PivotItem Header="Edit Info" x:Name="EditInfoPivotItem">
                 <StackPanel Padding="12">
 
                     <Grid>
@@ -119,8 +119,6 @@
                     </Grid>
                 </StackPanel>
             </PivotItem>
-
-            <PivotItem Header="About"/>
         </Pivot>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
