@@ -257,19 +257,20 @@ namespace ComicsViewer {
         public bool IsTaskRunning => this.Tasks.Count > 0;
         private readonly Dictionary<string, ComicTask> taskNames = new Dictionary<string, ComicTask>();
 
-        public bool ScheduleTask<T>(string tag, string description, ComicTask.ComicTaskDelegate<T> action, Func<T, Task> callback) {
+        private bool ScheduleTask<T>(
+                string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, Func<T, Task>? asyncCallback = null) {
             if (taskNames.ContainsKey(tag)) { 
                 return false;
             }
 
-            var comicTask = new ComicTask(description, async (cc, p) => (await action(cc, p))!);
+            var comicTask = new ComicTask(description, async (cc, p) => (await asyncAction(cc, p))!);
             comicTask.TaskCompleted += async (task, result) 
                 => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () => {
                     this.taskNames.Remove(tag);
                     this.Tasks.Remove(task);
 
-                    if (!task.IsCancelled) {
-                        await callback((T)result!);
+                    if (!task.IsCancelled && asyncCallback != null) {
+                        await asyncCallback((T)result!);
                     }
 
                     this.OnPropertyChanged(nameof(this.IsTaskRunning));
@@ -305,8 +306,14 @@ namespace ComicsViewer {
             return true;
         }
 
-        private async Task StartUniqueTask<T>(string tag, string name, ComicTask.ComicTaskDelegate<T> action, Func<T, Task> callback) {
-            if (!this.ScheduleTask(tag, name, action, callback)) {
+        public Task StartUniqueTask(
+                string tag, string name, ComicTask.ComicTaskDelegate asyncAction, Func<Task>? asyncCallback = null) {
+            return this.StartUniqueTask(tag, name, async (cc, p) => { await asyncAction(cc, p); return 0; }, null);
+        }
+
+        public async Task StartUniqueTask<T>(
+                string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, Func<T, Task>? asyncCallback = null) {
+            if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback)) {
                 _ = await new MessageDialog(
                    $"A task with tag '{tag}' is already running. Please wait for it to finish.",
                     "Cannot start task"

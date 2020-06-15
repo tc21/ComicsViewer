@@ -2,6 +2,7 @@
 using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
 using ComicsViewer.Support;
+using ComicsViewer.Support.ClassExtensions;
 using ComicsViewer.Thumbnails;
 using ComicsViewer.ViewModels;
 using Microsoft.Toolkit.Uwp.UI;
@@ -13,7 +14,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
 using Windows.UI.Popups;
 
 #nullable enable
@@ -172,10 +175,28 @@ namespace ComicsViewer {
 
         #region Thumbnails 
 
-        public async Task RequestGenerateThumbnailAsync(ComicItem item) {
-            var succeeded = await Thumbnail.GenerateThumbnailAsync(item.TitleComic, this.MainViewModel.Profile, replace: true);
-            if (succeeded) {
-                item.DoNotifyThumbnailChanged();
+        public void RequestGenerateThumbnails(IEnumerable<ComicItem> comicItems, bool replace = false) {
+            var copy = comicItems.ToList();
+            this.MainViewModel.StartUniqueTask("thumbnail", $"Generating thumbnails for {copy.Count} items...",
+                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThread(copy, replace, cc, p));
+        }
+
+        private async Task GenerateAndApplyThumbnailsInBackgroundThread(
+                IEnumerable<ComicItem> comicItems, bool replace, CancellationToken cc, IProgress<int> progress) {
+            var i = 0;
+            foreach (var item in comicItems) {
+                var success = await Thumbnail.GenerateThumbnailAsync(item.TitleComic, this.MainViewModel.Profile, replace);
+                if (success) {
+                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                        Windows.UI.Core.CoreDispatcherPriority.Normal,
+                        () => item.DoNotifyThumbnailChanged());
+                }
+
+                if (cc.IsCancellationRequested) {
+                    return;
+                }
+
+                progress.Report(i++);
             }
         }
 
@@ -220,15 +241,22 @@ namespace ComicsViewer {
                         this.comics.Add(comic);
                     }
 
+                    var newComicItems = e.ModifiedComics.Select(ComicItem.WorkItem).ToList();
+
                     /* If we are on the comics tab, we just need to add the comics to the view.
                      * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
                      * to handle new item groups, and we say fuck that */
                     if (this.navigationTag == MainViewModel.DefaultNavigationTag) {
-                        foreach (var comic in e.ModifiedComics) {
-                            this.ComicItems.Add(ComicItem.WorkItem(comic));
-                        }
+                        this.ComicItems.AddRange(newComicItems);
                     } else {
                         this.RefreshComicItems();
+                    }
+
+                    /* Generate thumbnails for added items */
+                    /* There may be many view models active at any given moment. The if statement ensures that only
+                     * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
+                    if (this.navigationTag != MainViewModel.SecondLevelNavigationTag) {
+                        this.RequestGenerateThumbnails(newComicItems);
                     }
 
                     break;

@@ -20,6 +20,7 @@ namespace ComicsViewer.ViewModels {
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private Task? task;
 
+        public delegate Task ComicTaskDelegate(CancellationToken cancellationToken, IProgress<int> progress);
         public delegate Task<T> ComicTaskDelegate<T>(CancellationToken cancellationToken, IProgress<int> progress);
 
         public ComicTask(string name, ComicTaskDelegate<object> task) {

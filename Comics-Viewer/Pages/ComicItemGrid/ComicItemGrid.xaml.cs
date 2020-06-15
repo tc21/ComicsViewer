@@ -232,11 +232,8 @@ namespace ComicsViewer {
 
                 // Opens the containing folder in Windows Explorer
                 this.GenerateThumbnailCommand = new XamlUICommand();
-                this.GenerateThumbnailCommand.ExecuteRequested += async (sender, args) => {
-                    foreach (var item in this.SelectedItems) {
-                        await parent.ViewModel!.RequestGenerateThumbnailAsync(item);
-                    }
-                };
+                this.GenerateThumbnailCommand.ExecuteRequested += (sender, args)
+                    => parent.ViewModel!.RequestGenerateThumbnails(this.SelectedItems, replace: true);
                 this.GenerateThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
