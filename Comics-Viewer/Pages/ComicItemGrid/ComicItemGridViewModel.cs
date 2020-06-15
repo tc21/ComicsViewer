@@ -17,6 +17,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.UI.Popups;
 
 #nullable enable
@@ -198,6 +200,40 @@ namespace ComicsViewer {
 
                 progress.Report(i++);
             }
+        }
+
+        public async Task TryRedefineThumbnailAsync(ComicItem comicItem, string path) {
+            if (comicItem.ItemType != ComicItemType.Work) {
+                throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
+            }
+
+            comicItem.TitleComic.Metadata.ThumbnailSource = path.GetPathRelativeTo(comicItem.TitleComic.Path);
+
+            if (await Thumbnail.GenerateThumbnailAsync(comicItem.TitleComic, this.MainViewModel.Profile, replace: true)) {
+                comicItem.DoNotifyThumbnailChanged();
+            }
+        }
+
+        public async Task TryRedefineThumbnailFromFilePickerAsync(ComicItem comicItem) {
+            if (comicItem.ItemType != ComicItemType.Work) {
+                throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
+            }
+
+            var picker = new FileOpenPicker {
+                ViewMode = PickerViewMode.Thumbnail
+            };
+
+            foreach (var extension in UserProfile.ImageFileExtensions) {
+                picker.FileTypeFilter.Add(extension);
+            }
+
+            var file = await picker.PickSingleFileAsync();
+
+            if (file == null) {
+                return;
+            }
+
+            await this.TryRedefineThumbnailAsync(comicItem, file.Path);
         }
 
         #endregion

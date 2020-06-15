@@ -80,6 +80,9 @@
                 <MenuFlyoutItem Tag="generateThumbnail" 
                                 Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
+                <MenuFlyoutItem Text="Redefine thumbnail" 
+                                Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutItem Tag="remove" 
                                 Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>

@@ -41,6 +41,8 @@ namespace ComicsViewer
          * 7 Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc. 
          *   (e.g. opening an nonexistant comic)
          * 8 Grouping should ignore casing
+         * 9 We should probably make the Edit Info page into a dialog or something, instead of a flyout, to allow dragging
+         *   thumbnail images into it.
          * 
          * Feature Requests:
          * 1 Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)

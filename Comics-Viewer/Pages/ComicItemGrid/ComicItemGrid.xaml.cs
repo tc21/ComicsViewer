@@ -199,6 +199,7 @@ namespace ComicsViewer {
             public XamlUICommand ShowInExplorerCommand { get; }
             public XamlUICommand GenerateThumbnailCommand { get; }
             public XamlUICommand EditInfoCommand { get; }
+            public XamlUICommand RedefineThumbnailCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -253,6 +254,14 @@ namespace ComicsViewer {
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
                     => parent.ShowComicInfoFlyout(this.SelectedItems.First(), parent.VisibleComicsGrid, FlyoutPlacementMode.Full, "edit info");
                 this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
+
+                // Opens the comic info flyout to the "Edit Info" page
+                this.RedefineThumbnailCommand = new XamlUICommand();
+                this.RedefineThumbnailCommand.ExecuteRequested += async (sender, args)
+                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
+                    => await parent.ViewModel!.TryRedefineThumbnailFromFilePickerAsync(this.SelectedItems.First());
+                this.RedefineThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
             }

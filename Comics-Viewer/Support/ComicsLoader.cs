@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support.ClassExtensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -116,7 +117,7 @@ namespace ComicsViewer.Support {
 
                 // Determine category
                 foreach (var pair in profile.RootPaths) {
-                    if (IsChildOf(pair.Path, folder.Path)) {
+                    if (folder.Path.IsParentDirectoryOf(pair.Path)) {
                         category = pair.Name;
                         break;
                     }
@@ -189,10 +190,6 @@ namespace ComicsViewer.Support {
             }
 
             return;
-        }
-
-        private static bool IsChildOf(string parent, string child) {
-            return Path.GetFullPath(child).StartsWith(Path.GetFullPath(parent), StringComparison.OrdinalIgnoreCase);
         }
     }
 }

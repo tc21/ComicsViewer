@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Popups;
@@ -65,8 +66,8 @@ namespace ComicsViewer.Pages {
             await this.ViewModel!.OpenItem(item);
         }
 
-        private void EditThumbnailButton_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
+        private async void EditThumbnailButton_Click(object sender, RoutedEventArgs e) {
+            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailFromFilePickerAsync(this.ViewModel!.Item);
         }
 
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
