@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
     RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -103,32 +104,49 @@
 
                         <muxc:NavigationViewItem.ContextFlyout>
                             <Flyout>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{x:Bind ViewModel.TaskName, Mode=OneWay}"/>
-                                        <TextBlock Text=" ("/>
-                                        <TextBlock Text="{x:Bind ViewModel.TaskProgress, Mode=OneWay}"/>
-                                        <TextBlock Text=" item(s) processed)"/>
-                                    </StackPanel>
-
-                                    <Button Grid.Column="1"
-                                            Style="{StaticResource RoundClearButton}"
-                                            Click="ClearActiveTaskButton_Click"/>
-                                </Grid>
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.Tasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="local:ComicTask">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{x:Bind Name}"/>
+                                                    <TextBlock Text=" ("/>
+                                                    <TextBlock Text="{x:Bind Status, Mode=OneWay}"/>
+                                                    <TextBlock Text=")"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                            Style="{StaticResource RoundClearButton}"
+                                                            Click="{x:Bind CancelTaskButton_Click}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </Flyout>
                         </muxc:NavigationViewItem.ContextFlyout>
                     </muxc:NavigationViewItem>
                 </Grid>
             </muxc:NavigationView.PaneCustomContent>
 
-            <Frame x:Name="ContentFrame" 
+            <Grid>
+                <Frame x:Name="ContentFrame" 
                     Margin="0 40 0 0"
                     NavigationFailed="Frame_NavigationFailed"/>
+
+                <controls:Loading IsLoading="{x:Bind ViewModel.IsLoadingProfile, Mode=OneWay}">
+                    <controls:Loading.Background>
+                        <SolidColorBrush Color="Black" Opacity="0.7" />
+                    </controls:Loading.Background>
+
+                    <StackPanel Orientation="Horizontal">
+                        <ProgressRing IsActive="True" Margin="8" />
+                        <TextBlock Text="Loading profile" VerticalAlignment="Center" />
+                    </StackPanel>
+                </controls:Loading>
+            </Grid>
         </muxc:NavigationView>
     </Grid>
 </Page>

@@ -33,6 +33,18 @@ namespace ComicsLibrary {
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;
         public string DateAdded => this.Metadata.DateAdded ?? OldestDate;
+        public string? ThumbnailSource {
+            get {
+                if (this.Metadata.ThumbnailSource == null) {
+                    return null;
+                }
+                if (System.IO.Path.IsPathRooted(this.Metadata.ThumbnailSource)) {
+                    return this.Metadata.ThumbnailSource;
+                }
+
+                return System.IO.Path.Combine(this.Path, this.Metadata.ThumbnailSource);
+            }
+        }
 
         public bool IsSame(Comic other) {
             return this.UniqueIdentifier == other.UniqueIdentifier;

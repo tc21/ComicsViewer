@@ -9,12 +9,14 @@ using ComicsViewer.ViewModels;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TC.Database.MicrosoftSqlite;
+using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
@@ -33,6 +35,7 @@ namespace ComicsViewer {
         #region Profiles 
 
         internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
+        public bool IsLoadingProfile { get; private set; } = false;
 
         public Task SetDefaultProfile() {
             var suggestedProfile = Defaults.SettingsAccessor.LastProfile;
@@ -53,25 +56,15 @@ namespace ComicsViewer {
                 throw new ApplicationLogicException("The application should not allow the user to switch to a non-existent profile.");
             }
 
-            // Don't switch with a task running
-            if (this.IsTaskRunning) {
-                /* TODO: When the user select "Continue", the navigation menu item has already switched to the new
-                 * profile, leading to errors (ctrl+f "continue running task" in MainPage.xaml.cs) and visual bugs. */
-                var result = await new ContentDialog() {
-                    Title = "Task still running",
-                    Content = "Do you want to stop the currently running task and switch profiles?",
-                    PrimaryButtonText = "Stop Task and Switch Profiles",
-                    CloseButtonText = "Don't Switch Profiles",
-                    DefaultButton = ContentDialogButton.Close
-                }.ShowAsync();
+            this.IsLoadingProfile = true;
+            this.OnPropertyChanged(nameof(this.IsLoadingProfile));
 
-                if (result != ContentDialogResult.Primary) {
-                    return;
+            // Cancel tasks before switching
+            if (this.IsTaskRunning) {
+                foreach (var item in this.taskNames.Keys.ToList()) {
+                    this.RequestCancelTask(item);
                 }
 
-                this.taskCancellationTokenSource?.Cancel();
-
-                // The task will cancel itself. We need to wait before switching profiles since it will run a new task.
                 while (this.IsTaskRunning) {
                     await Task.Delay(50);
                 }
@@ -82,16 +75,15 @@ namespace ComicsViewer {
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
             this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });
+
+            this.IsLoadingProfile = false;
+            this.OnPropertyChanged(nameof(this.IsLoadingProfile));
         }
 
         private async void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             if (e.NewProile != this.Profile) {
                 throw new ApplicationLogicException();
             }
-
-            this.taskCancellationTokenSource?.Cancel();
-            this.TaskName = null;
-            this.OnPropertyChanged(nameof(this.IsTaskRunning));
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
             this.comics = new ComicList(await manager.GetAllComicsAsync());
@@ -261,105 +253,111 @@ namespace ComicsViewer {
 
         /* The purpose of this section is to allow for ComicItemGrids to be notified of changes to the master list of
          * comics, so we don't have to reload the entire list of comics each time something is changed. */
-        public bool IsTaskRunning => this.TaskName != null;
-        public string? TaskName { get; private set; }
-        public int TaskProgress { get; private set; } = 0;
-        private CancellationTokenSource? taskCancellationTokenSource;
+        public readonly ObservableCollection<ComicTask> Tasks = new ObservableCollection<ComicTask>();
+        public bool IsTaskRunning => this.Tasks.Count > 0;
+        private readonly Dictionary<string, ComicTask> taskNames = new Dictionary<string, ComicTask>();
 
-        /* Starts a cpu-heavy task that can be cancelled. We only allow one such task per application.
-         * Returnus null if the task was cancelled. */
-        private async Task<T?> StartTaskAsync<T>(string name, Func<CancellationToken, IProgress<int>, Task<T>> task) where T : class {
-            if (this.IsTaskRunning) {
-                _ = await new MessageDialog("A task is already running. Please wait for it to finish.", "Cannot start task").ShowAsync();
-                return null;
+        public bool ScheduleTask<T>(string tag, string description, ComicTask.ComicTaskDelegate<T> action, Func<T, Task> callback) {
+            if (taskNames.ContainsKey(tag)) { 
+                return false;
             }
 
-            this.TaskName = name;
-            this.taskCancellationTokenSource = new CancellationTokenSource();
-            var taskProgress = new Progress<int>(progress => {
-                this.TaskProgress = progress;
-                this.OnPropertyChanged(nameof(this.TaskProgress));
-            });
+            var comicTask = new ComicTask(description, async (cc, p) => (await action(cc, p))!);
+            comicTask.TaskCompleted += async (task, result) 
+                => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () => {
+                    this.taskNames.Remove(tag);
+                    this.Tasks.Remove(task);
 
+                    if (!task.IsCancelled) {
+                        await callback((T)result!);
+                    }
+
+                    this.OnPropertyChanged(nameof(this.IsTaskRunning));
+                });
+
+            this.taskNames.Add(tag, comicTask);
+            this.Tasks.Add(comicTask);
+            comicTask.Start();
             this.OnPropertyChanged(nameof(this.IsTaskRunning));
-            this.OnPropertyChanged(nameof(this.TaskName));
 
-            var result = await Task.Run(() => task(this.taskCancellationTokenSource.Token, taskProgress), this.taskCancellationTokenSource.Token);
-
-            this.TaskName = null;
-            this.OnPropertyChanged(nameof(this.IsTaskRunning));
-
-            if (this.taskCancellationTokenSource.IsCancellationRequested) {
-                return null;
-            }
-
-            return result;
+            return true;
         }
 
-        public void RequestClearActiveTask() {
-            this.taskCancellationTokenSource!.Cancel();
+        public bool RequestCancelTask(string tag) {
+            if (!this.taskNames.ContainsKey(tag)) {
+                return false;
+            }
+
+            var task = this.taskNames[tag];
+            task.Cancel();
+            return true;
+        }
+
+        public async Task<bool> CancelTaskAsync(string tag) {
+            if (this.RequestCancelTask(tag) == false) {
+                return false;
+            }
+
+            while (this.taskNames.ContainsKey(tag)) {
+                await Task.Delay(100);
+            }
+
+            return true;
+        }
+
+        private async Task StartUniqueTask<T>(string tag, string name, ComicTask.ComicTaskDelegate<T> action, Func<T, Task> callback) {
+            if (!this.ScheduleTask(tag, name, action, callback)) {
+                _ = await new MessageDialog(
+                   $"A task with tag '{tag}' is already running. Please wait for it to finish.",
+                    "Cannot start task"
+                ).ShowAsync();
+            }
         }
 
         public async Task RequestReloadAllComicsAsync() {
-            // Design philosophy: we could have this method return bool, and the caller show message boxes, but that
-            // doesn't actually make the code more elegant in any way
-            var newComics = await this.StartTaskAsync("Reloading all comics...", 
-                (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p));
+            await this.StartUniqueTask("reload", "Reloading all comics...", 
+                (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p),
+                async result => {
+                    // TODO: we should probably figure out how to only update what we need
+                    var manager = await this.GetComicsManagerAsync();
+                    await manager.AssignKnownMetadataAsync(result);
 
-            if (newComics == null) {
-                return;
-            }
-
-            // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
-
-            // TODO: we should probably figure out how to only update what we need
-            var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(newComics);
-
-            await this.RemoveComicsAsync(this.comics);
-            await this.AddComicsAsync(newComics);
+                    // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
+                    await this.RemoveComicsAsync(this.comics);
+                    await this.AddComicsAsync(result);
+                });
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
-            var newComics = await this.StartTaskAsync($"Reloading category '{category.Name}'...", 
-                (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p));
+            await this.StartUniqueTask("reload", $"Reloading category '{category.Name}'...",
+                (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p),
+                async result => {
+                    var manager = await this.GetComicsManagerAsync();
+                    await manager.AssignKnownMetadataAsync(result);
 
-            if (newComics == null) {
-                return;
-            }
-
-            var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(newComics);
-
-            await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
-            await this.AddComicsAsync(newComics);
+                    await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
+                    await this.AddComicsAsync(result);
+                });
         }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
-            var newComics = await this.StartTaskAsync($"Adding comics from {folders.Count()} folders...",
-                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p));
+            await this.StartUniqueTask("reload", $"Adding comics from {folders.Count()} folders...",
+                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p),
+                async result => {
+                    var manager = await this.GetComicsManagerAsync();
+                    await manager.AssignKnownMetadataAsync(result);
 
-            if (newComics == null) {
-                return;
-            }
-
-            var manager = await this.GetComicsManagerAsync();
-            await manager.AssignKnownMetadataAsync(newComics);
-
-            /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
-            await this.RemoveComicsAsync(newComics.Where(this.comics.Contains));
-            await this.AddComicsAsync(newComics);
+                    /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
+                    await this.RemoveComicsAsync(result.Where(this.comics.Contains));
+                    await this.AddComicsAsync(result);
+                });
         }
 
-        public async Task RequestValidateAndRemoveComicsAsync() {
-            var missingComics = await this.StartTaskAsync($"Validating {this.comics.Count} comics...",
-                (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p));
-
-            if (missingComics == null) {
-                return;
-            }
-
-            await this.RemoveComicsAsync(missingComics);
+        private async Task RequestValidateAndRemoveComicsAsync() {
+            await this.StartUniqueTask("validate", $"Validating {this.comics.Count} comics...",
+                (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p),
+                async result => await this.RemoveComicsAsync(result)
+            );
         }
 
         /* Example functions subject to change */

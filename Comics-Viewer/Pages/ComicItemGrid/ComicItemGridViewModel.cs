@@ -2,6 +2,7 @@
 using ComicsViewer.Filters;
 using ComicsViewer.Profiles;
 using ComicsViewer.Support;
+using ComicsViewer.Thumbnails;
 using ComicsViewer.ViewModels;
 using Microsoft.Toolkit.Uwp.UI;
 using System;
@@ -164,6 +165,17 @@ namespace ComicsViewer {
                 _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
             } catch (FileNotFoundException) {
                 _ = await new MessageDialog("The application is not currently capable of handling this error.", "File not found").ShowAsync();
+            }
+        }
+
+        #endregion
+
+        #region Thumbnails 
+
+        public async Task RequestGenerateThumbnailAsync(ComicItem item) {
+            var succeeded = await Thumbnail.GenerateThumbnailAsync(item.TitleComic, this.MainViewModel.Profile, replace: true);
+            if (succeeded) {
+                item.DoNotifyThumbnailChanged();
             }
         }
 
