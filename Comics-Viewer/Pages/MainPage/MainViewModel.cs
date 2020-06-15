@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -264,17 +265,25 @@ namespace ComicsViewer {
             }
 
             var comicTask = new ComicTask(description, async (cc, p) => (await asyncAction(cc, p))!);
-            comicTask.TaskCompleted += async (task, result) 
-                => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () => {
-                    this.taskNames.Remove(tag);
-                    this.Tasks.Remove(task);
+            comicTask.TaskCompleted += async (task, result)  => {
+                this.taskNames.Remove(tag);
+                this.Tasks.Remove(task);
 
-                    if (!task.IsCancelled && asyncCallback != null) {
-                        await asyncCallback((T)result!);
+                if (task.IsFaulted) {
+                    // TODO temporary measure, implement proper permissions checking
+                    try {
+                        task.ThrowStoredException();
+                    } catch (UnauthorizedAccessException) {
+                        _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
                     }
+                }
 
-                    this.OnPropertyChanged(nameof(this.IsTaskRunning));
-                });
+                if (task.IsCompleted && asyncCallback != null) {
+                    await asyncCallback((T)result!);
+                }
+
+                this.OnPropertyChanged(nameof(this.IsTaskRunning));
+            };
 
             this.taskNames.Add(tag, comicTask);
             this.Tasks.Add(comicTask);

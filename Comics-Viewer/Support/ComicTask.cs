@@ -14,6 +14,8 @@ namespace ComicsViewer.ViewModels {
         public string Status { get; private set; } = "initialzed";
         public bool IsCancelled { get; private set; } = false;
         public bool IsCompleted { get; private set; } = false;
+        public bool IsFaulted { get; private set; } = false;
+        private Exception? storedException;
 
         private readonly ComicTaskDelegate<object> userAction;
         private readonly Progress<int> progress = new Progress<int>();
@@ -36,14 +38,21 @@ namespace ComicsViewer.ViewModels {
 
         public void Start() {
             this.task = Task.Run(() => userAction(this.cancellationTokenSource.Token, this.progress)).ContinueWith(async finishedTask => {
-                this.Status = "completed";
-                this.IsCompleted = true;
+                if (finishedTask.IsCompletedSuccessfully) {
+                    this.IsCompleted = true;
+                    this.Status = "completed";
+                } else if (finishedTask.IsFaulted) {
+                    this.IsFaulted = true;
+                    this.storedException = finishedTask.Exception.InnerException;
+                    this.Status = "faulted";
+                } else {
+                    throw new ApplicationLogicException();
+                }
 
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
                     this.OnPropertyChanged(nameof(this.Status));
+                    this.TaskCompleted(this, this.IsCompleted ? finishedTask.Result : null);
                 });
-
-                this.TaskCompleted(this, finishedTask.Result);
 
             }, this.cancellationTokenSource.Token);
 
@@ -61,7 +70,7 @@ namespace ComicsViewer.ViewModels {
                 throw new ArgumentException("Cannot cancel a task that has already been cancelled");
             }
 
-            if (this.IsCompleted) {
+            if (this.IsCompleted || this.IsFaulted) {
                 return false;
             }
 
@@ -81,13 +90,21 @@ namespace ComicsViewer.ViewModels {
 
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
                     this.OnPropertyChanged(nameof(this.Status));
+                    this.TaskCompleted(this, null);
                 });
 
-                this.TaskCompleted(this, null);
             });
 
 
             return true;
+        }
+
+        public void ThrowStoredException() {
+            if (this.storedException == null) {
+                throw new ArgumentException();
+            }
+
+            throw this.storedException;
         }
 
         public event Action<ComicTask, object?> TaskCompleted = delegate { };
