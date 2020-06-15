@@ -30,6 +30,8 @@ namespace ComicsViewer
          * 1 When selecting "Only show loved" or "Show disliked", the filter button does not light up to indicate that there
          *   is an active filter
          * 2 Show search suggestions when opening an empty search box
+         * 3 Sometimes thumbnails just *disappear*. Especially when generating thumbnails for other works. Figure out why.
+         * 4 ThumbnailPath isn't actually saving properly. Figure out why.
          * 
          * TODOS:         
          * 2 Edit item details

@@ -73,6 +73,8 @@ namespace ComicsViewer.Thumbnails {
                 } catch (FileNotFoundException) {
                     // TODO we should tell the comic to erase its ThumbnailSource value
                     // but otherwise do nothing
+                } catch (UnauthorizedAccessException) {
+                    // weird shit happens with windows and file permissions. just ignore this
                 }
             }
 
