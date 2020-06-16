@@ -14,16 +14,32 @@ using System.Threading.Tasks;
 namespace ComicsViewer.ViewModels {
     public class ComicItem : ViewModelBase {
         public string Title { get; set; }
-        public string Subtitle { get; private set; }
         public ComicItemType ItemType { get; }
         internal List<Comic> Comics { get; }
+
+        public string Subtitle => this.ItemType switch {
+            ComicItemType.Work => this.TitleComic.DisplayAuthor,
+            ComicItemType.Navigation => this.Comics.Count().PluralString("Item"),
+            _ => throw new ApplicationLogicException()
+        };
+        
+        public bool IsLoved => this.ItemType switch {
+            ComicItemType.Work => this.TitleComic.Loved,
+            _ => false
+        };
+
+        public bool IsDisliked => this.ItemType switch {
+            ComicItemType.Work => this.TitleComic.Disliked,
+            _ => false
+        };
+
+        /* manually managed so it can be refreshed */
         public string ThumbnailPath { get; private set; }
 
         public Comic TitleComic => this.Comics[0];
 
-        private ComicItem(string title, string subtitle, ComicItemType itemType, List<Comic> comics) {
+        private ComicItem(string title, ComicItemType itemType, List<Comic> comics) {
             this.Title = title;
-            this.Subtitle = subtitle;
             this.ItemType = itemType;
             this.Comics = comics;
             this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
@@ -32,7 +48,6 @@ namespace ComicsViewer.ViewModels {
         public static ComicItem WorkItem(Comic comic) {
             return new ComicItem(
                 comic.DisplayTitle,
-                comic.DisplayAuthor,
                 ComicItemType.Work,
                 new List<Comic> { comic }
             );
@@ -45,7 +60,6 @@ namespace ComicsViewer.ViewModels {
 
             return new ComicItem(
                 name,
-                comics.Count().PluralString("Item"),
                 ComicItemType.Navigation,
                 comics.ToList()
             );;
@@ -55,11 +69,8 @@ namespace ComicsViewer.ViewModels {
          * to send a NotifyPropertyChanged event. Note that sorting and filtering may become temporarily broken if you
          * changed a property that's being sorted by/filtered by */
         public void DoNotifyUnderlyingComicsChanged() {
-            if (this.ItemType == ComicItemType.Navigation) {
-                this.Subtitle = this.Comics.Count().PluralString("Item");
-            } else {
+            if (this.ItemType != ComicItemType.Navigation) {
                 this.Title = this.TitleComic.DisplayTitle;
-                this.Subtitle = this.TitleComic.DisplayAuthor;
             }
 
             this.OnPropertyChanged("");

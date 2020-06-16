@@ -51,7 +51,10 @@ namespace ComicsViewer.Thumbnails {
             var decoder = await BitmapDecoder.CreateAsync(inStream);
             var bitmap = await decoder.GetSoftwareBitmapAsync();
 
-            await existingFile?.DeleteAsync();
+            if (existingFile != null) {
+                await existingFile.DeleteAsync();
+            }
+
             var thumbnailFile = await thumbnailsFolder.CreateFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
             using var outStream = await thumbnailFile.OpenAsync(FileAccessMode.ReadWrite);
             var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, outStream);

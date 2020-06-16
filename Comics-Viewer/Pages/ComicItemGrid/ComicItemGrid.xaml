@@ -21,12 +21,24 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0">
-                        <Image x:Name="ComicItemThumbnail">
-                            <Image.Source>
-                                <BitmapImage UriSource="{x:Bind ThumbnailPath, Mode=OneWay}"
+                        <Grid>
+                            <Image x:Name="ComicItemThumbnail">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{x:Bind ThumbnailPath, Mode=OneWay}"
                                              CreateOptions="IgnoreImageCache"/>
-                            </Image.Source>
-                        </Image>
+                                </Image.Source>
+                            </Image>
+
+                            <Grid Visibility="{x:Bind IsLoved, Mode=OneWay}">
+                                <Polygon Points="0,0 40,40 0,40" Fill="#EF386A" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+                                <FontIcon Glyph="&#xEB52;" FontSize="14" Margin="4" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+                            </Grid>
+
+                            <Grid Visibility="{x:Bind IsDisliked, Mode=OneWay}">
+                                <Polygon Points="0,0 40,40 0,40" Fill="#939393" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+                                <FontIcon Glyph="&#xF78A;" FontSize="16" Margin="3" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+                            </Grid>
+                        </Grid>
                     </Border>
                     <TextBlock Grid.Row="1" 
                                Text="{x:Bind Title, Mode=OneWay}" 
@@ -76,6 +88,13 @@
                                 helpers:Bindings.VisibilityToEnabled="True" />
                 <MenuFlyoutItem Tag="showInExplorer"
                                 Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Tag="love" 
+                                Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True"/>
+                <MenuFlyoutItem Tag="dislike" 
+                                Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Tag="generateThumbnail" 

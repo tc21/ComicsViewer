@@ -197,6 +197,8 @@ namespace ComicsViewer {
             public XamlUICommand GenerateThumbnailCommand { get; }
             public XamlUICommand EditInfoCommand { get; }
             public XamlUICommand RedefineThumbnailCommand { get; }
+            public XamlUICommand LoveComicsCommand { get; }
+            public XamlUICommand DislikeComicsCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -261,6 +263,22 @@ namespace ComicsViewer {
                 this.RedefineThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
+                // Loves, or unloves comics
+                this.LoveComicsCommand = new XamlUICommand();
+                this.LoveComicsCommand.ExecuteRequested += async (sender, args)
+                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
+                    => await parent.ViewModel!.ToggleLovedStatusForComics(this.SelectedItems);
+                this.LoveComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Work);
+
+                // Loves, or unloves comics
+                this.DislikeComicsCommand = new XamlUICommand();
+                this.DislikeComicsCommand.ExecuteRequested += async (sender, args)
+                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
+                    => await parent.ViewModel!.ToggleDislikedStatusForComics(this.SelectedItems);
+                this.DislikeComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
+                    => this.SelectedItemType == ComicItemType.Work);
+
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -302,6 +320,10 @@ namespace ComicsViewer {
                             $"Remove {this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count().PluralString("comic")}",
                 "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
                 "generateThumbnail" => count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {count} items",
+                "love" => (this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().All(item => item.IsLoved) ? "No longer love" : "Love") +
+                          (count == 1 ? "" : " " + count.PluralString("comic")),
+                "dislike" => (this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
+                          (count == 1 ? "" : " " + count.PluralString("comic")),
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

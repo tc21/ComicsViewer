@@ -370,5 +370,27 @@ namespace ComicsViewer {
                     throw new ApplicationLogicException("Unhandled switch case");
             }
         }
+
+        public async Task ToggleDislikedStatusForComics(IEnumerable<ComicItem> selectedItems) {
+            var comics = selectedItems.Select(item => item.TitleComic).ToList();
+            var newStatus = !comics.All(item => item.Disliked);
+
+            foreach (var item in selectedItems) {
+                item.TitleComic.Metadata.Disliked = newStatus;
+            }
+
+            await this.MainViewModel.NotifyComicsChangedAsync(comics);
+        }
+
+        public async Task ToggleLovedStatusForComics(IEnumerable<ComicItem> selectedItems) {
+            var comics = selectedItems.Select(item => item.TitleComic).ToList();
+            var newStatus = !comics.All(item => item.Loved);
+
+            foreach (var item in selectedItems) {
+                item.TitleComic.Metadata.Loved = newStatus;
+            }
+
+            await this.MainViewModel.NotifyComicsChangedAsync(comics);
+        }
     }
 }
