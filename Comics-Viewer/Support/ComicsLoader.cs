@@ -117,7 +117,7 @@ namespace ComicsViewer.Support {
 
                 // Determine category
                 foreach (var pair in profile.RootPaths) {
-                    if (folder.Path.IsParentDirectoryOf(pair.Path)) {
+                    if (folder.Path.IsChildOfDirectory(pair.Path)) {
                         category = pair.Name;
                         break;
                     }

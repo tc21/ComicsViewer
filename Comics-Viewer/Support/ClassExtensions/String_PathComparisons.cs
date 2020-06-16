@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.Support.ClassExtensions {
     public static class String_PathComparisons {
-        public static bool IsParentDirectoryOf(this string parent, string child) {
+        public static bool IsChildOfDirectory(this string child, string parent) {
             return Path.GetFullPath(child).StartsWith(Path.GetFullPath(parent), StringComparison.OrdinalIgnoreCase);
         }
 
         public static string GetPathRelativeTo(this string path, string parent) {
-            if (!parent.IsParentDirectoryOf(path)) {
+            if (!path.IsChildOfDirectory(parent)) {
                 return path;
             }
 
