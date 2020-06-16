@@ -19,7 +19,7 @@ namespace ComicsViewer.Filters {
         private bool showDisliked = false;
 
         public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
-            || this.selectedTags.Count != 0 || this.generatedFilter != null;
+            || this.selectedTags.Count != 0 || this.generatedFilter != null || this.onlyShowLoved || this.ShowDisliked;
 
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
