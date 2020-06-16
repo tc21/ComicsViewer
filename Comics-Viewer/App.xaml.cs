@@ -30,11 +30,8 @@ namespace ComicsViewer
          * 1 When selecting "Only show loved" or "Show disliked", the filter button does not light up to indicate that there
          *   is an active filter
          * 2 Show search suggestions when opening an empty search box
-         * 3 Sometimes thumbnails just *disappear*. Especially when generating thumbnails for other works. Figure out why.
-         * 4 ThumbnailPath isn't actually saving properly. Figure out why.
          * 
          * TODOS:         
-         * 2 Edit item details
          * 3 Add the ability to save filters into a list of bookmarks
          * 4 Supporting opening stuff properly, rathor than telling Windows to open the first file 
          *   (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
@@ -42,9 +39,6 @@ namespace ComicsViewer
          * 6 Make search history per-profile instead of per-app
          * 7 Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc. 
          *   (e.g. opening an nonexistant comic)
-         * 8 Grouping should ignore casing
-         * 9 We should probably make the Edit Info page into a dialog or something, instead of a flyout, to allow dragging
-         *   thumbnail images into it.
          * 
          * Feature Requests:
          * 1 Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)

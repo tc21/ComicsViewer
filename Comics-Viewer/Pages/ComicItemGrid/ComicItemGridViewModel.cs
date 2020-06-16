@@ -123,25 +123,27 @@ namespace ComicsViewer {
             if (groupBy == null) {
                 return comics.Select(comic => ComicItem.WorkItem(comic));
             } else {
-                return GroupByMultiple(comics, groupBy);
+                return GroupByMultipleIgnoreCase(comics, groupBy);
             }
         }
 
-        private static IEnumerable<ComicItem> GroupByMultiple(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
-            var dict = new Dictionary<string, List<Comic>>();
+        private static IEnumerable<ComicItem> GroupByMultipleIgnoreCase(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
+            /* when ignoring casing, we use the casing of the first item as the final returned result */
+            var dict = new Dictionary<string, (string name, List<Comic> comics)>();
 
             foreach (var comic in comics) {
-                foreach (var key in groupBy(comic)) {
-                    if (!dict.ContainsKey(key)) {
-                        dict[key] = new List<Comic>();
+                foreach (var groupName in groupBy(comic)) {
+                    var groupKey = groupName.ToLowerInvariant();
+                    if (!dict.ContainsKey(groupKey)) {
+                        dict[groupKey] = (groupName, new List<Comic>());
                     }
 
-                    dict[key].Add(comic);
+                    dict[groupKey].comics.Add(comic);
                 }
             }
 
             foreach (var pair in dict) {
-                yield return ComicItem.NavigationItem(pair.Key, pair.Value);
+                yield return ComicItem.NavigationItem(pair.Value.name, pair.Value.comics);
             }
         }
 
