@@ -27,7 +27,7 @@ namespace ComicsViewer
 
         /*
          * Bugs:
-         * 2 Show search suggestions when opening an empty search box
+         * * to be discovered *
          * 
          * TODOS:         
          * 3 Add the ability to save filters into a list of bookmarks

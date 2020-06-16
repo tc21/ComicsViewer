@@ -217,6 +217,17 @@ namespace ComicsViewer {
             }
         }
 
+
+        private void AutoSuggestBox_GotFocus(object sender, RoutedEventArgs e) {
+            var suggestions = Search.GetSearchSuggestions(this.SearchBox.Text).ToList();
+            while (suggestions.Count > 4) {
+                suggestions.RemoveAt(4);
+            }
+
+            this.SearchBox.ItemsSource = suggestions;
+            this.SearchBox.IsSuggestionListOpen = true;
+        }
+
         #endregion
 
         private void FilterNavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e) {
