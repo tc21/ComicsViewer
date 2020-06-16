@@ -84,56 +84,6 @@ namespace ComicsViewer.Pages {
         }
 
         #endregion
-
-        private Comic Comic => this.Item.TitleComic;
-
-        public string ComicTitle => this.Comic.DisplayTitle;
-        public string ComicAuthor => this.Comic.DisplayAuthor;
-        public string ComicTags => string.Join(", ", this.Comic.Tags);
-        public bool ComicLoved => this.Comic.Loved;
-        public bool ComicDisliked => this.Comic.Disliked;
-
-        /* Category editing is currently disabled */
-        public string ComicCategory => this.Comic.DisplayCategory;
-
-        public void RefreshComicInfo() {
-            this.OnPropertyChanged(nameof(this.ComicTitle));
-            this.OnPropertyChanged(nameof(this.ComicAuthor));
-            this.OnPropertyChanged(nameof(this.ComicTags));
-            this.OnPropertyChanged(nameof(this.ComicLoved));
-            this.OnPropertyChanged(nameof(this.ComicDisliked));
-        }
-
-        public async Task SaveComicInfoAsync(string title, string author, string tags, bool loved, bool disliked) {
-            if (title != this.ComicTitle) {
-                this.Comic.Metadata.DisplayTitle = title.Trim();
-            }
-
-            if (author != this.ComicAuthor) {
-                this.Comic.Metadata.DisplayAuthor = author.Trim();
-            }
-
-            if (tags != this.ComicTags) {
-                this.Comic.Metadata.Tags.Clear();
-                foreach (var tag in tags.Split(',', StringSplitOptions.RemoveEmptyEntries)) {
-                    this.Comic.Metadata.Tags.Add(tag.Trim());
-                }
-            }
-
-            if (loved != this.ComicLoved) {
-                this.Comic.Metadata.Loved = loved;
-            }
-
-            if (disliked != this.ComicDisliked) {
-                this.Comic.Metadata.Disliked = disliked;
-            }
-
-            this.RefreshComicInfo();
-
-            // we don't care about what happens after this, the program works even if you don't await this,
-            // but it's probably best practice to do so anyway
-            await this.MainViewModel.NotifyComicsChangedAsync(new[] { this.Comic });
-        }
     }
 
     public class ComicSubitem {

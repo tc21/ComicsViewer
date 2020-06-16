@@ -39,6 +39,7 @@
             <ItemsPanelTemplate x:Key="HorizontalItemsWrapGridTemplate">
                 <ItemsWrapGrid Orientation="Horizontal"/>
             </ItemsPanelTemplate>
+
             <Style x:Key="ComicItemContainerStyle" TargetType="GridViewItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="VerticalContentAlignment" Value="Stretch"/>
@@ -60,7 +61,7 @@
                     <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style.Setters>
             </Style>
-            
+
             <MenuFlyout x:Name="ComicItemGridContextFlyout" 
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
@@ -101,6 +102,24 @@
                 </Flyout.FlyoutPresenterStyle>
                 <Frame x:Name="ComicInfoFlyoutFrame"/>
             </Flyout>
+            <Style TargetType="ComboBox" x:Key="InlineComboBoxStyle">
+                <Style.Setters>
+                    <Setter Property="Padding" Value="4 0" />
+                    <Setter Property="BorderThickness" Value="1" />
+                </Style.Setters>
+            </Style>
+            <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
+            <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
+            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
+            <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
+
+            
+            <!-- Note: This doesn't work for some reason. I found this bug but it says it should work as long as it's not
+                 at the application level (app.xaml). oh well... (microsoft/microsoft-ui-xaml/issues/1486) -->
+            <x:Double x:Key="ContentDialogMaxWidth">1000</x:Double>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -110,30 +129,12 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
+            
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
                 <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}">
-                    <ComboBox.Resources>
-                        <ResourceDictionary>
-                            <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
-                            <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
-                            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ComboBoxBackground" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="Transparent"/>
-                        </ResourceDictionary>
-                    </ComboBox.Resources>
-                    <ComboBox.Style>
-                        <Style TargetType="ComboBox">
-                            <Style.Setters>
-                                <Setter Property="Padding" Value="4 0" />
-                                <Setter Property="BorderThickness" Value="1" />
-                            </Style.Setters>
-                        </Style>
-                    </ComboBox.Style>
-                </ComboBox>
+                          SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}"
+                          Style="{StaticResource InlineComboBoxStyle}" />
             </StackPanel>
 
             <GridView x:Name="VisibleComicsGrid"
@@ -159,10 +160,15 @@
 
         <ContentDialog x:Name="ConfirmRemoveItemDialog" 
                        Title="Confirm remove items"
-                       RequestedTheme="Dark"
                        Content="Are you sure you want to remove these items? You will have to import them again if you want them to show up in this library."
                        PrimaryButtonText="Remove"
                        CloseButtonText="Cancel"
                        DefaultButton="Close"/>
+        
+        <!-- We're just using the style of a ContentDialog, without actually using any logic of it. -->
+        <ContentDialog x:Name="EditItemInfoDialog"
+                       Title="Edit info">
+            <Frame x:Name="EditItemInfoFrame" />
+        </ContentDialog>
     </Grid>
 </Page>

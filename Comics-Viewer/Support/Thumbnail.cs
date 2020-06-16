@@ -32,12 +32,13 @@ namespace ComicsViewer.Thumbnails {
         public static async Task<bool> GenerateThumbnailAsync(Comic comic, UserProfile profile, bool replace = false) {
             var thumbnailsFolder = await Defaults.GetThumbnailFolderAsync();
 
+            StorageFile? existingFile = null;
+
             try {
-                var existingFile = await thumbnailsFolder.GetFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
+                existingFile = await thumbnailsFolder.GetFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
                 if (!replace) {
                     return false;
                 }
-                await existingFile.DeleteAsync();
             } catch (FileNotFoundException) {
                 // pass
             }
@@ -50,6 +51,7 @@ namespace ComicsViewer.Thumbnails {
             var decoder = await BitmapDecoder.CreateAsync(inStream);
             var bitmap = await decoder.GetSoftwareBitmapAsync();
 
+            await existingFile?.DeleteAsync();
             var thumbnailFile = await thumbnailsFolder.CreateFileAsync($"{comic.UniqueIdentifier}.thumbnail.jpg");
             using var outStream = await thumbnailFile.OpenAsync(FileAccessMode.ReadWrite);
             var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, outStream);

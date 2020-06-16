@@ -68,6 +68,7 @@ namespace ComicsViewer.ViewModels {
         public void DoNotifyThumbnailChanged() {
             this.ThumbnailPath = "ms-appx:///Assets/LargeTile.scale-200.png";
             this.OnPropertyChanged(nameof(this.ThumbnailPath));
+
             this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
             this.OnPropertyChanged(nameof(this.ThumbnailPath));
         }

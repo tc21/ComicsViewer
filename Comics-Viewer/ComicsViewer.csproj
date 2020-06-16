@@ -130,6 +130,11 @@
     </Compile>
     <Compile Include="Pages\ComicInfoPage\ComicInfoPageNavigationArguments.cs" />
     <Compile Include="Pages\ComicInfoPage\ComicInfoPageViewModel.cs" />
+    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogNavigationArguments.cs" />
+    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml.cs">
+      <DependentUpon>EditComicInfoDialogContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogViewModel.cs" />
     <Compile Include="Pages\FilterPage\FilterViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridSecondLevelContainer.xaml.cs">
@@ -261,6 +266,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\ComicItemGrid\ComicItemGridTopLevelContainer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

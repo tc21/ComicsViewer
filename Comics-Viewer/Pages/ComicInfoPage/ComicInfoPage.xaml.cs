@@ -25,6 +25,7 @@ namespace ComicsViewer.Pages {
         }
 
         private ComicInfoPageViewModel? ViewModel;
+        private FlyoutBase? ContainerFlyout { get; set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicInfoPageNavigationArguments args)) {
@@ -32,22 +33,7 @@ namespace ComicsViewer.Pages {
             }
 
             this.ContainerFlyout = args.ParentFlyout;
-            this.ContainerFlyout.Closing += this.ContainerFlyout_Closing;
-
             this.ViewModel = new ComicInfoPageViewModel(args.ParentViewModel, args.ComicItem);
-
-            switch (args.OpenToPane) {
-                case "open":
-                    this.Pivot.SelectedItem = this.OpenPivotItem;
-                    break;
-                case "edit info":
-                    this.Pivot.SelectedItem = this.EditInfoPivotItem;
-                    break;
-            }
-        }
-
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
-            this.ContainerFlyout!.Closing -= this.ContainerFlyout_Closing;
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e) {
@@ -65,60 +51,9 @@ namespace ComicsViewer.Pages {
 
             await this.ViewModel!.OpenItem(item);
         }
-
-        private async void EditThumbnailButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailFromFilePickerAsync(this.ViewModel!.Item);
-        }
-
-        private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.SaveComicInfoAsync(
-                title: this.ComicTitleTextBox.Text,
-                author: this.ComicAuthorTextBox.Text,
-                tags: this.ComicTagsTextBox.Text,
-                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ApplicationLogicException(),
-                disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ApplicationLogicException()
-            );
-
-            this.RevertChangesButton.Visibility = Visibility.Collapsed;
-            this.SaveChangesButton.Visibility = Visibility.Collapsed;
-        }
-
-        private void RevertChangesButton_Click(object sender, RoutedEventArgs e) {
-            this.ViewModel!.RefreshComicInfo();
-
-            this.RevertChangesButton.Visibility = Visibility.Collapsed;
-            this.SaveChangesButton.Visibility = Visibility.Collapsed;
-        }
-
-        private FlyoutBase? ContainerFlyout { get; set; }
-        private async void ContainerFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args) {
-            if (this.RevertChangesButton.Visibility == Visibility.Visible) {
-                var result = await this.UnsavedChangesContentDialog.ShowAsync();
-                if (result == ContentDialogResult.Primary) {
-                    await this.ViewModel!.SaveComicInfoAsync(
-                        title: this.ComicTitleTextBox.Text,
-                        author: this.ComicAuthorTextBox.Text,
-                        tags: this.ComicTagsTextBox.Text,
-                        loved: this.ComicLovedCheckBox.IsChecked ?? throw new ApplicationLogicException(),
-                        disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ApplicationLogicException()
-                    );
-                }
-            }
-        }
-
-
+        
         private void CloseButton_Click(object sender, RoutedEventArgs e) {
             this.ContainerFlyout?.Hide();
-        }
-
-        private void ComicInfoElement_Edited(object sender, RoutedEventArgs e) {
-            // tries to not do this when textboxes change after input is validated
-            if (((Control)sender).FocusState == FocusState.Unfocused) {
-                return;
-            }
-
-            this.RevertChangesButton.Visibility = Visibility.Visible;
-            this.SaveChangesButton.Visibility = Visibility.Visible;
         }
     }
 }

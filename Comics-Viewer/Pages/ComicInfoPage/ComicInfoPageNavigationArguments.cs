@@ -9,18 +9,16 @@ using Windows.UI.Xaml.Controls.Primitives;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    class ComicInfoPageNavigationArguments {
+    public class ComicInfoPageNavigationArguments {
         public ComicItemGridViewModel ParentViewModel { get; }
         public ComicItem ComicItem { get; }
         public FlyoutBase ParentFlyout { get; }
-        public string? OpenToPane { get; }
 
         public ComicInfoPageNavigationArguments(
                 ComicItemGridViewModel parentViewModel, ComicItem comicItem, FlyoutBase parentFlyout, string? openToPane = null) {
             this.ParentViewModel = parentViewModel;
             this.ComicItem = comicItem;
             this.ParentFlyout = parentFlyout;
-            this.OpenToPane = openToPane;
         }
     }
 }

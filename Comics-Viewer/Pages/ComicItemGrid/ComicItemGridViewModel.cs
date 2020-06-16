@@ -207,10 +207,24 @@ namespace ComicsViewer {
                 throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
             }
 
+            var cached = comicItem.TitleComic.Metadata.ThumbnailSource;
             comicItem.TitleComic.Metadata.ThumbnailSource = path.GetPathRelativeTo(comicItem.TitleComic.Path);
 
-            if (await Thumbnail.GenerateThumbnailAsync(comicItem.TitleComic, this.MainViewModel.Profile, replace: true)) {
+            bool success;
+
+            try {
+                success = await Thumbnail.GenerateThumbnailAsync(comicItem.TitleComic, this.MainViewModel.Profile, replace: true);
+            } catch (Exception e) {
+                comicItem.TitleComic.Metadata.ThumbnailSource = cached;
+                throw e;
+            }
+
+
+            if (success) {
+                await this.MainViewModel.NotifyComicsChangedAsync(new[] { comicItem.TitleComic });
                 comicItem.DoNotifyThumbnailChanged();
+            } else {
+                comicItem.TitleComic.Metadata.ThumbnailSource = cached;
             }
         }
 

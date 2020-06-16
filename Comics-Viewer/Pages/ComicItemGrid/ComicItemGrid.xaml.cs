@@ -66,7 +66,9 @@ namespace ComicsViewer {
                 return;
             }
 
-            this.ShowComicInfoFlyout(comicItem, tappedElement);
+            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
+            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout));
+            this.ComicInfoFlyout.ShowAt(tappedElement);
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
@@ -83,14 +85,9 @@ namespace ComicsViewer {
             this.singleTapPosition = null;
         }
 
-        private void ShowComicInfoFlyout(
-                ComicItem comicItem, FrameworkElement gridItem, FlyoutPlacementMode placement = FlyoutPlacementMode.Auto, string? page = null) {
-            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage),
-                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout, page));
-            this.ComicInfoFlyout.ShowAt(gridItem, new FlyoutShowOptions { 
-                Placement = placement
-            });
+        public async Task ShowEditComicInfoDialog(ComicItem item) {
+            this.EditItemInfoFrame.Navigate(typeof(EditComicInfoDialogContent), new EditComicInfoDialogNavigationArguments(this.ViewModel!, item, this.EditItemInfoDialog));
+            await this.EditItemInfoDialog.ShowAsync();
         }
 
         private Point? singleTapPosition;
@@ -250,9 +247,9 @@ namespace ComicsViewer {
 
                 // Opens the comic info flyout to the "Edit Info" page
                 this.EditInfoCommand = new XamlUICommand();
-                this.EditInfoCommand.ExecuteRequested += (sender, args)
+                this.EditInfoCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => parent.ShowComicInfoFlyout(this.SelectedItems.First(), parent.VisibleComicsGrid, FlyoutPlacementMode.Full, "edit info");
+                    => await parent.ShowEditComicInfoDialog(this.SelectedItems.First());
                 this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
