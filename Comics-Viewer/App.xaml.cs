@@ -27,8 +27,6 @@ namespace ComicsViewer
 
         /*
          * Bugs:
-         * 1 When selecting "Only show loved" or "Show disliked", the filter button does not light up to indicate that there
-         *   is an active filter
          * 2 Show search suggestions when opening an empty search box
          * 
          * TODOS:         

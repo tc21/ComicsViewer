@@ -57,7 +57,8 @@ namespace ComicsViewer {
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
             if (!(tappedElement.DataContext is ComicItem comicItem)) {
-                // The right click happened on an empty space
+                // The click happened on an empty space
+                this.VisibleComicsGrid.SelectedItems.Clear();
                 return;
             }
 
@@ -113,6 +114,7 @@ namespace ComicsViewer {
             var tappedElement = (FrameworkElement)e.OriginalSource;
 
             if (!(tappedElement.DataContext is ComicItem comicItem)) {
+                this.VisibleComicsGrid.SelectedItems.Clear();
                 // The right click happened on an empty space
                 return;
             }
