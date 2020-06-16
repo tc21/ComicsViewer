@@ -74,7 +74,9 @@ namespace ComicsViewer {
             }
 
             this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout));
+            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
+                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout, 
+                    async () => await this.ShowEditComicInfoDialog(comicItem)));
             this.ComicInfoFlyout.ShowAt(tappedElement);
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click

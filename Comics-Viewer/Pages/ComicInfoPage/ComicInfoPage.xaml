@@ -44,11 +44,14 @@
                 </StackPanel>
             </PivotItem>
         </Pivot>
-
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="12" Content="Close"
-                    Click="CloseButton_Click"/>
-        </StackPanel>
+        
+        
+        <Button Margin="12" Content="Edit Info"
+                Grid.Row="1" HorizontalAlignment="Left"
+                Click="EditInfoButton_Click"/>
+        <Button Margin="12" Content="Close"
+                Grid.Row="1" HorizontalAlignment="Right"
+                Click="CloseButton_Click"/>
     </Grid>
 
 </Page>

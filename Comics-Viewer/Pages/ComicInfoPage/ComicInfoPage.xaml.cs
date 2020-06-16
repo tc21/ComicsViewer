@@ -26,6 +26,7 @@ namespace ComicsViewer.Pages {
 
         private ComicInfoPageViewModel? ViewModel;
         private FlyoutBase? ContainerFlyout { get; set; }
+        private Action? EditInfoCallback { get; set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicInfoPageNavigationArguments args)) {
@@ -33,6 +34,7 @@ namespace ComicsViewer.Pages {
             }
 
             this.ContainerFlyout = args.ParentFlyout;
+            this.EditInfoCallback = args.EditInfoCallback;
             this.ViewModel = new ComicInfoPageViewModel(args.ParentViewModel, args.ComicItem);
         }
 
@@ -51,9 +53,14 @@ namespace ComicsViewer.Pages {
 
             await this.ViewModel!.OpenItem(item);
         }
-        
+
         private void CloseButton_Click(object sender, RoutedEventArgs e) {
             this.ContainerFlyout?.Hide();
+        }
+
+        private void EditInfoButton_Click(object sender, RoutedEventArgs e) {
+            this.ContainerFlyout?.Hide();
+            this.EditInfoCallback?.Invoke();
         }
     }
 }
