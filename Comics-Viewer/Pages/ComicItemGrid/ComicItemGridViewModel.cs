@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -70,6 +71,8 @@ namespace ComicsViewer {
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
         public ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<Comic> comics) {
+            Debug.WriteLine($"VM{debug_this_count} created");
+
             this.MainViewModel = appViewModel;
             this.comics = new ComicList(comics);
             this.navigationTag = appViewModel.ActiveNavigationTag;
@@ -87,6 +90,10 @@ namespace ComicsViewer {
 
             // Loads the actual comic items
             this.RefreshComicItems();
+        }
+
+        ~ComicItemGridViewModel() {
+            Debug.WriteLine($"VM{debug_this_count} destroyed");
         }
 
         internal void RefreshComicItems() {
@@ -152,6 +159,10 @@ namespace ComicsViewer {
         #region Opening items 
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
+            if (!this.IsVisibleViewModel) {
+                throw new ApplicationLogicException();
+            }
+
             if (items.First().ItemType == ComicItemType.Navigation) {
                 if (items.Count() != 1) {
                     throw new ApplicationLogicException("Should not allow the user to open multiple navigation" +
@@ -180,6 +191,10 @@ namespace ComicsViewer {
         #region Thumbnails 
 
         public void RequestGenerateThumbnails(IEnumerable<ComicItem> comicItems, bool replace = false) {
+            if (!this.IsVisibleViewModel) {
+                return;
+            }
+
             var copy = comicItems.ToList();
             this.MainViewModel.StartUniqueTask("thumbnail", $"Generating thumbnails for {copy.Count} items...",
                 (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThread(copy, replace, cc, p));
@@ -205,6 +220,10 @@ namespace ComicsViewer {
         }
 
         public async Task TryRedefineThumbnailAsync(ComicItem comicItem, string path) {
+            if (!this.IsVisibleViewModel) {
+                throw new ApplicationLogicException();
+            }
+
             if (comicItem.ItemType != ComicItemType.Work) {
                 throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
             }
@@ -280,10 +299,15 @@ namespace ComicsViewer {
             this.OnPropertyChanged(nameof(this.ProfileName));
         }
 
+        internal bool IsVisibleViewModel { get; set; } = false;
+        private static int debug_count = 0;
+        private readonly int debug_this_count = ++debug_count;
+
         private void MainViewModel_ComicsModified(MainViewModel sender, ComicsModifiedEventArgs e) {
             switch (e.ModificationType) {
                 case ComicModificationType.ItemsAdded:
-                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                    Debug.WriteLine($"VM{debug_this_count} ({(this.IsVisibleViewModel ? "active" : "inactive")}) ComicsModified called for view model {this.navigationTag}");
+                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag && this.IsVisibleViewModel) {
                         // We can't handle this. The parent will have handled it, though.
                         this.MainViewModel.NavigateOut();
                         return;
@@ -299,7 +323,10 @@ namespace ComicsViewer {
                      * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
                      * to handle new item groups, and we say fuck that */
                     if (this.navigationTag == MainViewModel.DefaultNavigationTag) {
-                        this.ComicItems.AddRange(newComicItems);
+                        foreach (var item in newComicItems) {
+                            // always add the items to the beginning so the added items are visible
+                            this.ComicItems.Insert(0, item);
+                        }
                     } else {
                         this.RefreshComicItems();
                     }
@@ -361,7 +388,7 @@ namespace ComicsViewer {
                         this.ComicItems.RemoveAt(removedComicItemIndices.Pop());
                     }
 
-                    if (this.ComicItems.Count == 0) {
+                    if (this.ComicItems.Count == 0 && this.IsVisibleViewModel) {
                         this.MainViewModel.NavigateOut();
                     }
 

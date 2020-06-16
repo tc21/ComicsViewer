@@ -37,6 +37,12 @@ namespace ComicsViewer {
         public ComicItemGrid() {
             this.InitializeComponent();
             this.ContextMenuCommands = new ComicItemGridCommands(this);
+
+            Debug.WriteLine($"{debug_this_count} created");
+        }
+
+        ~ComicItemGrid() {
+            Debug.WriteLine($"{debug_this_count} destroyed");
         }
 
         private async void VisibleComicsGrid_Tapped(object sender, TappedRoutedEventArgs e) {
@@ -155,6 +161,9 @@ namespace ComicsViewer {
 
         #region Saving and setting state during navigation
 
+        private static int debug_count = 0;
+        private readonly int debug_this_count = ++debug_count;
+
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicItemGridNavigationArguments args)) {
                 throw new ApplicationLogicException("A ComicItemGrid must receive a ComicItemGridNavigationArguments as its parameter.");
@@ -168,9 +177,13 @@ namespace ComicsViewer {
                 // Initialize this page only when creating a new page, 
                 // not when the user returned to this page by pressing the back button
                 this.ViewModel = args.ViewModel;
+                Debug.WriteLine($"{debug_this_count} OnNavigatedTo (new)");
             } else {
+                Debug.WriteLine($"{debug_this_count} OnNavigatedTo ({e.NavigationMode})");
                 // ?
             }
+
+            this.ViewModel!.IsVisibleViewModel = true;
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
             args.OnNavigatedTo?.Invoke(this, e);
@@ -178,6 +191,11 @@ namespace ComicsViewer {
 
         internal void ManuallyNavigatedTo(NavigationEventArgs e) {
             this.OnNavigatedTo(e);
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
+            Debug.WriteLine($"{debug_this_count} OnNavigatingFrom");
+            this.ViewModel!.IsVisibleViewModel = false;
         }
 
         #endregion

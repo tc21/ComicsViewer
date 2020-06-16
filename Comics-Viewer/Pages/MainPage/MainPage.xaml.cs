@@ -129,6 +129,8 @@ namespace ComicsViewer {
                         OnNavigatedTo = (grid, e) => this.activeContent = grid
                     };
 
+                    this.activeContent = null;
+                    this.ContentFrame.BackStack.Clear();
                     this.ContentFrame.Navigate(e.PageType, navigationArguments, e.TransitionInfo);
 
                     this.currentView.AppViewBackButtonVisibility =

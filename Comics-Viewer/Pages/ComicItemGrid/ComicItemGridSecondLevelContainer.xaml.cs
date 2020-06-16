@@ -28,8 +28,6 @@ namespace ComicsViewer.ComicGrid {
 
         private void Frame_Navigated(object sender, NavigationEventArgs e) {
             this.Grid = (ComicItemGrid)this.Frame.Content;
-
-            Debug.WriteLine($"SecondLevelContainer.Frame.Navigated");
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
