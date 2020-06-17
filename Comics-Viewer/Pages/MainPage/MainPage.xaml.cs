@@ -238,9 +238,11 @@ namespace ComicsViewer {
                 return;
             }
 
-            var flyout = (this.Resources["FilterFlyout"] as Flyout)!;
-            this.FilterFlyoutFrame.Navigate(typeof(FilterPage), this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel!));
-            flyout.ShowAt(sender as FrameworkElement);
+            this.FilterFlyout.NavigateAndShowAt(
+                typeof(FilterPage),
+                this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel!),
+                (FrameworkElement)sender
+            );
         }
 
         /* reference: https://docs.microsoft.com/en-us/windows/uwp/design/shell/title-bar#full-customization-example */

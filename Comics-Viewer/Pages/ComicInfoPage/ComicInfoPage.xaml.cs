@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsViewer.Support.Controls;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,21 +20,19 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicInfoPage : Page {
+    public sealed partial class ComicInfoPage : Page, IPagedControlContent {
         public ComicInfoPage() {
             this.InitializeComponent();
         }
 
         private ComicInfoPageViewModel? ViewModel;
-        private FlyoutBase? ContainerFlyout { get; set; }
         private Action? EditInfoCallback { get; set; }
+        public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (!(e.Parameter is ComicInfoPageNavigationArguments args)) {
-                throw new ApplicationLogicException();
-            }
+            var (controller, args) = PagedControlAccessor.FromNavigationArguments<ComicInfoPageNavigationArguments>(e.Parameter);
+            this.PagedControlAccessor = controller;
 
-            this.ContainerFlyout = args.ParentFlyout;
             this.EditInfoCallback = args.EditInfoCallback;
             this.ViewModel = new ComicInfoPageViewModel(args.ParentViewModel, args.ComicItem);
         }
@@ -55,11 +54,11 @@ namespace ComicsViewer.Pages {
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) {
-            this.ContainerFlyout?.Hide();
+            this.PagedControlAccessor?.CloseContainer();
         }
 
         private void EditInfoButton_Click(object sender, RoutedEventArgs e) {
-            this.ContainerFlyout?.Hide();
+            this.PagedControlAccessor?.CloseContainer();
             this.EditInfoCallback?.Invoke();
         }
     }

@@ -6,6 +6,7 @@
     xmlns:helpers="using:ComicsViewer.Pages.Helpers"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="using:ComicsViewer.Support.Controls"
     mc:Ignorable="d"    
     RequestedTheme="Dark"
     Background="Transparent">
@@ -73,6 +74,12 @@
                     <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style.Setters>
             </Style>
+            <Style TargetType="ComboBox" x:Key="InlineComboBoxStyle">
+                <Style.Setters>
+                    <Setter Property="Padding" Value="4 0" />
+                    <Setter Property="BorderThickness" Value="1" />
+                </Style.Setters>
+            </Style>
 
             <MenuFlyout x:Name="ComicItemGridContextFlyout" 
                         x:Key="ComicItemGridContextFlyout"
@@ -108,25 +115,18 @@
                                 helpers:Bindings.VisibilityToEnabled="True"/>
             </MenuFlyout>
 
-            <Flyout x:Key="ComicInfoFlyout"
-                    x:Name="ComicInfoFlyout"
-                    ShouldConstrainToRootBounds="False">
-                <Flyout.FlyoutPresenterStyle>
+            <uc:PagedFlyout x:Name="ComicInfoFlyout"
+                            ShouldConstrainToRootBounds="False">
+                <uc:PagedFlyout.FlyoutPresenterStyle>
                     <Style TargetType="FlyoutPresenter">
                         <Style.Setters>
                             <Setter Property="CornerRadius" Value="4"/>
                             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
                         </Style.Setters>
                     </Style>
-                </Flyout.FlyoutPresenterStyle>
-                <Frame x:Name="ComicInfoFlyoutFrame"/>
-            </Flyout>
-            <Style TargetType="ComboBox" x:Key="InlineComboBoxStyle">
-                <Style.Setters>
-                    <Setter Property="Padding" Value="4 0" />
-                    <Setter Property="BorderThickness" Value="1" />
-                </Style.Setters>
-            </Style>
+                </uc:PagedFlyout.FlyoutPresenterStyle>
+            </uc:PagedFlyout>
+            
             <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource SystemAccentColorLight3}"/>
             <SolidColorBrush x:Key="ComboBox" Color="{ThemeResource SystemAccentColorLight3}"/>
             <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent"/>
@@ -185,9 +185,8 @@
                        DefaultButton="Close"/>
         
         <!-- We're just using the style of a ContentDialog, without actually using any logic of it. -->
-        <ContentDialog x:Name="EditItemInfoDialog"
-                       Title="Edit info">
-            <Frame x:Name="EditItemInfoFrame" />
-        </ContentDialog>
+        <uc:PagedContentDialog 
+            x:Name="EditItemInfoDialog"
+            Title="Edit info" />
     </Grid>
 </Page>

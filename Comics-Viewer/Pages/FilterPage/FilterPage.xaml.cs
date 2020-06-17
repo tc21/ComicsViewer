@@ -25,17 +25,16 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class FilterPage : Page {
+    public sealed partial class FilterPage : Page, IPagedControlContent {
         public FilterPage() {
             this.InitializeComponent();
         }
 
         public FilterViewModel? ViewModel;
+        public PagedControlAccessor? PagedControlAccessor => throw new NotImplementedException();
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (!(e.Parameter is FilterPageNavigationArguments args)) {
-                throw new ApplicationLogicException("FilterPage must receive a FilterPageNavigationArguments as its navigation argument");
-            }
+            var (_, args) = PagedControlAccessor.FromNavigationArguments<FilterPageNavigationArguments>(e.Parameter);
 
             if (args.Filter == null || args.AuxiliaryInfo == null || args.ParentViewModel == null) {
                 throw new ApplicationLogicException("args cannot be null");

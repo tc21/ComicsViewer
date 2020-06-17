@@ -13,14 +13,12 @@ namespace ComicsViewer.Pages {
     public class ComicInfoPageNavigationArguments {
         public ComicItemGridViewModel ParentViewModel { get; }
         public ComicItem ComicItem { get; }
-        public FlyoutBase ParentFlyout { get; }
         public Action EditInfoCallback { get; }
 
         public ComicInfoPageNavigationArguments(
-                ComicItemGridViewModel parentViewModel, ComicItem comicItem, FlyoutBase parentFlyout, Action editInfoCallback) {
+                ComicItemGridViewModel parentViewModel, ComicItem comicItem, Action editInfoCallback) {
             this.ParentViewModel = parentViewModel;
             this.ComicItem = comicItem;
-            this.ParentFlyout = parentFlyout;
             this.EditInfoCallback = editInfoCallback;
         }
     }

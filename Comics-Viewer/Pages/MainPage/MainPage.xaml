@@ -5,6 +5,7 @@
     xmlns:local="using:ComicsViewer.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="using:ComicsViewer.Support.Controls"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
@@ -16,9 +17,7 @@
                       TintColor="{ThemeResource SystemChromeLowColor}"
                       TintOpacity="0.8"
                       FallbackColor="{ThemeResource SystemChromeLowColor}" />
-        <Flyout x:Key="FilterFlyout" ShouldConstrainToRootBounds="False">
-            <Frame x:Name="FilterFlyoutFrame" />
-        </Flyout>
+        <uc:PagedFlyout x:Name="FilterFlyout" ShouldConstrainToRootBounds="False"/>
     </Page.Resources>
 
     <Grid x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">

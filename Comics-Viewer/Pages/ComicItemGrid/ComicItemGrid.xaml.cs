@@ -74,10 +74,11 @@ namespace ComicsViewer {
             }
 
             this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-            this.ComicInfoFlyoutFrame.Navigate(typeof(ComicInfoPage), 
-                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, this.ComicInfoFlyout, 
-                    async () => await this.ShowEditComicInfoDialog(comicItem)));
-            this.ComicInfoFlyout.ShowAt(tappedElement);
+            this.ComicInfoFlyout.NavigateAndShowAt(
+                typeof(ComicInfoPage), 
+                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, 
+                        async () => await this.ShowEditComicInfoDialog(comicItem)),
+                tappedElement);
 
             // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
             // dismisses the flyout, so we only end up capturing a PointerReleased event
@@ -95,8 +96,10 @@ namespace ComicsViewer {
         }
 
         public async Task ShowEditComicInfoDialog(ComicItem item) {
-            this.EditItemInfoFrame.Navigate(typeof(EditComicInfoDialogContent), new EditComicInfoDialogNavigationArguments(this.ViewModel!, item, this.EditItemInfoDialog));
-            await this.EditItemInfoDialog.ShowAsync();
+            _ = await this.EditItemInfoDialog.NavigateAndShowAsync(
+                typeof(EditComicInfoDialogContent), 
+                new EditComicInfoDialogNavigationArguments(this.ViewModel!, item)
+            );
         }
 
         private Point? singleTapPosition;

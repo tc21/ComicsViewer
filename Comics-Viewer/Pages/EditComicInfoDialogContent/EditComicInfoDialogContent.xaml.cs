@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Profiles;
+using ComicsViewer.Support.Controls;
 using ComicsViewer.Thumbnails;
 using ComicsViewer.ViewModels;
 using System;
@@ -26,22 +27,24 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class EditComicInfoDialogContent : Page {
+    public sealed partial class EditComicInfoDialogContent : Page, IPagedControlContent {
         public EditComicInfoDialogContent() {
             this.InitializeComponent();
         }
 
         public EditComicInfoDialogViewModel? ViewModel;
-        private ContentDialog? ContainerDialog;
+        public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (!(e.Parameter is EditComicInfoDialogNavigationArguments args)
-                || args.ComicItem.ItemType != ComicItemType.Work) {
+            var (controller, args) = 
+                PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(e.Parameter);
+            this.PagedControlAccessor = controller;
+
+            if (args.ComicItem.ItemType != ComicItemType.Work) {
                 throw new ApplicationLogicException();
             }
 
             this.ViewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
-            this.ContainerDialog = args.ContainerDialog;
         }
 
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
@@ -53,11 +56,11 @@ namespace ComicsViewer.Pages {
                 disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ApplicationLogicException()
             );
 
-            this.ContainerDialog!.Hide();
+            this.PagedControlAccessor!.CloseContainer();
         }
 
         private void DiscardChangesButton_Click(object sender, RoutedEventArgs e) {
-            this.ContainerDialog!.Hide();
+            this.PagedControlAccessor!.CloseContainer();
         }
 
         private async void EditThumbnailButton_Click(object sender, RoutedEventArgs e) {
