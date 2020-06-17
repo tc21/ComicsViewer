@@ -225,9 +225,11 @@ namespace ComicsViewer.Pages {
          * without rewriting the system, they are disabled for now. */
 
         public class ComicItemGridCommands {
-            public XamlUICommand OpenItemsCommand { get; }
+            /* Since a StandardUICommand has an icon, but XamlUICommand doesn't, this is a good way to see which of 
+             * our commands already have an icon and which ones need one defined in XAML */
+            public StandardUICommand OpenItemsCommand { get; }
             public XamlUICommand SearchSelectedCommand { get; }
-            public XamlUICommand RemoveItemCommand { get; }
+            public StandardUICommand RemoveItemCommand { get; }
             public XamlUICommand ShowInExplorerCommand { get; }
             public XamlUICommand GenerateThumbnailCommand { get; }
             public XamlUICommand EditInfoCommand { get; }
@@ -336,9 +338,18 @@ namespace ComicsViewer.Pages {
             }
 
             // Update dynamic text when opening flyout
-            foreach (var item in this.ComicItemGridContextFlyout.Items) {
-                if (item.Tag != null && item is MenuFlyoutItem flyoutItem) {
-                    flyoutItem.Text = this.GetDynamicFlyoutText(item.Tag.ToString());
+            UpdateFlyoutItemsText(this.ComicItemGridContextFlyout.Items);
+
+            void UpdateFlyoutItemsText(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
+                foreach (var item in flyoutItems) {
+                    if (item is MenuFlyoutSubItem subitem) {
+                        UpdateFlyoutItemsText(subitem.Items);
+                        continue;
+                    }
+
+                    if (item.Tag != null && item is MenuFlyoutItem flyoutItem) {
+                        flyoutItem.Text = this.GetDynamicFlyoutText(item.Tag.ToString());
+                    }
                 }
             }
         }
@@ -370,7 +381,7 @@ namespace ComicsViewer.Pages {
         /* We will have to manage item widths manually. Note that the Windows Community Toolkit provides the ability ]
          * to do this without writing custom code using AdaptiveGridView, but that uses a min width for each item, 
          * when we want a max width for each item. */
-        private void VisibleComicsGrid_SizeChanged(object sender, SizeChangedEventArgs e) {
+            private void VisibleComicsGrid_SizeChanged(object sender, SizeChangedEventArgs e) {
             if (sender is GridView grid) {
                 this.RecalculateGridItemSize(grid);
             }

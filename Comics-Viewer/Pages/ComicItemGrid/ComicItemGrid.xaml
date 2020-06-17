@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"    
     RequestedTheme="Dark"
     Background="Transparent">
@@ -84,32 +85,66 @@
             <MenuFlyout x:Name="ComicItemGridContextFlyout" 
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
-                <MenuFlyoutItem Tag="open" 
+                <MenuFlyoutItem Tag="open"
                                 Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" 
                                 helpers:Bindings.VisibilityToEnabled="True" />
                 <MenuFlyoutItem Text="Edit info"
                                 Command="{x:Bind ContextMenuCommands.EditInfoCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
-                <MenuFlyoutItem Text="Search selected" 
-                                Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
-                                helpers:Bindings.VisibilityToEnabled="True" />
-                <MenuFlyoutItem Tag="showInExplorer"
-                                Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
-                <MenuFlyoutSeparator/>
+                                helpers:Bindings.VisibilityToEnabled="True">
+                    <MenuFlyoutItem.Icon>
+                        <SymbolIcon Symbol="Edit"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
                 <MenuFlyoutItem Tag="love" 
                                 Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
+                                helpers:Bindings.VisibilityToEnabled="True">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xEB51;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
                 <MenuFlyoutItem Tag="dislike" 
                                 Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
+                                helpers:Bindings.VisibilityToEnabled="True">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xEA92;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Tag="generateThumbnail" 
+                <MenuFlyoutItem Text="Search selected" 
+                                Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
+                                helpers:Bindings.VisibilityToEnabled="True">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE721;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Tag="showInExplorer"
+                                Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
+                                helpers:Bindings.VisibilityToEnabled="True">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xEC50;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutSubItem Text="Thumbnails">
+                    <MenuFlyoutSubItem.Icon>
+                        <FontIcon Glyph="&#xE91B;"/>
+                    </MenuFlyoutSubItem.Icon>
+                    
+                    <MenuFlyoutItem Tag="generateThumbnail" 
                                 Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
-                <MenuFlyoutItem Text="Redefine thumbnail" 
+                                helpers:Bindings.VisibilityToEnabled="True">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE91B;"/>
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Redefine thumbnail" 
                                 Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
+                                helpers:Bindings.VisibilityToEnabled="True">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE7C5;"/>
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyoutSubItem>
                 <MenuFlyoutItem Tag="remove" 
                                 Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
                                 helpers:Bindings.VisibilityToEnabled="True"/>
