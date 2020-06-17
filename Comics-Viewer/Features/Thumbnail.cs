@@ -118,10 +118,10 @@ namespace ComicsViewer.Features {
             foreach (var file in await folder.GetFilesAsync()) {
                 if (IsValidThumbnailFile(file.Name)) {
                     files.Add(file);
-                }
 
-                if (--maxFiles <= 0) {
-                    break;
+                    if (--maxFiles <= 0) {
+                        break;
+                    }
                 }
             }
 
