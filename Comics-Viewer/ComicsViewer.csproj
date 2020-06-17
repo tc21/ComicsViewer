@@ -136,6 +136,9 @@
     </Compile>
     <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogViewModel.cs" />
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutViewModel.cs" />
+    <Compile Include="PagedControlContents\RedefineThumbnailDialogContent\RedefineThumbnailDialogContent.xaml.cs">
+      <DependentUpon>RedefineThumbnailDialogContent.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridSecondLevelContainer.xaml.cs">
       <DependentUpon>ComicItemGridSecondLevelContainer.xaml</DependentUpon>
@@ -257,6 +260,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PagedControlContents\RedefineThumbnailDialogContent\RedefineThumbnailDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

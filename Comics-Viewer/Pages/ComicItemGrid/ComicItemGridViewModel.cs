@@ -215,7 +215,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task TryRedefineThumbnailAsync(ComicItem comicItem, string path) {
+        public async Task TryRedefineThumbnailAsync(ComicItem comicItem, StorageFile file) {
             if (!this.IsVisibleViewModel) {
                 throw new ApplicationLogicException();
             }
@@ -225,12 +225,13 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var cached = comicItem.TitleComic.Metadata.ThumbnailSource;
-            comicItem.TitleComic.Metadata.ThumbnailSource = path.GetPathRelativeTo(comicItem.TitleComic.Path);
+            comicItem.TitleComic.Metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.TitleComic.Path);
 
             bool success;
 
             try {
-                success = await Thumbnail.GenerateThumbnailAsync(comicItem.TitleComic, this.MainViewModel.Profile, replace: true);
+                success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(
+                    comicItem.TitleComic, file, this.MainViewModel.Profile, replace: true);
             } catch (Exception e) {
                 comicItem.TitleComic.Metadata.ThumbnailSource = cached;
                 throw e;
@@ -264,7 +265,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return;
             }
 
-            await this.TryRedefineThumbnailAsync(comicItem, file.Path);
+            await this.TryRedefineThumbnailAsync(comicItem, file);
         }
 
         #endregion

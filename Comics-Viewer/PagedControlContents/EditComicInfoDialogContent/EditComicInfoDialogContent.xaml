@@ -17,25 +17,17 @@
             </Grid.ColumnDefinitions>
             <StackPanel x:Name="EditMetadataGridTopLeft">
                 <TextBlock Text="Thumbnail" />
-                <Grid Margin="0 4 0 0" CornerRadius="2" Height="160">
+                <Border Margin="0 4 0 0" CornerRadius="2" Height="160"
+                        AllowDrop="True"
+                        DragEnter="ThumbnailBorder_DragEnter"
+                        Drop="ThumbnailBorder_Drop">
                     <Image Grid.Row="1">
                         <Image.Source>
                             <BitmapImage UriSource="{x:Bind ViewModel.Item.ThumbnailPath, Mode=OneWay}"
                                          CreateOptions="IgnoreImageCache"/>
                         </Image.Source>
                     </Image>
-                    <Button Grid.Row="1"
-                            HorizontalAlignment="Stretch" 
-                            VerticalAlignment="Stretch"
-                            VerticalContentAlignment="Bottom"
-                            HorizontalContentAlignment="Left"
-                            AllowDrop="True"
-                            DragEnter="EditThumbnailButton_DragEnter"
-                            Drop="EditThumbnailButton_Drop"
-                            Click="EditThumbnailButton_Click">
-                        <SymbolIcon Symbol="Edit"/>
-                    </Button>
-                </Grid>
+                </Border>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Margin="12 0 0 0" Padding="4 0 0 0">

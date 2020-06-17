@@ -62,12 +62,7 @@ namespace ComicsViewer.Pages {
             this.PagedControlAccessor!.CloseContainer();
         }
 
-        private async void EditThumbnailButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailFromFilePickerAsync(this.ViewModel!.Item);
-            this.ViewModel!.Item.DoNotifyThumbnailChanged();
-        }
-
-        private async void EditThumbnailButton_Drop(object sender, DragEventArgs e) {
+        private async void ThumbnailBorder_Drop(object sender, DragEventArgs e) {
             if (!e.DataView.Contains(StandardDataFormats.StorageItems)) {
                 return;
             }
@@ -84,13 +79,13 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel!.Item, items[0].Path);
+            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel!.Item, (StorageFile)items[0]);
             /* Sometimes it just doesn't update properly, and I don't know why */
             this.ViewModel!.Item.DoNotifyThumbnailChanged();
         }
 
-        private void EditThumbnailButton_DragEnter(object sender, DragEventArgs e) {
-            e.AcceptedOperation =DataPackageOperation.Copy;
+        private void ThumbnailBorder_DragEnter(object sender, DragEventArgs e) {
+            e.AcceptedOperation = DataPackageOperation.Copy;
         }
     }
 }

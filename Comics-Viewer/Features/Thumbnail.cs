@@ -29,6 +29,14 @@ namespace ComicsViewer.Features {
         }
 
         public static async Task<bool> GenerateThumbnailAsync(Comic comic, UserProfile profile, bool replace = false) {
+            if (!(await TryGetThumbnailSourceAsync(comic, profile) is StorageFile imageFile)) {
+                return false;
+            }
+
+            return await GenerateThumbnailFromStorageFileAsync(comic, imageFile, profile, replace);
+        }
+
+        public static async Task<bool> GenerateThumbnailFromStorageFileAsync(Comic comic, StorageFile file, UserProfile profile, bool replace = false) {
             var thumbnailsFolder = await Defaults.GetThumbnailFolderAsync();
 
             StorageFile? existingFile = null;
@@ -42,13 +50,7 @@ namespace ComicsViewer.Features {
                 // pass
             }
 
-            if (!(await TryGetThumbnailSourceAsync(comic, profile) is StorageFile imageFile)) {
-                return false;
-            }
-
-            using var inStream = await imageFile.OpenAsync(FileAccessMode.Read);
-            var decoder = await BitmapDecoder.CreateAsync(inStream);
-            var bitmap = await decoder.GetSoftwareBitmapAsync();
+            var bitmap = await GetSoftwareBitmapAsync(file);
 
             if (existingFile != null) {
                 await existingFile.DeleteAsync();
@@ -68,6 +70,12 @@ namespace ComicsViewer.Features {
             return true;
         }
 
+        public static async Task<SoftwareBitmap> GetSoftwareBitmapAsync(StorageFile file) {
+            using var inStream = await file.OpenAsync(FileAccessMode.Read);
+            var decoder = await BitmapDecoder.CreateAsync(inStream);
+            return await decoder.GetSoftwareBitmapAsync();
+        }
+
         private static async Task<StorageFile?> TryGetThumbnailSourceAsync(Comic comic, UserProfile profile) {
             if (comic.ThumbnailSource is string path) {
                 try {
@@ -84,7 +92,7 @@ namespace ComicsViewer.Features {
 
             try {
                 var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
-                return await TryGetFirstFileMatchingExtensionAsync(comicFolder, UserProfile.ImageFileExtensions);
+                return await TryGetFirstValidThumbnailFile(comicFolder);
             } catch (FileNotFoundException) {
                 Debug.WriteLine("TryGetThumbnailSourceAsync threw FileNotFoundException");
                 // TODO we should throw the exception but catch it outside
@@ -93,33 +101,47 @@ namespace ComicsViewer.Features {
             return null;
         }
 
-        private static async Task<StorageFile?> TryGetFirstFileMatchingExtensionAsync(
-                StorageFolder folder, IEnumerable<string> extensions) {            
+        private static async Task<StorageFile?> TryGetFirstValidThumbnailFile(StorageFolder folder) {
+            var files = await GetPossibleThumbnailFiles(folder);
+            if (files.Count() == 0) {
+                return null;
+            }
+
+            return files.First();
+        }
+
+        public static async Task<IEnumerable<StorageFile>> GetPossibleThumbnailFiles(StorageFolder folder) {
+            var files = new List<StorageFile>();
+
+            // we can allow for customization in the future
+            var maxFiles = 5;
             foreach (var file in await folder.GetFilesAsync()) {
-                if (IsDesirableFile(file.Name)) {
-                    return file;
+                if (IsValidThumbnailFile(file.Name)) {
+                    files.Add(file);
+                }
+
+                if (--maxFiles <= 0) {
+                    break;
                 }
             }
 
             foreach (var subfolder in await folder.GetFoldersAsync()) {
-                if (await TryGetFirstFileMatchingExtensionAsync(subfolder, extensions) is StorageFile file) {
-                    return file;
+                foreach (var file in await GetPossibleThumbnailFiles(subfolder)) {
+                    files.Add(file);
                 }
             }
 
-            return null;
+            return files;
 
-            bool IsDesirableFile(string filename) {
+            static bool IsValidThumbnailFile(string filename) {
                 // Windows media player/groove music creates these files which we can see but can't (and don't want to) use.
                 if (filename == "AlbumArtSmall.jpg" || filename == "Folder.jpg") {
                     return false;
                 }
 
-                return extensions.Any(ext => filename.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+                return UserProfile.ImageFileExtensions.Any(ext => filename.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
             }
         }
-
-
     }
 
     public enum GenerateThumbnailStatus {

@@ -187,5 +187,9 @@
         <uc:PagedContentDialog 
             x:Name="EditItemInfoDialog"
             Title="Edit info"/>
+
+        <uc:PagedContentDialog
+            x:Name="RedefineThumbnailDialog"
+            Title="Redefine thumbnail"/>
     </Grid>
 </Page>

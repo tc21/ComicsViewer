@@ -201,6 +201,20 @@ namespace ComicsViewer.Pages {
 
         #endregion
 
+        #region Redefining thumbnails
+
+        private async Task RedefineThumbnail(ComicItem item) {
+            var folder = await StorageFolder.GetFolderFromPathAsync(item.TitleComic.Path);
+            var images = await Thumbnail.GetPossibleThumbnailFiles(folder);
+
+            _ = await this.RedefineThumbnailDialog.NavigateAndShowAsync(
+                typeof(RedefineThumbnailDialogContent),
+                new RedefineThumbnailDialogNavigationArguments(images, item, this.ViewModel!)
+            );
+        }
+
+        #endregion
+
         #region Context menu commands
 
         public ComicItemGridCommands ContextMenuCommands { get; }
@@ -280,7 +294,7 @@ namespace ComicsViewer.Pages {
                 this.RedefineThumbnailCommand = new XamlUICommand();
                 this.RedefineThumbnailCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ViewModel!.TryRedefineThumbnailFromFilePickerAsync(this.SelectedItems.First());
+                    => await parent.RedefineThumbnail(this.SelectedItems.First());
                 this.RedefineThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
