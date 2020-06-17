@@ -35,18 +35,20 @@ namespace ComicsViewer.ViewModels.Pages {
         internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
         public bool IsLoadingProfile { get; private set; } = false;
 
-        public Task SetDefaultProfile() {
+        public async Task SetDefaultProfile() {
             var suggestedProfile = Defaults.SettingsAccessor.LastProfile;
 
-            if (!ProfileManager.LoadedProfiles.Contains(suggestedProfile)) {
-                if (ProfileManager.LoadedProfiles.Count == 0) {
-                    throw new ApplicationLogicException("The application in its current state only allows using pre-made profiles.");
-                }
+            if (ProfileManager.LoadedProfiles.Count == 0) {
+                var profile = await ProfileManager.CreateProfileAsync();
+                await this.SetProfileAsync(profile.Name);
+                return;
+            }
 
+            if (!ProfileManager.LoadedProfiles.Contains(suggestedProfile)) {
                 suggestedProfile = ProfileManager.LoadedProfiles[0];
             }
 
-            return this.SetProfileAsync(suggestedProfile);
+            await this.SetProfileAsync(suggestedProfile);
         }
 
         public async Task SetProfileAsync(string newProfileName) {

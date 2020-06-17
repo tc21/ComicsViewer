@@ -85,6 +85,8 @@ namespace ComicsViewer.Features {
             await SaveProfileAsync(profile);
             LoadedProfiles.Add(profile.Name);
 
+            // This call here to ensure the database folder is created if it doesn't already exist
+            _ = await Defaults.GetDatabaseFolderAsync();
             using var connection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
             await connection.OpenAsync();
             _ = ComicsManager.InitializeComicsManager(new SqliteDatabaseConnection(connection));
