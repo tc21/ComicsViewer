@@ -9,8 +9,8 @@ namespace ComicsLibrary.SQL {
     /* This class houses extensions to SqliteDatabaseConnection that are planned to be moved to TCSupport, 
      * but are still in testing */
     internal static class SqliteDatabaseConnection_Extensions {
-        /* returns the newly inserted rowid */
-        public static async Task<int> ExecuteInsertAsync(this SqliteDatabaseConnection connection, string tableName, IDictionary<string, object> initialValues) {
+        /* returns the newly inserted rowid, or null if the insert failed or did not modify the database */
+        public static async Task<int?> ExecuteInsertAsync(this SqliteDatabaseConnection connection, string tableName, IDictionary<string, object> initialValues) {
             var queryString = $@"
                 INSERT INTO {tableName} (
                     {string.Join(", ", initialValues.Keys)}
@@ -23,7 +23,7 @@ namespace ComicsLibrary.SQL {
             var result = await connection.ExecuteNonQueryAsync(queryString, parameters);
 
             if (result == 0) {
-                throw new ComicsDatabaseException("Row insertion failed");
+                return null;
             }
 
             return await connection.ExecuteScalarAsync<int>("SELECT last_insert_rowid()");

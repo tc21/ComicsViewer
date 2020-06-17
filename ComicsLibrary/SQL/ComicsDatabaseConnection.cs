@@ -85,7 +85,9 @@ namespace ComicsLibrary.SQL {
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
-            var comicid = await this.connection.ExecuteInsertAsync(table_comics, parameters);
+            if (!(await this.connection.ExecuteInsertAsync(table_comics, parameters) is int comicid)) {
+                throw new ComicsDatabaseException("Insertion of comic failed for unknown reasons.");
+            }
 
             foreach (var tag in comic.Tags) {
                 await this.AssociateTagAsync(comicid, await this.AddTagAsync(tag));
