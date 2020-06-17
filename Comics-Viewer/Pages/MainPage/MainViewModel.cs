@@ -1,11 +1,8 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.SQL;
-using ComicsViewer.ComicGrid;
-using ComicsViewer.Filters;
-using ComicsViewer.Pages.Helpers;
-using ComicsViewer.Profiles;
+using ComicsViewer.Features;
+using ComicsViewer.Pages;
 using ComicsViewer.Support;
-using ComicsViewer.ViewModels;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -25,7 +22,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 #nullable enable
 
-namespace ComicsViewer {
+namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         private ComicList comics = new ComicList();
 
@@ -219,10 +216,10 @@ namespace ComicsViewer {
             }
         }
 
-        public FilterPageNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
+        public FilterFlyoutNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
             var info = this.GetAuxiliaryInfo(this.Filter);
 
-            return new FilterPageNavigationArguments {
+            return new FilterFlyoutNavigationArguments {
                 Filter = this.Filter,
                 ParentViewModel = parentViewModel,
                 AuxiliaryInfo = info

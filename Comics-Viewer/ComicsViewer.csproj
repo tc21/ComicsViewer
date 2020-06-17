@@ -123,19 +123,19 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Filters\Filter.cs" />
-    <Compile Include="Filters\FilterPageNavigationArguments.cs" />
-    <Compile Include="Pages\ComicInfoPage\ComicInfoPage.xaml.cs">
-      <DependentUpon>ComicInfoPage.xaml</DependentUpon>
+    <Compile Include="Features\Filter.cs" />
+    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />
+    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml.cs">
+      <DependentUpon>ComicInfoFlyoutContent.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ComicInfoPage\ComicInfoPageNavigationArguments.cs" />
-    <Compile Include="Pages\ComicInfoPage\ComicInfoPageViewModel.cs" />
-    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogNavigationArguments.cs" />
-    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml.cs">
+    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutNavigationArguments.cs" />
+    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutViewModel.cs" />
+    <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogNavigationArguments.cs" />
+    <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml.cs">
       <DependentUpon>EditComicInfoDialogContent.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogViewModel.cs" />
-    <Compile Include="Pages\FilterPage\FilterViewModel.cs" />
+    <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogViewModel.cs" />
+    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridSecondLevelContainer.xaml.cs">
       <DependentUpon>ComicItemGridSecondLevelContainer.xaml</DependentUpon>
@@ -143,52 +143,52 @@
     <Compile Include="Pages\ComicItemGrid\ComicItemGridTopLevelContainer.xaml.cs">
       <DependentUpon>ComicItemGridTopLevelContainer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\FilterPage\FilterPage.xaml.cs">
-      <DependentUpon>FilterPage.xaml</DependentUpon>
+    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml.cs">
+      <DependentUpon>FilterFlyoutContent.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\Helpers\Bindings.cs" />
-    <Compile Include="Pages\Helpers\CheckBoxItem.cs" />
-    <Compile Include="Support\ClassExtensions\String_PathComparisons.cs" />
-    <Compile Include="Support\ComicTask.cs" />
+    <Compile Include="XamlHelpers\Bindings.cs" />
+    <Compile Include="ViewModels\CheckBoxItem.cs" />
+    <Compile Include="ClassExtensions\String_PathComparisons.cs" />
+    <Compile Include="ViewModels\ComicTask.cs" />
     <Compile Include="Pages\SettingsPage\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\SettingsPage\SettingsPageNavigationArguments.cs" />
     <Compile Include="Pages\SettingsPage\SettingsPageViewModel.cs" />
-    <Compile Include="Support\ClassExtensions\Int32_PluralString.cs" />
-    <Compile Include="Support\ClassExtensions\ObservableCollection_AddRange.cs" />
-    <Compile Include="Support\ClassExtensions\String_TruncateEnd.cs" />
+    <Compile Include="ClassExtensions\Int32_PluralString.cs" />
+    <Compile Include="ClassExtensions\ObservableCollection_AddRange.cs" />
+    <Compile Include="ClassExtensions\String_TruncateEnd.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
       <DependentUpon>ComicItemGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\ComicItemGrid\ComicItemGridNavigationArguments.cs" />
-    <Compile Include="Defaults.cs" />
+    <Compile Include="Features\Defaults.cs" />
     <Compile Include="Pages\MainPage\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Profiles\ProfileManager.cs" />
-    <Compile Include="Profiles\Startup.cs" />
-    <Compile Include="Profiles\UserProfile.cs" />
+    <Compile Include="Features\ProfileManager.cs" />
+    <Compile Include="Features\Startup.cs" />
+    <Compile Include="Features\UserProfile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\ComicList.cs" />
-    <Compile Include="Support\Controls\IPagedControl.cs" />
-    <Compile Include="Support\Controls\ExpandableChecklist.xaml.cs">
+    <Compile Include="Controls\IPagedControl.cs" />
+    <Compile Include="Controls\ExpandableChecklist.xaml.cs">
       <DependentUpon>ExpandableChecklist.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Support\Controls\PagedContentDialog.cs" />
-    <Compile Include="Support\Controls\PagedFlyout.cs" />
+    <Compile Include="Controls\PagedContentDialog.cs" />
+    <Compile Include="Controls\PagedFlyout.cs" />
     <Compile Include="Support\DefaultDictionary.cs" />
     <Compile Include="Support\DeferredNotify.cs" />
     <Compile Include="Support\ComicsLoader.cs" />
-    <Compile Include="Support\Search.cs" />
+    <Compile Include="Features\Search.cs" />
     <Compile Include="Support\ApplicationLogicException.cs" />
-    <Compile Include="Support\Thumbnail.cs" />
+    <Compile Include="Features\Thumbnail.cs" />
     <Compile Include="ViewModels\ComicItem.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
-    <Compile Include="Pages\Helpers\CountedString.cs" />
-    <Compile Include="Pages\Helpers\FilterViewAuxiliaryInfo.cs" />
-    <Compile Include="ViewModels\Sorting.cs" />
+    <Compile Include="Support\CountedString.cs" />
+    <Compile Include="Support\FilterViewAuxiliaryInfo.cs" />
+    <Compile Include="Features\Sorting.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -256,7 +256,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Pages\ComicInfoPage\ComicInfoPage.xaml">
+    <Page Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -272,11 +272,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml">
+    <Page Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\FilterPage\FilterPage.xaml">
+    <Page Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -288,7 +288,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Support\Controls\ExpandableChecklist.xaml">
+    <Page Include="Controls\ExpandableChecklist.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

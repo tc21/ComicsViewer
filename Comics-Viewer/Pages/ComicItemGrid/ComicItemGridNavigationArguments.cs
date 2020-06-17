@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ComicsViewer.ViewModels.Pages;
+using System;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
-namespace ComicsViewer {
+namespace ComicsViewer.Pages {
     public class ComicItemGridNavigationArguments {
         public ComicItemGridViewModel? ViewModel { get; set; }
         public Action<ComicItemGrid, NavigationEventArgs>? OnNavigatedTo { get; set; }

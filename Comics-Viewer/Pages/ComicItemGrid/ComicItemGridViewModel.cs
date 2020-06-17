@@ -1,11 +1,7 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Filters;
-using ComicsViewer.Profiles;
 using ComicsViewer.Support;
-using ComicsViewer.Support.ClassExtensions;
-using ComicsViewer.Thumbnails;
-using ComicsViewer.ViewModels;
-using Microsoft.Toolkit.Uwp.UI;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -24,7 +20,7 @@ using Windows.UI.Popups;
 
 #nullable enable
 
-namespace ComicsViewer {
+namespace ComicsViewer.ViewModels.Pages {
     public class ComicItemGridViewModel : ViewModelBase {
         /* automatically managed properties */
         private int selectedSortIndex;

@@ -1,4 +1,8 @@
-﻿using System;
+﻿using ComicsLibrary;
+using ComicsViewer.Features;
+using ComicsViewer.Pages;
+using ComicsViewer.ViewModels.Pages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI.Xaml;
@@ -6,13 +10,9 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using ComicsViewer.Profiles;
-using ComicsLibrary;
 using Windows.UI.ViewManagement;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
-using ComicsViewer.Pages;
-using ComicsViewer.Filters;
 using MUXC = Microsoft.UI.Xaml.Controls;
 
 #nullable enable
@@ -239,7 +239,7 @@ namespace ComicsViewer {
             }
 
             this.FilterFlyout.NavigateAndShowAt(
-                typeof(FilterPage),
+                typeof(FilterFlyoutContent),
                 this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel!),
                 (FrameworkElement)sender
             );

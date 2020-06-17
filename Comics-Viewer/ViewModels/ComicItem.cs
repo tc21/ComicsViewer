@@ -1,6 +1,6 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Support.ClassExtensions;
-using ComicsViewer.Thumbnails;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

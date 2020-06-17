@@ -17,7 +17,7 @@ using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
-namespace ComicsViewer.ComicGrid {
+namespace ComicsViewer.Pages {
     /* This class is an exact duplicate of ComicItemGridTopLevelContainer. For why, see the comment for ComicItemGridTopLevelContainer. */
     public sealed partial class ComicItemGridSecondLevelContainer : Page, IComicItemGridContainer {
         public ComicItemGrid? Grid { get; private set; }

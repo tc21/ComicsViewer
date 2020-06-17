@@ -1,6 +1,6 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Profiles;
-using ComicsViewer.Support.ClassExtensions;
+using ComicsViewer.Features;
+using ComicsViewer.ClassExtensions;
 using System;
 using System.Collections.Generic;
 using System.IO;

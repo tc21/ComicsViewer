@@ -17,7 +17,7 @@ using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
-namespace ComicsViewer.ComicGrid {
+namespace ComicsViewer.Pages {
     /* UWP cannot handle caching multiple instances of pages of the same type. To enable caching pages using Frame's
      * built-in behavior, each page must be a different type. Here we limit the application to two pages. Each container 
      * page contains a grid, and the container page is cached instead of the grid. When navigating to the container,

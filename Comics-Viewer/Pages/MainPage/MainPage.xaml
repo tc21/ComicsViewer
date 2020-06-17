@@ -2,10 +2,10 @@
     x:Class="ComicsViewer.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ComicsViewer.ViewModels"
+    xmlns:vm="using:ComicsViewer.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:uc="using:ComicsViewer.Support.Controls"
+    xmlns:uc="using:ComicsViewer.Controls"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
@@ -106,7 +106,7 @@
                             <Flyout>
                                 <ItemsControl ItemsSource="{x:Bind ViewModel.Tasks}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="local:ComicTask">
+                                        <DataTemplate x:DataType="vm:ComicTask">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition />

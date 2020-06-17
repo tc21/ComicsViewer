@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Profiles;
+﻿using ComicsViewer.Features;
+using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.IO;

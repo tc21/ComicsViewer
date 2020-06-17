@@ -1,11 +1,7 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Pages;
-using ComicsViewer.Profiles;
-using ComicsViewer.Support;
-using ComicsViewer.Support.ClassExtensions;
-using ComicsViewer.Thumbnails;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
-using Microsoft.Toolkit.Uwp.UI;
+using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +25,7 @@ using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
-namespace ComicsViewer {
+namespace ComicsViewer.Pages {
     public sealed partial class ComicItemGrid : Page {
         public MainViewModel? MainViewModel => ViewModel?.MainViewModel;
         public ComicItemGridViewModel? ViewModel;
@@ -75,8 +71,8 @@ namespace ComicsViewer {
 
             this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
             this.ComicInfoFlyout.NavigateAndShowAt(
-                typeof(ComicInfoPage), 
-                new ComicInfoPageNavigationArguments(this.ViewModel!, comicItem, 
+                typeof(ComicInfoFlyoutContent), 
+                new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem, 
                         async () => await this.ShowEditComicInfoDialog(comicItem)),
                 tappedElement);
 

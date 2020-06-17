@@ -1,6 +1,5 @@
-﻿using ComicsViewer.Profiles;
-using ComicsViewer.Support.ClassExtensions;
-using ComicsViewer.ViewModels;
+﻿using ComicsViewer.Features;
+using ComicsViewer.ClassExtensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,7 +12,7 @@ using Windows.UI.Xaml.Input;
 
 #nullable enable
 
-namespace ComicsViewer.Pages {
+namespace ComicsViewer.ViewModels.Pages {
     public class SettingsPageViewModel : ViewModelBase {
         /* Static properties */
         public string ProfileName => this.profile.Name;
