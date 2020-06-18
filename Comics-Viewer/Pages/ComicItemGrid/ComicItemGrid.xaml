@@ -195,7 +195,7 @@
                       Grid.Row="1"
                       SelectionMode="Extended"
                       ItemsSource="{x:Bind ViewModel.ComicItems, Mode=OneWay}"
-                      SizeChanged="VisibleComicsGrid_SizeChanged"
+                      Loaded="VisibleComicsGrid_Loaded"
                       IsRightTapEnabled="True"
                       Tapped="VisibleComicsGrid_Tapped"
                       DoubleTapped="VisibleComicsGrid_DoubleTapped"

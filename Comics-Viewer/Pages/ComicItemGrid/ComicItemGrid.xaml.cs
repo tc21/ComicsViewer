@@ -35,13 +35,37 @@ namespace ComicsViewer.Pages {
             this.ContextMenuCommands = new ComicItemGridCommands(this);
 
             Debug.WriteLine($"{debug_this_count} created");
+
+            // This has to be done in code, not XAML since we need the third handledEventsToo argument
+            this.VisibleComicsGrid.AddHandler(
+                PointerPressedEvent, new PointerEventHandler(this.VisibleComicsGrid_PointerPressed), true);
         }
 
         ~ComicItemGrid() {
             Debug.WriteLine($"{debug_this_count} destroyed");
         }
 
+        // This function determines if the user used their non-left-mouse-button to click, and prevents the Tapped
+        // evenet from firing if that is the case.
+        private void VisibleComicsGrid_PointerPressed(object sender, PointerRoutedEventArgs e) {
+            if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse) {
+                var pointerPoint = e.GetCurrentPoint(this);
+                if (!pointerPoint.Properties.IsLeftButtonPressed) {
+                    this.isLastTapValid = false;
+                    return;
+                }
+            }
+
+            this.isLastTapValid = true;
+        }
+
+        private bool isLastTapValid = true;
+
         private async void VisibleComicsGrid_Tapped(object sender, TappedRoutedEventArgs e) {
+            if (!this.isLastTapValid) {
+                return;
+            }
+
             var controlKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
             var shiftKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
 
@@ -50,8 +74,6 @@ namespace ComicsViewer.Pages {
                 // The user is selecting something. Ignore this.
                 return;
             }
-
-            // TODO we need to fix this triggering for the mouse forward/backwards buttons
 
             if (!(sender is GridView)) {
                 throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
@@ -179,6 +201,11 @@ namespace ComicsViewer.Pages {
             }
 
             this.ViewModel!.IsVisibleViewModel = true;
+            if (this.VisibleComicsGrid.IsLoaded) {
+                this.RecalculateGridItemSize(this.VisibleComicsGrid);
+            }
+
+            CoreWindow.GetForCurrentThread().ResizeCompleted += this.ComicItemGrid_ResizeCompleted;
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
             args.OnNavigatedTo?.Invoke(this, e);
@@ -191,6 +218,7 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             Debug.WriteLine($"{debug_this_count} OnNavigatingFrom");
             this.ViewModel!.IsVisibleViewModel = false;
+            CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }
 
         #endregion
@@ -375,10 +403,8 @@ namespace ComicsViewer.Pages {
         /* We will have to manage item widths manually. Note that the Windows Community Toolkit provides the ability ]
          * to do this without writing custom code using AdaptiveGridView, but that uses a min width for each item, 
          * when we want a max width for each item. */
-            private void VisibleComicsGrid_SizeChanged(object sender, SizeChangedEventArgs e) {
-            if (sender is GridView grid) {
-                this.RecalculateGridItemSize(grid);
-            }
+        private void ComicItemGrid_ResizeCompleted(CoreWindow sender, object args) {
+            this.RecalculateGridItemSize(this.VisibleComicsGrid);
         }
 
         private void RecalculateGridItemSize(GridView grid) {
@@ -449,5 +475,9 @@ namespace ComicsViewer.Pages {
         }
 
         #endregion
+
+        private void VisibleComicsGrid_Loaded(object sender, RoutedEventArgs e) {
+            this.RecalculateGridItemSize(this.VisibleComicsGrid);
+        }
     }
 }
