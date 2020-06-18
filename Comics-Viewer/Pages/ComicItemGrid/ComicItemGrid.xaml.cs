@@ -75,20 +75,28 @@ namespace ComicsViewer.Pages {
                 new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem, 
                         async () => await this.ShowEditComicInfoDialog(comicItem)),
                 tappedElement);
+        }
 
-            // This is a hack to enable double-tap opening: If the user clicks twice in a row, the second click
-            // dismisses the flyout, so we only end up capturing a PointerReleased event
-            this.doubleTapPointerReleased = false;
-            this.singleTapPosition = e.GetPosition(this.VisibleComicsGrid);
+        private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e) {
+            var controlKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
+            var shiftKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
 
-            await Task.Delay(500);
-
-            if (this.doubleTapPointerReleased == true) {
-                this.ComicInfoFlyout.Hide();
-                await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
+            if ((controlKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (shiftKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down) {
+                // Ctrl/Shift+right clicks are ignored, just like in SingleTapped
+                // The user is selecting something. Ignore this.
+                return;
             }
 
-            this.singleTapPosition = null;
+            var tappedElement = (FrameworkElement)e.OriginalSource;
+            if (!(tappedElement.DataContext is ComicItem comicItem)) {
+                // The click happened on an empty space
+                this.VisibleComicsGrid.SelectedItems.Clear();
+                return;
+            }
+
+            this.ComicInfoFlyout.Hide();
+            await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
         }
 
         public async Task ShowEditComicInfoDialog(ComicItem item) {
@@ -96,20 +104,6 @@ namespace ComicsViewer.Pages {
                 typeof(EditComicInfoDialogContent), 
                 new EditComicInfoDialogNavigationArguments(this.ViewModel!, item)
             );
-        }
-
-        private Point? singleTapPosition;
-        private bool doubleTapPointerReleased;
-
-        private void VisibleComicsGrid_PointerReleased(object sender, PointerRoutedEventArgs e) {
-            if (!(this.singleTapPosition is Point lastPosition)) {
-                return;
-            }
-
-            var tapPosition = e.GetCurrentPoint(this.VisibleComicsGrid).Position;
-
-            var distance = Math.Sqrt(Math.Pow(tapPosition.X - lastPosition.X, 2) + Math.Pow(tapPosition.Y - lastPosition.Y, 2));
-            this.doubleTapPointerReleased = distance < 10;
         }
 
         // Prepares the grid before the right click context menu is shown
