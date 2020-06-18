@@ -27,26 +27,56 @@ namespace ComicsViewer
 
         /*
          * Bugs:
-         * * to be discovered *
+         *   1. Calling ComicItem.DoNotifyThumbnailChanged does not always make controls reload its thumbnail.
+         *   2. VisibleComicsGrid_Tapped should not open a ComicItem popup pane when the user clicks with the middle,
+         *      forward or backwards mouse buttons. 
          * 
          * TODOS:         
-         * 3 Add the ability to save filters into a list of bookmarks
-         * 4 Supporting opening stuff properly, rathor than telling Windows to open the first file 
-         *   (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
-         * 5 We will likely have to rely on the above two links to enable Python-based extensions.
-         * 6 Make search history per-profile instead of per-app
-         * 7 Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc. 
-         *   (e.g. opening an nonexistant comic)
+         *   4. Supporting opening stuff properly, rathor than telling Windows to open the first file 
+         *      (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
+         *   5. We will likely have to rely on the above two links to enable Python-based extensions.
+         *   7. Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc. 
+         *      (e.g. opening an nonexistant comic)
+         *   9. When clicking the 'X' button in the search box, we should refilter the visible comics, instead of requiring
+         *      the user to click on the search button again.
+         * 
          * 
          * Feature Requests:
-         * 1 Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)
-         * 2 Reimplement the faded colors of the WPF version, ideally as a togglable setting
-         * 3 To enable the above feature, we will need a settings pane for App-level (instead of / in addition to profile-level) settings.
-         * 4 To enable progress tracking, we will probably need to implement a UWP-based image viewer too.
-         *   This time we probably won't have to make it general-purpose.
-         * 5 Add an expiration date to generated thumbnails, so they don't just pile up
-         * 6 Assign "related works", allowing any two works to be related in the database and to show up in each other's 
-         *   single-click flyout
+         *   1. Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)
+         *   2. Reimplement the faded colors of the WPF version, ideally as a togglable setting
+         *   3. To enable the above feature, we will need a settings pane for App-level (instead of / in addition to profile-level) settings.
+         *   4. To enable progress tracking, we will probably need to implement a UWP-based image viewer too.
+         *      This time we probably won't have to make it general-purpose.
+         *   5. Add an expiration date to generated thumbnails, so they don't just pile up
+         *   6. Assign "related works", allowing any two works to be related in the database and to show up in each other's 
+         *      single-click flyout (see also major proposal "subworks")
+         *   7. Add the ability to save filters into a list of bookmarks
+         *   8. Regarding DisplayAuthor and DisplayCategory: Remove the DisplayAuthor and DisplayCategory fields from the
+         *      comics table, moving them to new tables, matching each author, instead of comic, to a displayAuthor
+         *          instead of:
+         *              SELECT author, display_author FROM comics
+         *          do:
+         *              CREATE TABLE display_author 
+         *                  author TEXT NOT NULL
+         *                  display_author TEXT
+         *                  UNIQUE (author) ON CONFLICT REPLACE
+         *              SELECT comics.author, display_authors.display_author 
+         *                  FROM comics
+         *                  JOIN display_authors ON comics.author = display_authors.author
+         *          challenges:
+         *              The main challenge will be, when a display author is updated, how that change is propagated to
+         *              all ComicItems that are present in the ViewModel.
+         *              Likely we will have to not SELECT display_author when creating comics, but rather maintain our
+         *              internal mapping of Author -> DisplayAuthor.
+         *          important note:
+         *              This feature blocks both category editing AND moving comics to new categories. As it stands, 
+         *              our use of DisplayCategory would mean that categories remain the same even if we move a comic to
+         *              another category's folder. A temporary workaround is to replace all references to DisplayCategory
+         *              with reference to Category.
+         *   9. Add the abilities to rename profiles, move comics, and rename a comic's folder name. This means the
+         *      ability to rename and move files or folders by the application. Renaming a comic's folder name also changes
+         *      its UniqueIdentifier.
+         *  11. Make search history per-profile instead of per-app
          *   
          * Major proposal: subworks (and notes on related works)
          *   One decision of Comics.UWP is to remove subworks at the database level, instead treating each folder as a

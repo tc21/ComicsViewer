@@ -28,6 +28,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
         public async Task Initialize() {
+            // TODO catch FileNotFound here and notice the user and remove the comic
             foreach (var item in await this.GetSubitems(this.Item.TitleComic)) {
                 this.ComicSubitems.Add(item);
             }

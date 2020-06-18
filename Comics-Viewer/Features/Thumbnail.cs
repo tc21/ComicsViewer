@@ -83,8 +83,7 @@ namespace ComicsViewer.Features {
                         return file;
                     }
                 } catch (FileNotFoundException) {
-                    // TODO we should tell the comic to erase its ThumbnailSource value
-                    // but otherwise do nothing
+                    // the path doesn't actually exist. needs to be handled by caller
                 } catch (UnauthorizedAccessException) {
                     // weird shit happens with windows and file permissions. just ignore this
                 }

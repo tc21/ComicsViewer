@@ -26,7 +26,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public bool GeneratedFilterEnabled => this.Filter.GeneratedFilter != null;
         public string GeneratedFilterDescription => $"Automatically generated filter ({this.Filter.Metadata.GeneratedFilterItemCount} items)";
 
-        // TODO come up with a better name than CountedString?
+        // Come up with a better name than CountedString? <-- Too late.
         public List<CountedString> Categories { get; }
         public List<CountedString> Authors { get; }
         public List<CountedString> Tags { get; }
