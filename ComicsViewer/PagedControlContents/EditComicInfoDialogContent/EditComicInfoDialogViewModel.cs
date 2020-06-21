@@ -51,7 +51,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
             // we don't care about what happens after this, the program works even if you don't await this,
             // but it's probably best practice to do so anyway
-            this.Item.DoNotifyThumbnailChanged();
             await this.MainViewModel.NotifyComicsChangedAsync(new[] { this.Comic });
         }
     }

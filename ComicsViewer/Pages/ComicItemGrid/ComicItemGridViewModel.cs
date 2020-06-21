@@ -93,7 +93,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         internal void RefreshComicItems() {
-            var comicItems = CreateComicItems(this.comics, this.MainViewModel.Filter, this.navigationTag);
+            var comicItems = this.CreateComicItems(this.comics, this.MainViewModel.Filter, this.navigationTag);
 
             if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
                 // GetValueOrDefault is used here since items may have been added. to this.comics and we want the application to keep working
@@ -105,18 +105,18 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Filtering and grouping
 
-        private static IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {
+        private IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {
             return navigationTag switch {
-                "default" => FilterAndGroupComicItems(comics, filter, null),
-                "comics" => FilterAndGroupComicItems(comics, filter, null),
-                "authors" => FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayAuthor }),
-                "categories" => FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayCategory }),
-                "tags" => FilterAndGroupComicItems(comics, filter, comic => comic.Tags),
+                "default" => this.FilterAndGroupComicItems(comics, filter, null),
+                "comics" => this.FilterAndGroupComicItems(comics, filter, null),
+                "authors" => this.FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayAuthor }),
+                "categories" => this.FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayCategory }),
+                "tags" => this.FilterAndGroupComicItems(comics, filter, comic => comic.Tags),
                 _ => throw new ApplicationLogicException($"Invalid navigation tag '{navigationTag}' when creating comic items."),
             };
         }
 
-        private static IEnumerable<ComicItem> FilterAndGroupComicItems(IEnumerable<Comic> comics, Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
+        private IEnumerable<ComicItem> FilterAndGroupComicItems(IEnumerable<Comic> comics, Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
             if (filter != null) {
                 comics = comics.Where(filter.ShouldBeVisible);
             }
@@ -124,13 +124,17 @@ namespace ComicsViewer.ViewModels.Pages {
             var comicItems = new List<ComicItem>();
 
             if (groupBy == null) {
-                return comics.Select(comic => ComicItem.WorkItem(comic));
+                return comics.Select(comic => {
+                    var item = ComicItem.WorkItem(comic, trackChangesFrom: this.MainViewModel);
+                    item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                    return item;
+                });
             } else {
-                return GroupByMultipleIgnoreCase(comics, groupBy);
+                return this.GroupByMultipleIgnoreCase(comics, groupBy);
             }
         }
 
-        private static IEnumerable<ComicItem> GroupByMultipleIgnoreCase(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
+        private IEnumerable<ComicItem> GroupByMultipleIgnoreCase(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
             /* when ignoring casing, we use the casing of the first item as the final returned result */
             var dict = new Dictionary<string, (string name, List<Comic> comics)>();
 
@@ -146,7 +150,26 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             foreach (var pair in dict) {
-                yield return ComicItem.NavigationItem(pair.Value.name, pair.Value.comics);
+                var item = ComicItem.NavigationItem(pair.Value.name, pair.Value.comics, trackChangesFrom: this.MainViewModel);
+                item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                yield return item;
+            }
+        }
+
+        private void ComicItem_RequestingRefresh(ComicItem sender, ComicItem.RequestingRefreshType type) {
+            if (this.ComicItems.Contains(sender)) {
+                switch (type) {
+                    case ComicItem.RequestingRefreshType.Reload:
+                        var index = this.ComicItems.IndexOf(sender);
+                        this.ComicItems.RemoveAt(index);
+                        this.ComicItems.Insert(index, sender);
+                        break;
+                    case ComicItem.RequestingRefreshType.Remove:
+                        this.ComicItems.Remove(sender);
+                        break;
+                    default:
+                        throw new ApplicationLogicException("Unhandled switch case");
+                }
             }
         }
 
@@ -204,7 +227,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 if (success) {
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                         Windows.UI.Core.CoreDispatcherPriority.Normal,
-                        () => item.DoNotifyThumbnailChanged());
+                        async () => await this.MainViewModel.NotifyComicsChangedAsync(new[] { item.TitleComic }, thumbnailChanged: true));
                 }
 
                 if (cc.IsCancellationRequested) {
@@ -239,8 +262,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
             if (success) {
-                await this.MainViewModel.NotifyComicsChangedAsync(new[] { comicItem.TitleComic });
-                comicItem.DoNotifyThumbnailChanged();
+                await this.MainViewModel.NotifyComicsChangedAsync(new[] { comicItem.TitleComic }, thumbnailChanged: true);
             } else {
                 comicItem.TitleComic.Metadata.ThumbnailSource = cached;
             }
@@ -314,7 +336,11 @@ namespace ComicsViewer.ViewModels.Pages {
                         this.comics.Add(comic);
                     }
 
-                    var newComicItems = e.ModifiedComics.Select(ComicItem.WorkItem).ToList();
+                    var newComicItems = e.ModifiedComics.Select(comic => {
+                        var item = ComicItem.WorkItem(comic, this.MainViewModel);
+                        item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                        return item;
+                    }).ToList();
 
                     /* If we are on the comics tab, we just need to add the comics to the view.
                      * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
@@ -336,60 +362,12 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     break;
+
                 case ComicModificationType.ItemsChanged:
-                    foreach (var comic in e.ModifiedComics) {
-                        foreach (var item in this.ComicItems) {
-                            if (item.TitleComic.UniqueIdentifier == comic.UniqueIdentifier) {
-                                item.DoNotifyUnderlyingComicsChanged();
-                            }
-                        }
-                    }
-                    break;
-
                 case ComicModificationType.ItemsRemoved:
-                    // We remove these items directly from this.ComicItems without having to call RefreshComicItems
-                    var removedUniqueIds = new HashSet<string>();
-
-                    foreach (var item in e.ModifiedComics) {
-                        this.comics.Remove(item);
-                        removedUniqueIds.Add(item.UniqueIdentifier);
-                    }
-
-                    // comicitems
-                    var removedComicItemIndices = new Stack<int>();
-                    for (var i_comicItem = 0; i_comicItem < this.ComicItems.Count; i_comicItem++) {
-                        var comicItem = this.ComicItems[i_comicItem];
-                        var removedComicIndices = new Stack<int>();
-
-                        for (var i_comic = 0; i_comic < comicItem.Comics.Count; i_comic++) {
-                            if (removedUniqueIds.Contains(comicItem.Comics[i_comic].UniqueIdentifier)) {
-                                removedComicIndices.Push(i_comic);
-                            }
-                        }
-
-                        if (removedComicIndices.Count > 0) {
-                            while (removedComicIndices.Count > 0) {
-                                comicItem.Comics.RemoveAt(removedComicIndices.Pop());
-                            }
-
-                            if (comicItem.Comics.Count == 0) {
-                                removedComicItemIndices.Push(i_comicItem);
-                            } else {
-                                comicItem.DoNotifyUnderlyingComicsChanged();
-                            }
-                        }
-
-                    }
-
-                    while (removedComicItemIndices.Count > 0) {
-                        this.ComicItems.RemoveAt(removedComicItemIndices.Pop());
-                    }
-
-                    if (this.ComicItems.Count == 0 && this.IsVisibleViewModel) {
-                        this.MainViewModel.NavigateOut();
-                    }
-
+                    // These two cases are handled in ComicItem.cs (see also ComicItem_RequestingRefresh)
                     break;
+
                 default:
                     throw new ApplicationLogicException("Unhandled switch case");
             }

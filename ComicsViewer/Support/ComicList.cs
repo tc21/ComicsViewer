@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 #nullable enable
 
 namespace ComicsViewer.Support {
     /* Shadows over the (former) list at MainViewModel.comics to provide set-like behavior */
-    class ComicList : ICollection<Comic> {
+    public class ComicList : ICollection<Comic> {
         private readonly Dictionary<string, Comic> values = new Dictionary<string, Comic>();
 
         public ComicList() { }
@@ -44,5 +45,7 @@ namespace ComicsViewer.Support {
         public bool Remove(Comic comic, out Comic retrieved) => this.values.Remove(comic.UniqueIdentifier, out retrieved);
         IEnumerator IEnumerable.GetEnumerator() => this.values.Values.GetEnumerator();
         void ICollection<Comic>.Add(Comic comic) => this.Add(comic);
+
+        public Comic GetStoredComic(Comic comic) => this.values[comic.UniqueIdentifier];
     }
 }

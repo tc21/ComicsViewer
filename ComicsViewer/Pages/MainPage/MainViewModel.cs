@@ -391,7 +391,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             }
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, added));
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, added, true));
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(added);
@@ -406,18 +406,18 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             }
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, removed));
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, removed, false));
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsAsync(removed);
         }
 
         /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
-        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics) {
+        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics, bool thumbnailChanged = false) {
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsChanged, comics));
+            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsChanged, comics, thumbnailChanged));
         }
 
         public event ComicsModifiedEventHandler ComicsModified = delegate { };
@@ -450,11 +450,14 @@ namespace ComicsViewer.ViewModels.Pages {
 
     public class ComicsModifiedEventArgs {
         public ComicModificationType ModificationType { get; }
-        public IEnumerable<Comic> ModifiedComics { get; }
+        public ComicList ModifiedComics { get; }
+        // Currently, this is mainly used to signal a thumbnail change
+        public bool ShouldReloadComics { get; }
 
-        public ComicsModifiedEventArgs(ComicModificationType modificationType, IEnumerable<Comic> modifiedComics) {
+        public ComicsModifiedEventArgs(ComicModificationType modificationType, IEnumerable<Comic> modifiedComics, bool shouldReloadComics) {
             this.ModificationType = modificationType;
-            this.ModifiedComics = modifiedComics;
+            this.ModifiedComics = new ComicList(modifiedComics);
+            this.ShouldReloadComics = shouldReloadComics;
         }
     }
 

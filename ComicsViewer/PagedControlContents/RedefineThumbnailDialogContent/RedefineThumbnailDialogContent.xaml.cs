@@ -63,17 +63,11 @@ namespace ComicsViewer.Pages {
             }
 
             await this.ParentViewModel!.TryRedefineThumbnailAsync(this.Item!, item.File);
-            /* Why a ComicItem's thumbnail doesn't update consistently no matter what you do remains one of humanity's
-             * greatest mysteries. */
-            this.Item!.DoNotifyThumbnailChanged();
-
             this.PagedControlAccessor!.CloseContainer();
         }
 
         private async void CustomFileButton_Click(object sender, RoutedEventArgs e) {
             await this.ParentViewModel!.TryRedefineThumbnailFromFilePickerAsync(this.Item!);
-            this.Item!.DoNotifyThumbnailChanged();
-
             this.PagedControlAccessor!.CloseContainer();
         }
 

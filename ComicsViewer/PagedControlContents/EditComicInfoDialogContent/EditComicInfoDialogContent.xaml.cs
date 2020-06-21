@@ -79,8 +79,6 @@ namespace ComicsViewer.Pages {
             }
 
             await this.ViewModel!.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel!.Item, (StorageFile)items[0]);
-            /* Sometimes it just doesn't update properly, and I don't know why */
-            this.ViewModel!.Item.DoNotifyThumbnailChanged();
         }
 
         private void ThumbnailBorder_DragEnter(object sender, DragEventArgs e) {
