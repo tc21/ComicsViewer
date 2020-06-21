@@ -29,13 +29,9 @@ namespace ComicsViewer.ViewModels.Pages {
         /* Category editing is currently disabled */
         public string ComicCategory => this.Comic.DisplayCategory;
 
-        public async Task SaveComicInfoAsync(string title, string author, string tags, bool loved, bool disliked) {
+        public async Task SaveComicInfoAsync(string title, string tags, bool loved, bool disliked) {
             if (title != this.ComicTitle) {
                 this.Comic.Metadata.DisplayTitle = title.Trim();
-            }
-
-            if (author != this.ComicAuthor) {
-                this.Comic.Metadata.DisplayAuthor = author.Trim();
             }
 
             if (tags != this.ComicTags) {

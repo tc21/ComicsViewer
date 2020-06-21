@@ -49,7 +49,6 @@ namespace ComicsViewer.Pages {
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
             await this.ViewModel!.SaveComicInfoAsync(
                 title: this.ComicTitleTextBox.Text,
-                author: this.ComicAuthorTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
                 loved: this.ComicLovedCheckBox.IsChecked ?? throw new ApplicationLogicException(),
                 disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ApplicationLogicException()

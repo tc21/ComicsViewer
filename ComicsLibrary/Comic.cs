@@ -27,8 +27,8 @@ namespace ComicsLibrary {
         private const string OldestDate = "1970-01-01 12:00:00";
 
         public string DisplayTitle => this.Metadata.DisplayTitle ?? this.Title;
-        public string DisplayAuthor => this.Metadata.DisplayAuthor ?? this.Author;
-        public string DisplayCategory => this.Metadata.DisplayCategory ?? this.Category;
+        public string DisplayAuthor => this.Author;
+        public string DisplayCategory => this.Category;
         public ISet<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;
@@ -57,8 +57,6 @@ namespace ComicsLibrary {
 
     public class ComicMetadata {
         public string? DisplayTitle { get; set; }
-        public string? DisplayAuthor { get; set; }
-        public string? DisplayCategory { get; set; }
         public HashSet<string> Tags { get; set; } = new HashSet<string>();
         public bool Loved { get; set; } = false;
         public bool Disliked { get; set; } = false;

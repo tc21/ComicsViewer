@@ -14,7 +14,6 @@ namespace ComicsLibrary.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
-        private const string table_progress = "progress";
 
         private const string key_path = "folder";
         private const string key_unique_id = "unique_name";
@@ -22,8 +21,6 @@ namespace ComicsLibrary.SQL {
         private const string key_author = "author";
         private const string key_category = "category";
         private const string key_display_title = "display_title";
-        private const string key_display_author = "display_author";
-        private const string key_display_category = "display_category";
         private const string key_thumbnail_source = "thumbnail_source";
         private const string key_loved = "loved";
         private const string key_disliked = "disliked";
@@ -33,9 +30,6 @@ namespace ComicsLibrary.SQL {
         private const string key_tag_name = "name";
         private const string key_xref_comic_id = "comicid";
         private const string key_xref_tag_id = "tagid";
-
-        private const string key_progress_comicid = "comicid";
-        private const string key_progress = "progress";
 
         private readonly SqliteDatabaseConnection connection;
 
@@ -80,8 +74,6 @@ namespace ComicsLibrary.SQL {
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.Metadata.ThumbnailSource),
                 (key_display_title, comic.Metadata.DisplayTitle),
-                (key_display_author, comic.Metadata.DisplayAuthor),
-                (key_display_category, comic.Metadata.DisplayCategory)
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
@@ -114,8 +106,6 @@ namespace ComicsLibrary.SQL {
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.Metadata.ThumbnailSource),
                 (key_display_title, comic.Metadata.DisplayTitle),
-                (key_display_author, comic.Metadata.DisplayAuthor),
-                (key_display_category, comic.Metadata.DisplayCategory),
                 (key_active, true),
             }) {
                 if (value != null) {
@@ -272,8 +262,6 @@ namespace ComicsLibrary.SQL {
 
             var metadata = new ComicMetadata {
                 DisplayTitle = reader.GetStringOrNull(key_display_title),
-                DisplayAuthor = reader.GetStringOrNull(key_display_author),
-                DisplayCategory = reader.GetStringOrNull(key_display_category),
                 ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                 Loved = reader.GetBoolean(key_loved),
                 Disliked = reader.GetBoolean(key_disliked),
@@ -305,8 +293,8 @@ namespace ComicsLibrary.SQL {
         }
 
         private static readonly List<string> getComicQueryKeys = new List<string> {
-            "rowid", key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-            key_display_category, key_thumbnail_source, key_loved, key_disliked, key_date_added
+            "rowid", key_path, key_title, key_author, key_category, key_display_title,
+            key_thumbnail_source, key_loved, key_disliked, key_date_added
         };
 
         private async Task<DictionaryReader<SqliteDataReader>> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
