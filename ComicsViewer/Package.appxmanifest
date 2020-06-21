@@ -16,7 +16,7 @@
     <mp:PhoneIdentity PhoneProductId="7417df09-6e90-4c8e-94f9-82950aaef08b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
     <Properties>
-        <DisplayName>Comics-Viewer</DisplayName>
+        <DisplayName>ComicsViewer</DisplayName>
         <PublisherDisplayName>lanxia</PublisherDisplayName>
         <Logo>Assets\StoreLogo.png</Logo>
     </Properties>

@@ -115,6 +115,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <EnableGatekeeperAnalysis>true</EnableGatekeeperAnalysis>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
@@ -324,8 +325,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\iCloudDrive\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj">
-      <Project>{a129fdf5-c940-4048-b8ce-8ac97901ffc1}</Project>
+    <ProjectReference Include="..\..\..\..\..\..\drive\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj">
+      <Project>{9e3c594c-77b1-4645-b5fc-a3f4b4ef1239}</Project>
       <Name>TCSupport</Name>
     </ProjectReference>
     <ProjectReference Include="..\ComicsLibrary\ComicsLibrary.csproj">
