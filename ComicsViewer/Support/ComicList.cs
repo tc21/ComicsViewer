@@ -19,14 +19,15 @@ namespace ComicsViewer.Support {
             this.values = comics.ToDictionary(comic => comic.UniqueIdentifier);
         }
 
-        /* adding an existing item does nothing. In the future we may want to update this. Reloading existing items from
-         * disk may be meaningful if the location of the item changed without the author- and title-level folder names. */
-        public bool Add(Comic comic) {
-            if (this.Contains(comic)) {
+        /* adding an item overwrites existing items. Call Add(replaceExisting: false) to not overwrite. */
+        public bool Add(Comic comic) => this.Add(comic, replaceExisting: true);
+
+        public bool Add(Comic comic, bool replaceExisting = true) {
+            if (!replaceExisting && this.Contains(comic)) {
                 return false;
             } 
 
-            this.values.Add(comic.UniqueIdentifier, comic);
+            this.values[comic.UniqueIdentifier] = comic;
             return true;
         }
 

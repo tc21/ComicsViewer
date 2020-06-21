@@ -323,9 +323,10 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly int debug_this_count = ++debug_count;
 
         private void MainViewModel_ComicsModified(MainViewModel sender, ComicsModifiedEventArgs e) {
+            Debug.WriteLine($"VM{debug_this_count} ({(this.IsVisibleViewModel ? "active" : "inactive")}) ComicsModified called for view model {this.navigationTag}");
+
             switch (e.ModificationType) {
                 case ComicModificationType.ItemsAdded:
-                    Debug.WriteLine($"VM{debug_this_count} ({(this.IsVisibleViewModel ? "active" : "inactive")}) ComicsModified called for view model {this.navigationTag}");
                     if (this.navigationTag == MainViewModel.SecondLevelNavigationTag && this.IsVisibleViewModel) {
                         // We can't handle this. The parent will have handled it, though.
                         this.MainViewModel.NavigateOut();
