@@ -27,9 +27,6 @@ namespace ComicsViewer
 
         /*
          * Bugs:
-         *   1. Calling ComicItem.DoNotifyThumbnailChanged does not always make controls reload its thumbnail.
-         *   2. VisibleComicsGrid_Tapped should not open a ComicItem popup pane when the user clicks with the middle,
-         *      forward or backwards mouse buttons.
          *
          * TODOS:
          *   4. Supporting opening stuff properly, rathor than telling Windows to open the first file

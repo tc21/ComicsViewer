@@ -45,7 +45,7 @@ namespace ComicsViewer.Support.Interop {
                 throw new Exception("ThrowLastError called when there is no error");
             }
 
-            var fm_result = FormatMessage(
+            var output_length = FormatMessage(
                 FormatMessageFlags.AllocateBuffer | FormatMessageFlags.FromSystem | FormatMessageFlags.IgnoreInserts,
                 IntPtr.Zero,
                 error,
@@ -54,6 +54,11 @@ namespace ComicsViewer.Support.Interop {
                 0,
                 IntPtr.Zero
             );
+
+            if (output_length == 0) {
+                throw new ApplicationLogicException(
+                    $"When calling ThrowLastError: FormatMessage indicated an error with error code {GetLastError()}");
+            }
 
             throw new Exception($"{Path.GetFileName(callerFilePath)} Line {callerLineNumber}: " +
                                 $"{callerMethodName} indicated an error with error code {error}: {message}");
@@ -179,8 +184,10 @@ namespace ComicsViewer.Support.Interop {
             return (parent, child);
         }
 
-        /* General comments: In this class I used the name "File" to refer to files or folders. Unless specifically calling
-         * for a directory, all of the following methods treat files and directories without difference. */
+        /* General comments: The main purpose of this class is to do something about the StorageFile API's abysmal file 
+         * copy performance. The StorageFile API's file listing performance is actually pretty good, so there's no need
+         * to go about replacing all the nice and tidy GetFilesAsync with these methods, which actually would block the
+         * UI thread unless wrapped in Task.Run() */
 
         public static void MoveDirectory(string path, string newName, bool createIntermediateDirectories = true) {
             if (!Path.IsPathRooted(path) || !Path.IsPathRooted(newName)) {
