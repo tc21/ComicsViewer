@@ -85,69 +85,42 @@
             <MenuFlyout x:Name="ComicItemGridContextFlyout" 
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
-                <MenuFlyoutItem Tag="open"
-                                Command="{x:Bind ContextMenuCommands.OpenItemsCommand}" 
-                                helpers:Bindings.VisibilityToEnabled="True" />
-                <MenuFlyoutItem Text="Edit info"
-                                Command="{x:Bind ContextMenuCommands.EditInfoCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                    <MenuFlyoutItem.Icon>
-                        <SymbolIcon Symbol="Edit"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem Tag="love" 
-                                Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xEB51;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem Tag="dislike" 
-                                Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xEA92;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
+                <uc:ComicsMenuFlyoutItem Tag="open"
+                                         Command="{x:Bind ContextMenuCommands.OpenItemsCommand}"/>
+                <uc:ComicsMenuFlyoutItem Text="Edit info"
+                                         SymbolIcon="Edit"
+                                         Command="{x:Bind ContextMenuCommands.EditInfoCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="love" 
+                                         FontIcon="&#xEB51;"
+                                         Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="dislike" 
+                                         FontIcon="&#xEA92;"
+                                         Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"/>
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Search selected" 
-                                Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}" 
-                                helpers:Bindings.VisibilityToEnabled="True">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xE721;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem Tag="showInExplorer"
-                                Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xEC50;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
+                <uc:ComicsMenuFlyoutItem Text="Search selected" 
+                                         FontIcon="&#xE721;"
+                                         Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="showInExplorer"
+                                         FontIcon="&#xEC50;"
+                                         Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"/>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutSubItem Text="Thumbnails">
                     <MenuFlyoutSubItem.Icon>
                         <FontIcon Glyph="&#xE91B;"/>
                     </MenuFlyoutSubItem.Icon>
-                    
-                    <MenuFlyoutItem Tag="generateThumbnail" 
-                                Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xE91B;"/>
-                        </MenuFlyoutItem.Icon>
-                    </MenuFlyoutItem>
-                    <MenuFlyoutItem Text="Redefine thumbnail" 
-                                Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True">
-                        <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xE7C5;"/>
-                        </MenuFlyoutItem.Icon>
-                    </MenuFlyoutItem>
+
+                    <uc:ComicsMenuFlyoutItem Tag="generateThumbnail" 
+                                             FontIcon="&#xE91B;"
+                                             Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"/>
+                    <uc:ComicsMenuFlyoutItem Text="Redefine thumbnail" 
+                                             FontIcon="&#xE7C5;"
+                                             Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"/>
                 </MenuFlyoutSubItem>
-                <MenuFlyoutItem Tag="remove" 
-                                Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"
-                                helpers:Bindings.VisibilityToEnabled="True"/>
+                <uc:ComicsMenuFlyoutItem Tag="move"
+                                         SymbolIcon="MoveToFolder"
+                                         Command="{x:Bind ContextMenuCommands.MoveFilesCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="remove" 
+                                         Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"/>
             </MenuFlyout>
 
             <uc:PagedFlyout x:Name="ComicInfoFlyout"
@@ -218,13 +191,5 @@
                        PrimaryButtonText="Remove"
                        CloseButtonText="Cancel"
                        DefaultButton="Close"/>
-
-        <uc:PagedContentDialog 
-            x:Name="EditItemInfoDialog"
-            Title="Edit info"/>
-
-        <uc:PagedContentDialog
-            x:Name="RedefineThumbnailDialog"
-            Title="Redefine thumbnail"/>
     </Grid>
 </Page>

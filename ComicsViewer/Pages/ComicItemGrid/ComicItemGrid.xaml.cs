@@ -1,4 +1,6 @@
-﻿using ComicsViewer.ClassExtensions;
+﻿using ComicsLibrary;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
@@ -122,9 +124,20 @@ namespace ComicsViewer.Pages {
         }
 
         public async Task ShowEditComicInfoDialog(ComicItem item) {
-            _ = await this.EditItemInfoDialog.NavigateAndShowAsync(
+            // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
+            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
                 typeof(EditComicInfoDialogContent), 
                 new EditComicInfoDialogNavigationArguments(this.ViewModel!, item)
+            );
+        }
+
+        public async Task ShowMoveFilesDialog(IEnumerable<ComicItem> items) {
+            /* Currently, the application is not able to handle moving files while changing its author or title. So the
+             * only thing we can actually change is category. We are thus limiting the ability to move files to moving
+             * between the already-defined categories. */
+            _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
+                typeof(MoveFilesDialogContent),
+                new MoveFilesDialogNavigationArguments(this.ViewModel!, items.SelectMany(item => item.Comics).ToList())
             );
         }
 
@@ -229,7 +242,7 @@ namespace ComicsViewer.Pages {
             var folder = await StorageFolder.GetFolderFromPathAsync(item.TitleComic.Path);
             var images = await Thumbnail.GetPossibleThumbnailFiles(folder);
 
-            _ = await this.RedefineThumbnailDialog.NavigateAndShowAsync(
+            _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
                 typeof(RedefineThumbnailDialogContent),
                 new RedefineThumbnailDialogNavigationArguments(images, item, this.ViewModel!)
             );
@@ -258,6 +271,7 @@ namespace ComicsViewer.Pages {
             public XamlUICommand RedefineThumbnailCommand { get; }
             public XamlUICommand LoveComicsCommand { get; }
             public XamlUICommand DislikeComicsCommand { get; }
+            public XamlUICommand MoveFilesCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -338,6 +352,11 @@ namespace ComicsViewer.Pages {
                 this.DislikeComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
+                // Opens a flyout to move items between categories
+                this.MoveFilesCommand = new XamlUICommand();
+                this.MoveFilesCommand.ExecuteRequested += async (sender, args)
+                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
+                    => await parent.ShowMoveFilesDialog(this.SelectedItems);
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -379,19 +398,22 @@ namespace ComicsViewer.Pages {
         private string GetDynamicFlyoutText(string tag) {
             var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
             var count = this.VisibleComicsGrid.SelectedItems.Count;
+            IEnumerable<ComicItem> ComicItems() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
+            int ComicsCount() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count();
 
             return tag switch {
                 "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") + (count > 1 ? $" {count} items" : ""),
                 "search" => "Search selected",
+                "move" => ComicsCount() == 1 ? "Move comic" : $"Move {ComicsCount().PluralString("comic")}",
                 // why exactly can't we use blocks in a switch expression?
                 "remove" => (type == ComicItemType.Work && count == 1) ? "Remove" : 
-                            $"Remove {this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count().PluralString("comic")}",
+                            $"Remove {ComicsCount().PluralString("comic")}",
                 "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
                 "generateThumbnail" => count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {count} items",
-                "love" => (this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().All(item => item.IsLoved) ? "No longer love" : "Love") +
+                "love" => (ComicItems().All(item => item.IsLoved) ? "No longer love" : "Love") +
                           (count == 1 ? "" : " " + count.PluralString("comic")),
-                "dislike" => (this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
-                          (count == 1 ? "" : " " + count.PluralString("comic")),
+                "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
+                             (count == 1 ? "" : " " + count.PluralString("comic")),
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

@@ -1,5 +1,6 @@
-﻿using ComicsViewer.Features;
-using ComicsViewer.ClassExtensions;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
+using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

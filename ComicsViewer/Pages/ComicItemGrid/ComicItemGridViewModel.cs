@@ -366,7 +366,12 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 case ComicModificationType.ItemsChanged:
                 case ComicModificationType.ItemsRemoved:
-                    // These two cases are handled in ComicItem.cs (see also ComicItem_RequestingRefresh)
+                    // Mostly handled in ComicItem.cs (see also ComicItem_RequestingRefresh), except:
+                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                        // We don't really want to do this, it's bad user experience, but we can't do anything about
+                        // it unless we remake the system and make it better.
+                        this.MainViewModel.NavigateOut();
+                    }
                     break;
 
                 default:

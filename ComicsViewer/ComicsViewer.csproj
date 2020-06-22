@@ -124,7 +124,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
     <Compile Include="Features\Filter.cs" />
+    <Compile Include="Support\FileApiInterop.cs" />
+    <Compile Include="Support\NamedPath.cs" />
+    <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />
     <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml.cs">
       <DependentUpon>ComicInfoFlyoutContent.xaml</DependentUpon>
@@ -149,6 +153,9 @@
     </Compile>
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml.cs">
       <DependentUpon>FilterFlyoutContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogContent.xaml.cs">
+      <DependentUpon>MoveFilesDialogContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="XamlHelpers\Bindings.cs" />
     <Compile Include="ViewModels\CheckBoxItem.cs" />
@@ -291,6 +298,10 @@
     <Page Include="Pages\MainPage\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogContent.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\SettingsPage\SettingsPage.xaml">
       <SubType>Designer</SubType>
