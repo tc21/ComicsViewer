@@ -199,9 +199,9 @@ namespace ComicsViewer.ViewModels.Pages {
                 var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.TitleComic.Path, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccess();
+                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
             } catch (FileNotFoundException) {
-                await ExpectedExceptions.FileNotFound();
+                await ExpectedExceptions.FileNotFoundAsync();
             }
         }
 
@@ -215,14 +215,14 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var copy = comicItems.ToList();
-            this.MainViewModel.StartUniqueTask(
+            this.MainViewModel.StartUniqueTaskAsync(
                 "thumbnail", $"Generating thumbnails for {copy.Count} items...",
-                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThread(copy, replace, cc, p),
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThreadAsync(copy, replace, cc, p),
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
 
-        private async Task GenerateAndApplyThumbnailsInBackgroundThread(
+        private async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(
                 IEnumerable<ComicItem> comicItems, bool replace, CancellationToken cc, IProgress<int> progress) {
             var i = 0;
             foreach (var item in comicItems) {
@@ -382,7 +382,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task ToggleDislikedStatusForComics(IEnumerable<ComicItem> selectedItems) {
+        public async Task ToggleDislikedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
             var comics = selectedItems.Select(item => item.TitleComic).ToList();
             var newStatus = !comics.All(item => item.Disliked);
 
@@ -393,7 +393,7 @@ namespace ComicsViewer.ViewModels.Pages {
             await this.MainViewModel.NotifyComicsChangedAsync(comics);
         }
 
-        public async Task ToggleLovedStatusForComics(IEnumerable<ComicItem> selectedItems) {
+        public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
             var comics = selectedItems.Select(item => item.TitleComic).ToList();
             var newStatus = !comics.All(item => item.Loved);
 

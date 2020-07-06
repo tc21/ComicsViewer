@@ -36,7 +36,7 @@ namespace ComicsViewer.Features {
                 if (file.Name.EndsWith(ProfileFileNameExtension)) {
                     try {
                         using var stream = await file.OpenStreamForReadAsync();
-                        _ = UserProfile.Deserialize(stream);
+                        _ = UserProfile.DeserializeAsync(stream);
                         LoadedProfiles.Add(file.Name.TruncateEnd(ProfileFileNameExtension.Length));
                     } catch (JsonException) {
                         // do nothing
@@ -53,7 +53,7 @@ namespace ComicsViewer.Features {
             var profileFolder = await Defaults.GetProfileFolderAsync();
             var file = await profileFolder.GetFileAsync(name + ProfileFileNameExtension);
             using var stream = await file.OpenStreamForReadAsync();
-            return await UserProfile.Deserialize(stream);
+            return await UserProfile.DeserializeAsync(stream);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace ComicsViewer.Features {
             using var stream = await file.OpenStreamForWriteAsync();
             // calling SetLength(0) clears the file content
             stream.SetLength(0);
-            await UserProfile.Serialize(profile, stream);
+            await UserProfile.SerializeAsync(profile, stream);
         }
     }
 }

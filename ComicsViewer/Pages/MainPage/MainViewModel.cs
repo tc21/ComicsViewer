@@ -35,7 +35,7 @@ namespace ComicsViewer.ViewModels.Pages {
         internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
         public bool IsLoadingProfile { get; private set; } = false;
 
-        public async Task SetDefaultProfile() {
+        public async Task SetDefaultProfileAsync() {
             var suggestedProfile = Defaults.SettingsAccessor.LastProfile;
 
             if (ProfileManager.LoadedProfiles.Count == 0) {
@@ -272,7 +272,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 if (task.IsFaulted) {
                     if (exceptionHandler == null) {
                         // By default, let's notify the user of IntendedBehaviorExceptions (instead of crashing)
-                        exceptionHandler = ExpectedExceptions.HandleIntendedBehaviorExceptions;
+                        exceptionHandler = ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync;
                     }
 
                     if (await exceptionHandler(task.StoredException!) == false) {
@@ -320,16 +320,16 @@ namespace ComicsViewer.ViewModels.Pages {
             return true;
         }
 
-        public Task StartUniqueTask(
+        public Task StartUniqueTaskAsync(
                 string tag, string name, ComicTask.ComicTaskDelegate asyncAction, 
                 Func<Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
-            return this.StartUniqueTask(tag, name, 
+            return this.StartUniqueTaskAsync(tag, name, 
                 asyncAction: async (cc, p) => { await asyncAction(cc, p); return 0; },
                 asyncCallback: asyncCallback == null ? null : (Func<int, Task>)(_ => asyncCallback()),
                 exceptionHandler: exceptionHandler);
         }
 
-        public async Task StartUniqueTask<T>(
+        public async Task StartUniqueTaskAsync<T>(
                 string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, 
                 Func<T, Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
             if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
@@ -341,7 +341,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RequestReloadAllComicsAsync() {
-            await this.StartUniqueTask("reload", "Reloading all comics...", 
+            await this.StartUniqueTaskAsync("reload", "Reloading all comics...", 
                 (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p),
                 async result => {
                     // TODO: we should probably figure out how to only update what we need
@@ -352,12 +352,12 @@ namespace ComicsViewer.ViewModels.Pages {
                     await this.RemoveComicsAsync(this.comics);
                     await this.AddComicsAsync(result);
                 }, 
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
-            await this.StartUniqueTask("reload", $"Reloading category '{category.Name}'...",
+            await this.StartUniqueTaskAsync("reload", $"Reloading category '{category.Name}'...",
                 (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
@@ -366,12 +366,12 @@ namespace ComicsViewer.ViewModels.Pages {
                     await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
                     await this.AddComicsAsync(result);
                 },
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
-            await this.StartUniqueTask("reload", $"Adding comics from {folders.Count()} folders...",
+            await this.StartUniqueTaskAsync("reload", $"Adding comics from {folders.Count()} folders...",
                 (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
@@ -381,15 +381,15 @@ namespace ComicsViewer.ViewModels.Pages {
                     await this.RemoveComicsAsync(result.Where(this.comics.Contains));
                     await this.AddComicsAsync(result);
                 },
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
 
         private async Task RequestValidateAndRemoveComicsAsync() {
-            await this.StartUniqueTask("validate", $"Validating {this.comics.Count} comics...",
+            await this.StartUniqueTaskAsync("validate", $"Validating {this.comics.Count} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p),
                 async result => await this.RemoveComicsAsync(result),
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
 

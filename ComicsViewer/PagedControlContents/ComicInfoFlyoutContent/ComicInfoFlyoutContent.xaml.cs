@@ -47,7 +47,7 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException();
             }
 
-            await this.ViewModel!.OpenItem(item);
+            await this.ViewModel!.OpenItemAsync(item);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) {

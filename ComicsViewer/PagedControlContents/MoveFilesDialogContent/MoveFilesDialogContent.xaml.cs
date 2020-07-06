@@ -60,7 +60,7 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException();
             }
 
-            this.MainViewModel!.StartUniqueTask(
+            this.MainViewModel!.StartUniqueTaskAsync(
                 "moveFiles",
                 $"Moving {this.Comics!.Count.PluralString("item")} to category '{category.Name}'...",
                 async (cc, p) => {
@@ -103,7 +103,7 @@ namespace ComicsViewer.Pages {
 
                         p.Report(++progress);
                     }
-                }, exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+                }, exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
 
             this.PagedControlAccessor?.CloseContainer();

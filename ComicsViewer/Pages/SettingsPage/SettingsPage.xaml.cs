@@ -86,7 +86,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void SaveProfileCategoriesButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.SaveProfileCategories();
+            await this.ViewModel!.SaveProfileCategoriesAsync();
             this.SaveProfleCategoriesButton.Visibility = Visibility.Collapsed;
         }
 

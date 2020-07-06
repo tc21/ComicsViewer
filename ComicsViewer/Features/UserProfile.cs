@@ -42,11 +42,11 @@ namespace ComicsViewer.Features {
             this.StartupApplicationType = copy.StartupApplicationType;
         }
 
-        public static ValueTask<UserProfile> Deserialize(Stream input) {
+        public static ValueTask<UserProfile> DeserializeAsync(Stream input) {
             return JsonSerializer.DeserializeAsync<UserProfile>(input);
         }
 
-        public static Task Serialize(UserProfile profile, Stream output) {
+        public static Task SerializeAsync(UserProfile profile, Stream output) {
             return JsonSerializer.SerializeAsync(output, profile);
         }
 

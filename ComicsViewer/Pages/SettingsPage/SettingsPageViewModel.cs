@@ -75,7 +75,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.RootPaths.Add(new NamedPath());
         }
 
-        public async Task SaveProfileCategories() {
+        public async Task SaveProfileCategoriesAsync() {
             // Only keep rooted paths
             this.profile.RootPaths.Clear();
             foreach (var item in this.RootPaths) {

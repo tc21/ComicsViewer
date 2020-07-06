@@ -62,7 +62,7 @@ namespace ComicsViewer {
             this.ViewModel.NavigationRequested += this.ViewModel_NavigationRequested;
 
             // Initialize view models and fire events for the first time
-            await this.ViewModel.SetDefaultProfile();
+            await this.ViewModel.SetDefaultProfileAsync();
 
             // We're probably not supposed to directly access the filter but whatever
             this.ViewModel.Filter.FilterChanged += this.Filter_FilterChanged;

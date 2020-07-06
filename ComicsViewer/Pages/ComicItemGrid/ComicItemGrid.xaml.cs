@@ -97,7 +97,7 @@ namespace ComicsViewer.Pages {
             this.ComicInfoFlyout.NavigateAndShowAt(
                 typeof(ComicInfoFlyoutContent), 
                 new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem, 
-                        async () => await this.ShowEditComicInfoDialog(comicItem)),
+                        async () => await this.ShowEditComicInfoDialogAsync(comicItem)),
                 tappedElement);
         }
 
@@ -123,7 +123,7 @@ namespace ComicsViewer.Pages {
             await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
         }
 
-        public async Task ShowEditComicInfoDialog(ComicItem item) {
+        public async Task ShowEditComicInfoDialogAsync(ComicItem item) {
             // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
             _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
                 typeof(EditComicInfoDialogContent), 
@@ -131,7 +131,7 @@ namespace ComicsViewer.Pages {
             );
         }
 
-        public async Task ShowMoveFilesDialog(IEnumerable<ComicItem> items) {
+        public async Task ShowMoveFilesDialogAsync(IEnumerable<ComicItem> items) {
             /* Currently, the application is not able to handle moving files while changing its author or title. So the
              * only thing we can actually change is category. We are thus limiting the ability to move files to moving
              * between the already-defined categories. */
@@ -238,7 +238,7 @@ namespace ComicsViewer.Pages {
 
         #region Redefining thumbnails
 
-        private async Task RedefineThumbnail(ComicItem item) {
+        private async Task RedefineThumbnailAsync(ComicItem item) {
             var folder = await StorageFolder.GetFolderFromPathAsync(item.TitleComic.Path);
             var images = await Thumbnail.GetPossibleThumbnailFilesAsync(folder);
 
@@ -324,7 +324,7 @@ namespace ComicsViewer.Pages {
                 this.EditInfoCommand = new XamlUICommand();
                 this.EditInfoCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ShowEditComicInfoDialog(this.SelectedItems.First());
+                    => await parent.ShowEditComicInfoDialogAsync(this.SelectedItems.First());
                 this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
@@ -332,7 +332,7 @@ namespace ComicsViewer.Pages {
                 this.RedefineThumbnailCommand = new XamlUICommand();
                 this.RedefineThumbnailCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.RedefineThumbnail(this.SelectedItems.First());
+                    => await parent.RedefineThumbnailAsync(this.SelectedItems.First());
                 this.RedefineThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
 
@@ -340,7 +340,7 @@ namespace ComicsViewer.Pages {
                 this.LoveComicsCommand = new XamlUICommand();
                 this.LoveComicsCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ViewModel!.ToggleLovedStatusForComics(this.SelectedItems);
+                    => await parent.ViewModel!.ToggleLovedStatusForComicsAsync(this.SelectedItems);
                 this.LoveComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
@@ -348,7 +348,7 @@ namespace ComicsViewer.Pages {
                 this.DislikeComicsCommand = new XamlUICommand();
                 this.DislikeComicsCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ViewModel!.ToggleDislikedStatusForComics(this.SelectedItems);
+                    => await parent.ViewModel!.ToggleDislikedStatusForComicsAsync(this.SelectedItems);
                 this.DislikeComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work);
 
@@ -356,7 +356,7 @@ namespace ComicsViewer.Pages {
                 this.MoveFilesCommand = new XamlUICommand();
                 this.MoveFilesCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ShowMoveFilesDialog(this.SelectedItems);
+                    => await parent.ShowMoveFilesDialogAsync(this.SelectedItems);
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {

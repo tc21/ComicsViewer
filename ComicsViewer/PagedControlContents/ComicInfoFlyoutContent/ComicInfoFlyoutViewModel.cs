@@ -34,9 +34,9 @@ namespace ComicsViewer.ViewModels.Pages {
                     this.ComicSubitems.Add(item);
                 }
             } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccess();
+                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
             } catch (FileNotFoundException) {
-                await ExpectedExceptions.FileNotFound();
+                await ExpectedExceptions.FileNotFoundAsync();
             }
 
             this.IsLoadingSubItems = false;
@@ -48,7 +48,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public readonly ObservableCollection<ComicSubitem> ComicSubitems = new ObservableCollection<ComicSubitem>();
         public bool IsLoadingSubItems { get; private set; } = true;
 
-        public Task OpenItem(ComicSubitem item) {
+        public Task OpenItemAsync(ComicSubitem item) {
             return Startup.OpenComicAtPathAsync(item.FullPath, this.MainViewModel.Profile);
         }
 
