@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,10 +28,15 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
 
-        public async Task Initialize() {
-            // TODO catch FileNotFound here and notice the user and remove the comic
-            foreach (var item in await this.GetSubitems(this.Item.TitleComic)) {
-                this.ComicSubitems.Add(item);
+        public async Task InitializeAsync() {
+            try {
+                foreach (var item in await this.GetSubitemsAsync(this.Item.TitleComic)) {
+                    this.ComicSubitems.Add(item);
+                }
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedFileSystemAccess();
+            } catch (FileNotFoundException) {
+                await ExpectedExceptions.FileNotFound();
             }
 
             this.IsLoadingSubItems = false;
@@ -48,18 +54,18 @@ namespace ComicsViewer.ViewModels.Pages {
 
         // Temporary: this code should be moved elsewhere
         // Unfortunately we aren't actually on .NET Core 3.0, meaning we can't await an IAsyncEnumerable
-        private async Task<IEnumerable<ComicSubitem>> GetSubitems(Comic comic) {
+        private async Task<IEnumerable<ComicSubitem>> GetSubitemsAsync(Comic comic) {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
 
-            var rootItem = await this.ComicSubitemForFolder(comic, await StorageFolder.GetFolderFromPathAsync(comic.Path), rootItem: true);
+            var rootItem = await this.ComicSubitemForFolderAsync(comic, await StorageFolder.GetFolderFromPathAsync(comic.Path), rootItem: true);
             if (rootItem != null) {
                 subitems.Add(rootItem);
             }
 
             var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
             foreach (var subfolder in await folder.GetFoldersAsync()) {
-                var item = await this.ComicSubitemForFolder(comic, subfolder);
+                var item = await this.ComicSubitemForFolderAsync(comic, subfolder);
                 if (item != null) {
                     subitems.Add(item);
                 }
@@ -68,7 +74,7 @@ namespace ComicsViewer.ViewModels.Pages {
             return subitems;
         }
 
-        private async Task<ComicSubitem?> ComicSubitemForFolder(Comic comic, StorageFolder folder, bool rootItem = false) {
+        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, bool rootItem = false) {
             var files = await this.MainViewModel.Profile.GetFilesForComicFolderAsync(folder);
             var fileCount = files.Count();
 

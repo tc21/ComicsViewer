@@ -199,9 +199,9 @@ namespace ComicsViewer.ViewModels.Pages {
                 var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.TitleComic.Path, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
-                _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
+                await ExpectedExceptions.UnauthorizedFileSystemAccess();
             } catch (FileNotFoundException) {
-                _ = await new MessageDialog("The application is not currently capable of handling this error.", "File not found").ShowAsync();
+                await ExpectedExceptions.FileNotFound();
             }
         }
 
@@ -215,8 +215,11 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var copy = comicItems.ToList();
-            this.MainViewModel.StartUniqueTask("thumbnail", $"Generating thumbnails for {copy.Count} items...",
-                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThread(copy, replace, cc, p));
+            this.MainViewModel.StartUniqueTask(
+                "thumbnail", $"Generating thumbnails for {copy.Count} items...",
+                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThread(copy, replace, cc, p),
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+            );
         }
 
         private async Task GenerateAndApplyThumbnailsInBackgroundThread(

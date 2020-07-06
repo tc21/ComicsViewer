@@ -258,7 +258,8 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly Dictionary<string, ComicTask> taskNames = new Dictionary<string, ComicTask>();
 
         private bool ScheduleTask<T>(
-                string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, Func<T, Task>? asyncCallback = null) {
+                string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, 
+                Func<T, Task>? asyncCallback, Func<Exception, Task<bool>>? exceptionHandler) {
             if (taskNames.ContainsKey(tag)) { 
                 return false;
             }
@@ -269,11 +270,16 @@ namespace ComicsViewer.ViewModels.Pages {
                 this.Tasks.Remove(task);
 
                 if (task.IsFaulted) {
-                    // TODO temporary measure, implement proper permissions checking
-                    try {
-                        task.ThrowStoredException();
-                    } catch (UnauthorizedAccessException) {
-                        _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
+                    if (exceptionHandler == null) {
+                        // By default, let's notify the user of IntendedBehaviorExceptions (instead of crashing)
+                        exceptionHandler = ExpectedExceptions.HandleIntendedBehaviorExceptions;
+                    }
+
+                    if (await exceptionHandler(task.StoredException!) == false) {
+                        _ = await new MessageDialog(
+                            task.StoredException!.Message, 
+                            $"Unhandled {task.StoredException!} when running task {task.Name}"
+                        ).ShowAsync();
                     }
                 }
 
@@ -315,15 +321,18 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public Task StartUniqueTask(
-                string tag, string name, ComicTask.ComicTaskDelegate asyncAction, Func<Task>? asyncCallback = null) {
+                string tag, string name, ComicTask.ComicTaskDelegate asyncAction, 
+                Func<Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
             return this.StartUniqueTask(tag, name, 
-                async (cc, p) => { await asyncAction(cc, p); return 0; },
-                asyncCallback == null ? null : (Func<int, Task>)(_ => asyncCallback()));
+                asyncAction: async (cc, p) => { await asyncAction(cc, p); return 0; },
+                asyncCallback: asyncCallback == null ? null : (Func<int, Task>)(_ => asyncCallback()),
+                exceptionHandler: exceptionHandler);
         }
 
         public async Task StartUniqueTask<T>(
-                string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, Func<T, Task>? asyncCallback = null) {
-            if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback)) {
+                string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, 
+                Func<T, Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
+            if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
                 _ = await new MessageDialog(
                    $"A task with tag '{tag}' is already running. Please wait for it to finish.",
                     "Cannot start task"
@@ -342,7 +351,9 @@ namespace ComicsViewer.ViewModels.Pages {
                     // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
                     await this.RemoveComicsAsync(this.comics);
                     await this.AddComicsAsync(result);
-                });
+                }, 
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+            );
         }
 
         public async Task RequestReloadCategoryAsync(NamedPath category) {
@@ -354,7 +365,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
                     await this.AddComicsAsync(result);
-                });
+                },
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+            );
         }
 
         public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
@@ -367,13 +380,16 @@ namespace ComicsViewer.ViewModels.Pages {
                     /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
                     await this.RemoveComicsAsync(result.Where(this.comics.Contains));
                     await this.AddComicsAsync(result);
-                });
+                },
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
+            );
         }
 
         private async Task RequestValidateAndRemoveComicsAsync() {
             await this.StartUniqueTask("validate", $"Validating {this.comics.Count} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p),
-                async result => await this.RemoveComicsAsync(result)
+                async result => await this.RemoveComicsAsync(result),
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
             );
         }
 

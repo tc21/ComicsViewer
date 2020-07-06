@@ -126,7 +126,9 @@
     </Compile>
     <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
     <Compile Include="Features\Filter.cs" />
+    <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Support\FileApiInterop.cs" />
+    <Compile Include="Support\IntendedBehaviorException.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />

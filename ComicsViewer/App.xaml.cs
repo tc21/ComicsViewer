@@ -32,8 +32,6 @@ namespace ComicsViewer
          *   4. Supporting opening stuff properly, rathor than telling Windows to open the first file
          *      (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
          *   5. We will likely have to rely on the above two links to enable Python-based extensions.
-         *   7. Create the AcceptableExceptions system, fixing the app crashing on FileNotFoundException, etc.
-         *      (e.g. opening an nonexistant comic)
          *   9. When clicking the 'X' button in the search box, we should refilter the visible comics, instead of requiring
          *      the user to click on the search button again.
          *  10. Do not require a file to be existant at the root folder when adding works. We can use the default

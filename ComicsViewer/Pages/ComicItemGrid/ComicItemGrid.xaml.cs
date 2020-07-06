@@ -240,7 +240,7 @@ namespace ComicsViewer.Pages {
 
         private async Task RedefineThumbnail(ComicItem item) {
             var folder = await StorageFolder.GetFolderFromPathAsync(item.TitleComic.Path);
-            var images = await Thumbnail.GetPossibleThumbnailFiles(folder);
+            var images = await Thumbnail.GetPossibleThumbnailFilesAsync(folder);
 
             _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
                 typeof(RedefineThumbnailDialogContent),

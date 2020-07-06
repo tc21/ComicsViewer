@@ -39,11 +39,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e) {
-            try {
-                await this.ViewModel!.Initialize();
-            } catch (UnauthorizedAccessException) {
-                _ = await new MessageDialog("Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
-            }
+            await this.ViewModel!.InitializeAsync();
         }
 
         private async void ListView_ItemClick(object sender, ItemClickEventArgs e) {

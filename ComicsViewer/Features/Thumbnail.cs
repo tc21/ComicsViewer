@@ -82,26 +82,17 @@ namespace ComicsViewer.Features {
                     if (await StorageFile.GetFileFromPathAsync(path) is StorageFile file) {
                         return file;
                     }
-                } catch (FileNotFoundException) {
-                    // the path doesn't actually exist. needs to be handled by caller
                 } catch (UnauthorizedAccessException) {
                     // weird shit happens with windows and file permissions. just ignore this
                 }
             }
 
-            try {
-                var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
-                return await TryGetFirstValidThumbnailFile(comicFolder);
-            } catch (FileNotFoundException) {
-                Debug.WriteLine("TryGetThumbnailSourceAsync threw FileNotFoundException");
-                // TODO we should throw the exception but catch it outside
-            }
-
-            return null;
+            var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+            return await TryGetFirstValidThumbnailFileAsync(comicFolder);
         }
 
-        private static async Task<StorageFile?> TryGetFirstValidThumbnailFile(StorageFolder folder) {
-            var files = await GetPossibleThumbnailFiles(folder);
+        private static async Task<StorageFile?> TryGetFirstValidThumbnailFileAsync(StorageFolder folder) {
+            var files = await GetPossibleThumbnailFilesAsync(folder);
             if (files.Count() == 0) {
                 return null;
             }
@@ -109,7 +100,7 @@ namespace ComicsViewer.Features {
             return files.First();
         }
 
-        public static async Task<IEnumerable<StorageFile>> GetPossibleThumbnailFiles(StorageFolder folder) {
+        public static async Task<IEnumerable<StorageFile>> GetPossibleThumbnailFilesAsync(StorageFolder folder) {
             var files = new List<StorageFile>();
 
             // we can allow for customization in the future
@@ -125,7 +116,7 @@ namespace ComicsViewer.Features {
             }
 
             foreach (var subfolder in await folder.GetFoldersAsync()) {
-                foreach (var file in await GetPossibleThumbnailFiles(subfolder)) {
+                foreach (var file in await GetPossibleThumbnailFilesAsync(subfolder)) {
                     files.Add(file);
                 }
             }

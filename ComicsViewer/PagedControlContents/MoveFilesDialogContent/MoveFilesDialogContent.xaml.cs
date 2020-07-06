@@ -74,8 +74,8 @@ namespace ComicsViewer.Pages {
                             var targetPath = Path.Combine(category.Path, comic.Author, comic.Title);
 
                             if (FileApiInterop.FileOrDirectoryExists(targetPath)) {
-                                // TODO: throw an "IntendedBehaviorError" that stops execution of this program and shows
-                                // a message box.
+                                throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}' " +
+                                    $"because an item with the same name already exists at the destination.");
                             }
 
                             FileApiInterop.MoveDirectory(comic.Path, targetPath);
@@ -103,7 +103,7 @@ namespace ComicsViewer.Pages {
 
                         p.Report(++progress);
                     }
-                }
+                }, exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptions
             );
 
             this.PagedControlAccessor?.CloseContainer();

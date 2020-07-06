@@ -13,8 +13,8 @@ namespace ComicsViewer.ViewModels {
         public string Status { get; private set; } = "initialzed";
         public bool IsCancelled { get; private set; } = false;
         public bool IsCompleted { get; private set; } = false;
-        public bool IsFaulted { get; private set; } = false;
-        private Exception? storedException;
+        public bool IsFaulted => this.StoredException != null;
+        public Exception? StoredException { get; private set; }
 
         private readonly ComicTaskDelegate<object> userAction;
         private readonly Progress<int> progress = new Progress<int>();
@@ -41,8 +41,7 @@ namespace ComicsViewer.ViewModels {
                     this.IsCompleted = true;
                     this.Status = "completed";
                 } else if (finishedTask.IsFaulted) {
-                    this.IsFaulted = true;
-                    this.storedException = finishedTask.Exception.InnerException;
+                    this.StoredException = finishedTask.Exception.InnerException;
                     this.Status = "faulted";
                 } else {
                     throw new ApplicationLogicException();
@@ -99,11 +98,11 @@ namespace ComicsViewer.ViewModels {
         }
 
         public void ThrowStoredException() {
-            if (this.storedException == null) {
+            if (this.StoredException == null) {
                 throw new ArgumentException();
             }
 
-            throw this.storedException;
+            throw this.StoredException;
         }
 
         public event Action<ComicTask, object?> TaskCompleted = delegate { };
