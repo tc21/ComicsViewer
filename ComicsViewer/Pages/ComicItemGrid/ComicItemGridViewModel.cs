@@ -165,6 +165,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         this.ComicItems.Insert(index, sender);
                         break;
                     case ComicItem.RequestingRefreshType.Remove:
+                        sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
                         this.ComicItems.Remove(sender);
                         break;
                     default:
