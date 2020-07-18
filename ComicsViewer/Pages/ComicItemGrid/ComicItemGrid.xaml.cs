@@ -272,6 +272,7 @@ namespace ComicsViewer.Pages {
             public XamlUICommand LoveComicsCommand { get; }
             public XamlUICommand DislikeComicsCommand { get; }
             public XamlUICommand MoveFilesCommand { get; }
+            public XamlUICommand SearchAuthorCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -357,6 +358,12 @@ namespace ComicsViewer.Pages {
                 this.MoveFilesCommand.ExecuteRequested += async (sender, args)
                     // We don't know the actual grid item element, so we just show the flyout at the center of the screen
                     => await parent.ShowMoveFilesDialogAsync(this.SelectedItems);
+
+                this.SearchAuthorCommand = new XamlUICommand();
+                this.SearchAuthorCommand.ExecuteRequested += (sender, args)
+                    => parent.MainViewModel!.NavigateIntoAuthor(this.SelectedItems.First().TitleComic.DisplayAuthor);
+                this.SearchAuthorCommand.CanExecuteRequested += 
+                    this.CanExecuteHandler(() => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
             }
 
             private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
@@ -414,6 +421,7 @@ namespace ComicsViewer.Pages {
                           (count == 1 ? "" : " " + count.PluralString("comic")),
                 "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
                              (count == 1 ? "" : " " + count.PluralString("comic")),
+                "searchAuthor" => $"Show all items by {ComicItems().First().TitleComic.DisplayAuthor}",
                 _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

@@ -166,9 +166,17 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateIntoSelected(IEnumerable<ComicItem> items) {
-            var comics = items.SelectMany(item => item.Comics).Select(item => item.UniqueIdentifier).ToHashSet();
-            this.Filter.GeneratedFilter = comic => comics.Contains(comic.UniqueIdentifier);
-            this.Filter.Metadata.GeneratedFilterItemCount = comics.Count;
+            this.NavigateIntoComics(items.SelectMany(item => item.Comics));
+        }
+
+        public void NavigateIntoAuthor(string displayName) {
+            this.NavigateIntoComics(this.comics.Where(comic => comic.DisplayAuthor == displayName));
+        }
+
+        private void NavigateIntoComics(IEnumerable<Comic> comics) {
+            var identifiers = comics.Select(item => item.UniqueIdentifier).ToHashSet();
+            this.Filter.GeneratedFilter = comic => identifiers.Contains(comic.UniqueIdentifier);
+            this.Filter.Metadata.GeneratedFilterItemCount = identifiers.Count;
         }
 
         public event NavigationRequestedEventHandler? NavigationRequested;

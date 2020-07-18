@@ -100,6 +100,9 @@
                 <uc:ComicsMenuFlyoutItem Text="Search selected" 
                                          FontIcon="&#xE721;"
                                          Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="searchAuthor"
+                                         FontIcon="&#xE77B;"
+                                         Command="{x:Bind ContextMenuCommands.SearchAuthorCommand}"/>
                 <uc:ComicsMenuFlyoutItem Tag="showInExplorer"
                                          FontIcon="&#xEC50;"
                                          Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"/>
