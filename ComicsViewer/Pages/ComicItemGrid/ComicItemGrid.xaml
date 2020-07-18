@@ -182,6 +182,7 @@
                       AllowDrop="True"
                       DragOver="VisibleComicsGrid_DragOver"
                       Drop="VisibleComicsGrid_Drop"
+                      SizeChanged="VisibleComicsGrid_SizeChanged"
                       ItemTemplate="{StaticResource ComicItemTemplate}"
                       ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                       ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}">

@@ -218,6 +218,7 @@ namespace ComicsViewer.Pages {
                 this.RecalculateGridItemSize(this.VisibleComicsGrid);
             }
 
+            CoreWindow.GetForCurrentThread().ResizeStarted += this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted += this.ComicItemGrid_ResizeCompleted;
 
             // MainPage cannot rely on ContentFrame.Navigated because we navigate to a ComicItemGridContainer, not this class
@@ -231,6 +232,7 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             Debug.WriteLine($"{debug_this_count} OnNavigatingFrom");
             this.ViewModel!.IsVisibleViewModel = false;
+            CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }
 
@@ -433,8 +435,22 @@ namespace ComicsViewer.Pages {
         /* We will have to manage item widths manually. Note that the Windows Community Toolkit provides the ability ]
          * to do this without writing custom code using AdaptiveGridView, but that uses a min width for each item, 
          * when we want a max width for each item. */
+        private bool resizing = false;
+
+        private void ComicItemGrid_ResizeStarted(CoreWindow sender, object args) {
+            this.resizing = true;
+        }
+
+
         private void ComicItemGrid_ResizeCompleted(CoreWindow sender, object args) {
+            this.resizing = false;
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
+        }
+
+        private void VisibleComicsGrid_SizeChanged(object sender, SizeChangedEventArgs e) {
+            if (!this.resizing) {
+                this.RecalculateGridItemSize(this.VisibleComicsGrid);
+            }
         }
 
         private void RecalculateGridItemSize(GridView grid) {
