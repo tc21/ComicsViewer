@@ -30,12 +30,16 @@ namespace ComicsViewer.Pages {
         private Action? EditInfoCallback { get; set; }
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e) {
+        protected override async void OnNavigatedTo(NavigationEventArgs e) {
             var (controller, args) = PagedControlAccessor.FromNavigationArguments<ComicInfoFlyoutNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = controller;
 
             this.EditInfoCallback = args.EditInfoCallback;
             this.ViewModel = new ComicInfoFlyoutViewModel(args.ParentViewModel, args.ComicItem);
+
+            if (!(await this.ViewModel.LoadDescriptionsAsync(this.InfoPivotText))) {
+                this.Pivot.Items.Remove(this.InfoPivotItem);
+            }
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e) {

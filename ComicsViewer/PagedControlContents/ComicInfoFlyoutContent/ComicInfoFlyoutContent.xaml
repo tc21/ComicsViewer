@@ -42,6 +42,10 @@
                     </controls:Loading>
                 </StackPanel>
             </PivotItem>
+
+            <PivotItem Header="Info" x:Name="InfoPivotItem">
+                <TextBlock x:Name="InfoPivotText"/>
+            </PivotItem>
         </Pivot>
         
         

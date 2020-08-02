@@ -4,11 +4,15 @@ using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Documents;
 
 #nullable enable
 
@@ -87,6 +91,45 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             return new ComicSubitem(comic, relativePath: folder.Name, displayName: folder.Name, fileCount);
+        }
+
+        #endregion
+
+        #region Externally loaded comic descriptions
+
+        /// <returns>true if the comic has descriptions, false if it doesn't</returns>
+        public async Task<bool> LoadDescriptionsAsync(TextBlock infoPivotText) {
+            if (this.Item.ItemType != ComicItemType.Work) {
+                return false;
+            }
+
+            var comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.TitleComic.Path);
+            var descriptionAdded = false;
+
+            foreach (var descriptionSpecification in this.MainViewModel.Profile.ExternalDescriptions) {
+                if ((await descriptionSpecification.FetchFromFolderAsync(comicFolder)) is ExternalDescription description) {
+                    descriptionAdded = true;
+
+                    var text = new Run { Text = description.Content };
+
+                    switch (description.DescriptionType) {
+                        case ExternalDescriptionType.Text:
+                            infoPivotText.Inlines.Add(text);
+                            break;
+                        case ExternalDescriptionType.Link:
+                            var link = new Hyperlink { NavigateUri = new Uri(description.Content) };
+                            link.Inlines.Add(text);
+                            infoPivotText.Inlines.Add(link);
+                            break;
+                        default:
+                            throw new ApplicationLogicException("Unhandled switch case");
+                    }
+
+                    infoPivotText.Inlines.Add(new LineBreak());
+                }
+            }
+
+            return descriptionAdded;
         }
 
         #endregion

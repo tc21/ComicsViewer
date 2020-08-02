@@ -125,6 +125,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
+    <Compile Include="Features\ExternalDescriptions.cs" />
     <Compile Include="Features\Filter.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Support\FileApiInterop.cs" />
