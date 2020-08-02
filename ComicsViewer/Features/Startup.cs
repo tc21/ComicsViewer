@@ -25,7 +25,7 @@ namespace ComicsViewer.Features {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
-                    if (await profile.GetFirstFileForComicFolderAsync(folder) is StorageFile file) {
+                    if (await profile.GetFirstFileForComicAsync(folder) is StorageFile file) {
                         // There's no reason for us to wait for the file to actually launch
                         _ = Launcher.LaunchFileAsync(file);
                     }

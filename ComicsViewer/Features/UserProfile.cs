@@ -51,7 +51,7 @@ namespace ComicsViewer.Features {
         }
 
         // Profile helper methods
-        public async Task<IEnumerable<StorageFile>> GetFilesForComicFolderAsync(StorageFolder folder) {
+        public async Task<IEnumerable<StorageFile>> GetTopLevelFilesForFolderAsync(StorageFolder folder) {
             var files = await folder.GetFilesAsync();
             return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
         }
@@ -59,12 +59,23 @@ namespace ComicsViewer.Features {
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        public async Task<StorageFile?> GetFirstFileForComicFolderAsync(StorageFolder folder) {
-            foreach (var file in await this.GetFilesForComicFolderAsync(folder)) {
+        public async Task<StorageFile?> GetFirstFileForComicAsync(StorageFolder folder) {
+            foreach (var file in await this.GetTopLevelFilesForFolderAsync(folder)) {
                 return file;
             }
 
+            var subfolders = await folder.GetFoldersAsync();
+            foreach (var subfolder in subfolders) {
+                foreach (var file in await this.GetTopLevelFilesForFolderAsync(subfolder)) {
+                    return file;
+                }
+            }
+
             return null;
+        }
+
+        public async Task<bool> FolderContainsValidComicAsync(StorageFolder folder) {
+            return (await this.GetFirstFileForComicAsync(folder)) != null;
         }
     }
 }

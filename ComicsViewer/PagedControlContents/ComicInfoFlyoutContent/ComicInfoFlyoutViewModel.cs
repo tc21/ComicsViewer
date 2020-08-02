@@ -75,7 +75,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, bool rootItem = false) {
-            var files = await this.MainViewModel.Profile.GetFilesForComicFolderAsync(folder);
+            var files = await this.MainViewModel.Profile.GetTopLevelFilesForFolderAsync(folder);
             var fileCount = files.Count();
 
             if (fileCount == 0) {

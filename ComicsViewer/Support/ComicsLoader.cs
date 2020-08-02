@@ -88,7 +88,7 @@ namespace ComicsViewer.Support {
                 try {
                     var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
 
-                    if (checkFiles && (await profile.GetFilesForComicFolderAsync(folder)).Count() > 0) {
+                    if (checkFiles && (await profile.FolderContainsValidComicAsync(folder))) {
                         invalidComics.Add(comic);
                     }
 
@@ -110,7 +110,7 @@ namespace ComicsViewer.Support {
             List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 
             // First assume the work is a comic
-            if ((await profile.GetFilesForComicFolderAsync(folder)).Count() > 0) {
+            if (await profile.FolderContainsValidComicAsync(folder)) {
                 var names = folder.Path.Split(Path.DirectorySeparatorChar);
                 var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
                 var category = "Unknown Category";
@@ -178,7 +178,7 @@ namespace ComicsViewer.Support {
                     continue;
                 }
 
-                if ((await profile.GetFilesForComicFolderAsync(comicFolder)).Count() > 0) {
+                if (await profile.FolderContainsValidComicAsync(comicFolder)) {
                     var comic = new Comic(comicFolder.Path, comicFolder.Name, author, category);
                     comics.Add(comic);
                     progress?.Report(comics.Count);
