@@ -109,21 +109,44 @@ namespace ComicsViewer.Support {
         private static async Task FinishFromImportedFolderAsync(
             List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 
-            // First assume the work is a comic
+            // If in a category folder: assume it's properly laid out
+            foreach (var pair in profile.RootPaths) {
+                if (folder.Path.IsChildOfDirectory(pair.Path)) {
+                    var categoryName = pair.Name;
+                    var relativePath = folder.Path.GetPathRelativeTo(pair.Path);
+
+                    // 1. Importing a category
+                    if (relativePath == "") {
+                        await FinishFromRootPathAsync(comics, profile, pair, cc, progress);
+                        return;
+                    }
+
+                    var names = relativePath.Split(Path.DirectorySeparatorChar);
+                    var authorName = names[0];
+
+                    // 2. Importing an author
+                    if (names.Length == 1) {
+                        await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
+                        return;
+                    }
+
+                    // 3. Importing a work
+                    if (names.Length == 2) {
+                        var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
+                        comics.Add(comic);
+                        progress?.Report(comics.Count);
+                        return;
+                    }
+
+                    // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
+                }
+            }
+
+            // Assume we received a comic folder
             if (await profile.FolderContainsValidComicAsync(folder)) {
                 var names = folder.Path.Split(Path.DirectorySeparatorChar);
                 var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
-                var category = "Unknown Category";
-
-                // Determine category
-                foreach (var pair in profile.RootPaths) {
-                    if (folder.Path.IsChildOfDirectory(pair.Path)) {
-                        category = pair.Name;
-                        break;
-                    }
-                }
-
-                var comic = new Comic(folder.Path, folder.Name, author, category);
+                var comic = new Comic(folder.Path, folder.Name, author, "Unknown Category");
                 comics.Add(comic);
                 progress?.Report(comics.Count);
                 return;

@@ -18,6 +18,10 @@ namespace ComicsViewer.ClassExtensions {
                 return path;
             }
 
+            if (path == parent) {
+                return "";
+            }
+
             return Path.GetFullPath(path).Substring(Path.GetFullPath(parent).Length + 1);
         }
     }
