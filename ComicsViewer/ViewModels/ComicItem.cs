@@ -37,7 +37,14 @@ namespace ComicsViewer.ViewModels {
         /* manually managed so it can be refreshed */
         public string ThumbnailPath { get; private set; }
 
-        public Comic TitleComic => this.Comics[0];
+        public Comic TitleComic {
+            get {
+                if (this.Comics.Count == 0) {
+                    throw new ApplicationLogicException("ComicItem.TitleComic: ComicItem does not contain comics");
+                }
+                return this.Comics[0];
+            }
+        }
 
         private ComicItem(string title, ComicItemType itemType, List<Comic> comics, MainViewModel? trackChangesFrom) {
             this.Title = title;
@@ -100,7 +107,6 @@ namespace ComicsViewer.ViewModels {
                         if (e.ShouldReloadComics) {
                             this.RequestingRefresh(this, RequestingRefreshType.Reload);
                         }
-
                     }
 
                     return;
@@ -119,6 +125,8 @@ namespace ComicsViewer.ViewModels {
                     }
 
                     if (this.Comics.Count == 0) {
+                        // Remove this ComicItem
+                        sender.ComicsModified -= this.MainViewModel_ComicsModified;
                         this.RequestingRefresh(this, RequestingRefreshType.Remove);
                     } else {
                         this.OnPropertyChanged("");
