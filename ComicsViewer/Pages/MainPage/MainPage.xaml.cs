@@ -100,7 +100,7 @@ namespace ComicsViewer {
             switch (e.NavigationType) {
                 case NavigationType.Back:
                     if (e.Tag == null) {
-                        throw new ApplicationLogicException();
+                        throw new ApplicationLogicException("Navigating with NavigationType.Back must be accompanied with a target tag type");
                     }
 
                     if (!this.ContentFrame.CanGoBack) {
@@ -120,12 +120,15 @@ namespace ComicsViewer {
                     this.activeContent?.ScrollToTop();
                     break;
                 case NavigationType.New:
-                    if (e.PageType == null || e.Comics == null) {
-                        throw new ApplicationLogicException();
+                    if (e.PageType == null || (e.Tag == MainViewModel.SecondLevelNavigationTag && e.Comics == null)) {
+                        throw new ApplicationLogicException("Navigating with NavigationType.Back must be accompanied with a target PageType and Comic list");
                     }
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
-                        ViewModel = new ComicItemGridViewModel(sender, e.Comics),
+                        ViewModel = e.Tag switch {
+                            MainViewModel.SecondLevelNavigationTag => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics),
+                            _ => ComicItemGridViewModel.ForTopLevelNavigationTag(sender)
+                        },
                         OnNavigatedTo = (grid, e) => this.activeContent = grid
                     };
 

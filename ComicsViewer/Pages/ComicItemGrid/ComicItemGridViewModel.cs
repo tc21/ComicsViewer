@@ -56,7 +56,8 @@ namespace ComicsViewer.ViewModels.Pages {
         public int VisibleItemCount => this.ComicItems.Count;
 
         internal readonly MainViewModel MainViewModel;
-        private readonly ComicList comics;
+        private readonly ComicList? customComics;
+        private ComicList Comics => this.customComics ?? this.MainViewModel.Comics;
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         private readonly string navigationTag;
         // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
@@ -66,12 +67,16 @@ namespace ComicsViewer.ViewModels.Pages {
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
-        public ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<Comic> comics) {
+        private ComicItemGridViewModel(MainViewModel appViewModel, IEnumerable<Comic>? customComics) {
             Debug.WriteLine($"VM{debug_this_count} created");
 
             this.MainViewModel = appViewModel;
-            this.comics = new ComicList(comics);
+
             this.navigationTag = appViewModel.ActiveNavigationTag;
+
+            if (customComics is IEnumerable<Comic> comics) {
+                this.customComics = new ComicList(comics);
+            }
 
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
@@ -79,7 +84,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
             this.MainViewModel.ComicsModified += this.MainViewModel_ComicsModified;
 
-            var allComicItems = CreateComicItems(this.comics, null, this.navigationTag);
+            var allComicItems = this.CreateComicItems(this.Comics, null, this.navigationTag);
             this.randomSortSelectors = allComicItems.Select(item => item.Title).Distinct().ToDictionary(e => e, _ => 0);
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
@@ -92,8 +97,24 @@ namespace ComicsViewer.ViewModels.Pages {
             Debug.WriteLine($"VM{debug_this_count} destroyed");
         }
 
+        public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {
+            if (appViewModel.ActiveNavigationTag == MainViewModel.SecondLevelNavigationTag) {
+                throw new ApplicationLogicException($"ForTopLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
+            }
+
+            return new ComicItemGridViewModel(appViewModel, null);
+        }
+
+        public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, IEnumerable<Comic>? comics) {
+            if (appViewModel.ActiveNavigationTag != MainViewModel.SecondLevelNavigationTag) {
+                throw new ApplicationLogicException($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
+            }
+
+            return new ComicItemGridViewModel(appViewModel, comics);
+        }
+
         internal void RefreshComicItems() {
-            var comicItems = this.CreateComicItems(this.comics, this.MainViewModel.Filter, this.navigationTag);
+            var comicItems = this.CreateComicItems(this.Comics, this.MainViewModel.Filter, this.navigationTag);
 
             if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
                 // GetValueOrDefault is used here since items may have been added. to this.comics and we want the application to keep working
@@ -179,10 +200,6 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Opening items 
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
-            if (!this.IsVisibleViewModel) {
-                throw new ApplicationLogicException();
-            }
-
             if (items.First().ItemType == ComicItemType.Navigation) {
                 if (items.Count() != 1) {
                     throw new ApplicationLogicException("Should not allow the user to open multiple navigation" +
@@ -211,12 +228,8 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Thumbnails 
 
         public void RequestGenerateThumbnails(IEnumerable<ComicItem> comicItems, bool replace = false) {
-            if (!this.IsVisibleViewModel) {
-                return;
-            }
-
             var copy = comicItems.ToList();
-            this.MainViewModel.StartUniqueTaskAsync(
+            _ = this.MainViewModel.StartUniqueTaskAsync(
                 "thumbnail", $"Generating thumbnails for {copy.Count} items...",
                 (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThreadAsync(copy, replace, cc, p),
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -243,10 +256,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task TryRedefineThumbnailAsync(ComicItem comicItem, StorageFile file) {
-            if (!this.IsVisibleViewModel) {
-                throw new ApplicationLogicException();
-            }
-
             if (comicItem.ItemType != ComicItemType.Work) {
                 throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
             }
@@ -322,23 +331,22 @@ namespace ComicsViewer.ViewModels.Pages {
             this.OnPropertyChanged(nameof(this.ProfileName));
         }
 
-        internal bool IsVisibleViewModel { get; set; } = false;
         private static int debug_count = 0;
         private readonly int debug_this_count = ++debug_count;
 
         private void MainViewModel_ComicsModified(MainViewModel sender, ComicsModifiedEventArgs e) {
-            Debug.WriteLine($"VM{debug_this_count} ({(this.IsVisibleViewModel ? "active" : "inactive")}) ComicsModified called for view model {this.navigationTag}");
+            Debug.WriteLine($"VM{debug_this_count} ComicsModified called for view model {this.navigationTag}");
 
             switch (e.ModificationType) {
                 case ComicModificationType.ItemsAdded:
-                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag && this.IsVisibleViewModel) {
+                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
                         // We can't handle this. The parent will have handled it, though.
                         this.MainViewModel.NavigateOut();
                         return;
                     }
 
                     foreach (var comic in e.ModifiedComics) {
-                        this.comics.Add(comic);
+                        this.Comics.Add(comic);
                     }
 
                     var newComicItems = e.ModifiedComics.Select(comic => {
@@ -370,12 +378,17 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 case ComicModificationType.ItemsChanged:
                 case ComicModificationType.ItemsRemoved:
-                    // Mostly handled in ComicItem.cs (see also ComicItem_RequestingRefresh), except:
-                    if (this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
-                        // We don't really want to do this, it's bad user experience, but we can't do anything about
-                        // it unless we remake the system and make it better.
-                        this.MainViewModel.NavigateOut();
+                    if (this.navigationTag == MainViewModel.DefaultNavigationTag ||
+                        this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                        // TODO: When modifying a comic (not removing), we may remove a tag/category/author that 
+                        //  belongs to the currently active second-level navigation item. The item should be removed,
+                        // but isn't due to navigation items not knowing what kind of navigation item they are. We
+                        // reversed the previous behavior of navigating out due to it being bad UX but the current 
+                        // behavior is technically incorrect.
+                        break;
                     }
+
+                    this.RefreshComicItems();
                     break;
 
                 default:
@@ -403,6 +416,19 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             await this.MainViewModel.NotifyComicsChangedAsync(comics);
+        }
+
+        internal void Dispose() {
+            this.PropertyChanged -= this.ComicViewModel_PropertyChanged;
+            this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
+            this.MainViewModel.Filter.FilterChanged -= this.Filter_FilterChanged;
+            this.MainViewModel.ComicsModified -= this.MainViewModel_ComicsModified;
+
+            foreach (var item in this.ComicItems) {
+                item.RequestingRefresh -= this.ComicItem_RequestingRefresh;
+            }
+
+            this.ComicItems.Clear();
         }
     }
 }

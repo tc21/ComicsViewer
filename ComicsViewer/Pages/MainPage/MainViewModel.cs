@@ -24,7 +24,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
-        private ComicList comics = new ComicList();
+        public ComicList Comics = new ComicList();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -86,7 +86,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
-            this.comics = new ComicList(await manager.GetAllComicsAsync());
+            this.Comics = new ComicList(await manager.GetAllComicsAsync());
 
             this.Filter.Clear();
 
@@ -135,10 +135,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 PageType = typeof(ComicItemGridTopLevelContainer),
                 Tag = navigationTag,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                NavigationType = navigationType,
-                Comics = this.comics
+                NavigationType = navigationType
             });
-            ;
         }
 
         public void NavigateOut(bool ignoreCache = false) {
@@ -170,7 +168,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateIntoAuthor(string displayName) {
-            this.NavigateIntoComics(this.comics.Where(comic => comic.DisplayAuthor == displayName));
+            this.NavigateIntoComics(this.Comics.Where(comic => comic.DisplayAuthor == displayName));
         }
 
         private void NavigateIntoComics(IEnumerable<Comic> comics) {
@@ -241,7 +239,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var authors = new DefaultDictionary<string, int>();
             var tags = new DefaultDictionary<string, int>();
 
-            foreach (var comic in this.comics) {
+            foreach (var comic in this.Comics) {
                 if (filter != null && !filter.ShouldBeVisible(comic)) {
                     continue;
                 }
@@ -357,7 +355,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     await manager.AssignKnownMetadataAsync(result);
 
                     // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
-                    await this.RemoveComicsAsync(this.comics);
+                    await this.RemoveComicsAsync(this.Comics);
                     await this.AddComicsAsync(result);
                 }, 
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -371,7 +369,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     var manager = await this.GetComicsManagerAsync();
                     await manager.AssignKnownMetadataAsync(result);
 
-                    await this.RemoveComicsAsync(this.comics.Where(comic => comic.Category == category.Name));
+                    await this.RemoveComicsAsync(this.Comics.Where(comic => comic.Category == category.Name));
                     await this.AddComicsAsync(result);
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -386,7 +384,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     await manager.AssignKnownMetadataAsync(result);
 
                     /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
-                    await this.RemoveComicsAsync(result.Where(this.comics.Contains));
+                    await this.RemoveComicsAsync(result.Where(this.Comics.Contains));
                     await this.AddComicsAsync(result);
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -394,8 +392,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private async Task RequestValidateAndRemoveComicsAsync() {
-            await this.StartUniqueTaskAsync("validate", $"Validating {this.comics.Count} comics...",
-                (cc, p) => ComicsLoader.FindInvalidComics(this.comics, this.Profile, checkFiles: false, cc, p),
+            await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count} comics...",
+                (cc, p) => ComicsLoader.FindInvalidComics(this.Comics, this.Profile, checkFiles: false, cc, p),
                 async result => await this.RemoveComicsAsync(result),
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
@@ -408,7 +406,7 @@ namespace ComicsViewer.ViewModels.Pages {
             // we have to make a copy of comics, since the user might just pass this.comics (or more likely a query
             // based on it) to this function
             foreach (var comic in comics.ToList()) {
-                if (this.comics.Add(comic)) {
+                if (this.Comics.Add(comic)) {
                     added.Add(comic);
                 } else {
                     // May have updated info? see also ComicList.Add
@@ -425,7 +423,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var removed = new List<Comic>();
 
             foreach (var comic in comics.ToList()) {
-                if (this.comics.Remove(comic)) {
+                if (this.Comics.Remove(comic)) {
                     removed.Add(comic);
                 }
             }

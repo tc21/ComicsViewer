@@ -200,7 +200,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (args.ViewModel == null) {
-                throw new ApplicationLogicException();
+                throw new ApplicationLogicException("A ComicItemGrid must received a viewmodel in its navigation arguments");
             }
 
             if (e.NavigationMode == NavigationMode.New) {
@@ -213,7 +213,6 @@ namespace ComicsViewer.Pages {
                 // ?
             }
 
-            this.ViewModel!.IsVisibleViewModel = true;
             if (this.VisibleComicsGrid.IsLoaded) {
                 this.RecalculateGridItemSize(this.VisibleComicsGrid);
             }
@@ -230,8 +229,9 @@ namespace ComicsViewer.Pages {
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
+            // Under the current implementation, this page is never used again after a call to OnNavigatingFrom.
             Debug.WriteLine($"{debug_this_count} OnNavigatingFrom");
-            this.ViewModel!.IsVisibleViewModel = false;
+            this.ViewModel!.Dispose();
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }
