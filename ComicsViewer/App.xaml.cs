@@ -34,8 +34,6 @@ namespace ComicsViewer
          *   5. We will likely have to rely on the above two links to enable Python-based extensions.
          *   9. When clicking the 'X' button in the search box, we should refilter the visible comics, instead of requiring
          *      the user to click on the search button again.
-         *  10. Do not require a file to be existant at the root folder when adding works. We can use the default
-         *      (search two levels because we only allow one level of subworking) or make it user-configurable.
          *
          *
          * Feature Requests:

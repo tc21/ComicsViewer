@@ -478,7 +478,7 @@ namespace ComicsViewer.Pages {
             var comicItems = e.Items.Cast<ComicItem>().ToList();
 
             e.Data.RequestedOperation = DataPackageOperation.Copy;
-
+            e.Data.Properties.Add("tc.comics.send_items", true);
             e.Data.SetDataProvider(StandardDataFormats.StorageItems, async request => {
                 var items = new List<IStorageItem>();
 
@@ -500,6 +500,10 @@ namespace ComicsViewer.Pages {
         }
 
         private void VisibleComicsGrid_DragOver(object sender, DragEventArgs e) {
+            if (e.Data != null && e.Data.Properties.ContainsKey("tc.comics.send_items")) {
+                return;
+            }
+
             e.AcceptedOperation = DataPackageOperation.Copy;
         }
 
