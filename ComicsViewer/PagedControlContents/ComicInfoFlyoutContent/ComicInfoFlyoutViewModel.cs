@@ -24,7 +24,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public ComicInfoFlyoutViewModel(ComicItemGridViewModel parentViewModel, ComicItem item) {
             if (item.ItemType != ComicItemType.Work) {
-                throw new ApplicationLogicException();
+                throw new ApplicationLogicException("ComicInfoFlyoutViewModel can only be created for work item");
             }
 
             this.ParentViewModel = parentViewModel;

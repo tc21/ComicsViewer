@@ -101,7 +101,7 @@ namespace ComicsViewer.Controls {
 
         private void ChecklistItem_Unchecked(object sender, RoutedEventArgs e) {
             if (!(((FrameworkElement)sender).DataContext is CountedStringCheckBoxItem item)) {
-                throw new ApplicationLogicException();
+                throw new ApplicationLogicException("ChecklistItem_Unchecked received unexpected item");
             }
 
             this.selectedItems.Remove(item.Item);
@@ -111,7 +111,7 @@ namespace ComicsViewer.Controls {
 
         private void ChecklistItem_Checked(object sender, RoutedEventArgs e) {
             if (!(((FrameworkElement)sender).DataContext is CountedStringCheckBoxItem item)) {
-                throw new ApplicationLogicException();
+                throw new ApplicationLogicException("ChecklistItem_Checked received unexpected item");
             }
 
             this.selectedItems.Add(item.Item);

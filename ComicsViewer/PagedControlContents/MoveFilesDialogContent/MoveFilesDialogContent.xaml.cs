@@ -60,7 +60,7 @@ namespace ComicsViewer.Pages {
                 throw new ApplicationLogicException();
             }
 
-            this.MainViewModel!.StartUniqueTaskAsync(
+            _ = this.MainViewModel!.StartUniqueTaskAsync(
                 "moveFiles",
                 $"Moving {this.Comics!.Count.PluralString("item")} to category '{category.Name}'...",
                 async (cc, p) => {

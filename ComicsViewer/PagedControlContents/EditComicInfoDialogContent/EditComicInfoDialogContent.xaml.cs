@@ -40,7 +40,7 @@ namespace ComicsViewer.Pages {
             this.PagedControlAccessor = controller;
 
             if (args.ComicItem.ItemType != ComicItemType.Work) {
-                throw new ApplicationLogicException();
+                throw new ApplicationLogicException("EditComicInfoDialog can only be created for work item");
             }
 
             this.ViewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
