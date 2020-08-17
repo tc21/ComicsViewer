@@ -51,9 +51,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 return;
             }
 
-            foreach (var item in this.comicItemSource.Take(100)) {
-                this.ComicItems.Add(item);
-            }
+            this.ComicItems.AddRange(this.comicItemSource.Take(100));
+            this.comicItemSource = this.comicItemSource.Skip(100);
 
             this.OnPropertyChanged(nameof(this.VisibleItemCount));
         }
