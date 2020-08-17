@@ -258,12 +258,15 @@ namespace ComicsLibrary.SQL {
         }
 
         private ComicMetadata ReadComicMetadataFromRow(DictionaryReader<SqliteDataReader> reader) {
+            var tagList = reader.GetStringOrNull(col_tag_list);
+            var tags = new HashSet<string>(tagList == null ? new string[0] : tagList.Split(','));
+
             var metadata = new ComicMetadata {
                 DisplayTitle = reader.GetStringOrNull(key_display_title),
                 ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                 Loved = reader.GetBoolean(key_loved),
                 Disliked = reader.GetBoolean(key_disliked),
-                Tags = new HashSet<string>((reader.GetStringOrNull(col_tag_list) ?? "").Split(',')),
+                Tags = tags,
                 DateAdded = reader.GetString(key_date_added)
             };
 
