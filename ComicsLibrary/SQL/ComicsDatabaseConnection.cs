@@ -49,7 +49,7 @@ namespace ComicsLibrary.SQL {
             var comics = new List<Comic>();
 
             while (await reader.ReadAsync()) {
-                var comic = await this.ReadComicFromRowAsync(reader);
+                var comic = this.ReadComicFromRow(reader);
                 if (comic != null) {
                     comics.Add(comic);
                 }
@@ -161,8 +161,8 @@ namespace ComicsLibrary.SQL {
                 return null;
             }
 
-            await reader.ReadAsync();
-            return await this.ReadComicMetadataFromRowAsync(reader);
+            _ = await reader.ReadAsync();
+            return this.ReadComicMetadataFromRow(reader);
         }
 
         public async Task<bool> HasComicAsync(Comic comic) {
@@ -246,62 +246,68 @@ namespace ComicsLibrary.SQL {
             return (constraintString, parameters);
         }
 
-        private async Task<Comic> ReadComicFromRowAsync(DictionaryReader<SqliteDataReader> reader) {
+        private Comic ReadComicFromRow(DictionaryReader<SqliteDataReader> reader) {
             var path = reader.GetString(key_path);
             var title = reader.GetString(key_title);
             var author = reader.GetString(key_author);
             var category = reader.GetString(key_category);
-            var metadata = await this.ReadComicMetadataFromRowAsync(reader);
+            var metadata = this.ReadComicMetadataFromRow(reader);
 
             var comic = new Comic(path, title: title, author: author, category: category, metadata: metadata);
             return comic;
         }
 
-        private async Task<ComicMetadata> ReadComicMetadataFromRowAsync(DictionaryReader<SqliteDataReader> reader) {
-            var rowid = reader.GetInt32("rowid");
-
+        private ComicMetadata ReadComicMetadataFromRow(DictionaryReader<SqliteDataReader> reader) {
             var metadata = new ComicMetadata {
                 DisplayTitle = reader.GetStringOrNull(key_display_title),
                 ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                 Loved = reader.GetBoolean(key_loved),
                 Disliked = reader.GetBoolean(key_disliked),
-                Tags = new HashSet<string>(await this.ReadTagsAsync(rowid)),
+                Tags = new HashSet<string>((reader.GetStringOrNull(col_tag_list) ?? "").Split(',')),
                 DateAdded = reader.GetString(key_date_added)
             };
 
             return metadata;
         }
 
-        private async Task<List<string>> ReadTagsAsync(int comicid) {
-            var tags = new List<string>();
-            var sql = $"SELECT {key_xref_tag_id} FROM {table_tags_xref} WHERE {key_xref_comic_id} = {comicid}";
+        const string col_comic_id = "comicid";
+        const string col_tag_list = "tag_list";
 
-            using var command = this.connection.CreateCommand(sql);
-            using var reader = await command.ExecuteReaderAsync();
+        private static readonly string getComicWithConstraintsQuery = @$"
+            SELECT 
+                {table_comics}.rowid AS {col_comic_id},
+                {table_comics}.{key_path},
+                {table_comics}.{key_title},
+                {table_comics}.{key_author},
+                {table_comics}.{key_category},
+                {table_comics}.{key_display_title},
+                {table_comics}.{key_thumbnail_source},
+                {table_comics}.{key_loved},
+                {table_comics}.{key_disliked},
+                {table_comics}.{key_date_added},
+                group_concat({table_tags}.{key_tag_name}) AS {col_tag_list}
+            FROM
+                {table_comics}
+            LEFT OUTER JOIN 
+                {table_tags_xref} ON {table_tags_xref}.{key_xref_comic_id} = {table_comics}.rowid
+            LEFT OUTER JOIN
+                {table_tags} ON {table_tags_xref}.{key_xref_tag_id} = {table_tags}.rowid
+            WHERE
+                {table_comics}.{{0}} = @constraint_value
+            GROUP BY
+                {table_comics}.rowid
+        ";
 
-            while (await reader.ReadAsync()) {
-                var tagid = reader.GetInt32(0);
-                tags.Add(await this.GetTagAsync(tagid));
-            }
-        
-            return tags;
-        }
-
-        private async Task<string> GetTagAsync(int tagid) {
-            var sql = $"SELECT {key_tag_name} FROM {table_tags} WHERE rowid = {tagid}";
-            return await this.connection.ExecuteScalarAsync<string>(sql);
-        }
-
-        private static readonly List<string> getComicQueryKeys = new List<string> {
-            "rowid", key_path, key_title, key_author, key_category, key_display_title,
-            key_thumbnail_source, key_loved, key_disliked, key_date_added
+        private static readonly List<string> getComicQueryColumnNames = new List<string> {
+            col_comic_id, key_path, key_title, key_author, key_category, key_display_title, key_thumbnail_source,
+            key_loved, key_disliked, key_date_added, col_tag_list
         };
 
-        private async Task<DictionaryReader<SqliteDataReader>> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
-            var parameters = new Dictionary<string, object> { [$"@{constraintName}"] = constraintValue };
+        private Task<DictionaryReader<SqliteDataReader>> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
+            var parameters = new Dictionary<string, object> { ["@constraint_value"] = constraintValue };
+            var query = string.Format(getComicWithConstraintsQuery, constraintName);
 
-            return await this.connection.ExecuteSelectAsync(table_comics, getComicQueryKeys, 
-                $" WHERE {constraintName} = @{constraintName}", parameters);
+            return this.connection.ExecuteReaderAsync(query, getComicQueryColumnNames, parameters);
         }
     }
 }
