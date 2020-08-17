@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\..\drive\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj" />
+      <ProjectReference Include="..\..\..\..\..\..\files\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj" />
     </ItemGroup>
 
 </Project>

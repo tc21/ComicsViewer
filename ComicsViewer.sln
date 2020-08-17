@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicsViewer", "ComicsViewe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComicsLibrary", "ComicsLibrary\ComicsLibrary.csproj", "{5DFF8285-B9FE-4E29-AAD9-BD3326BBAB7A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCSupport", "..\..\..\..\..\drive\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj", "{9E3C594C-77B1-4645-B5FC-A3F4B4EF1239}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCSupport", "..\..\..\..\..\files\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj", "{9E3C594C-77B1-4645-B5FC-A3F4B4EF1239}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

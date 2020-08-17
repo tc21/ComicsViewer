@@ -339,7 +339,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\drive\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj">
+    <ProjectReference Include="..\..\..\..\..\..\files\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj">
       <Project>{9e3c594c-77b1-4645-b5fc-a3f4b4ef1239}</Project>
       <Name>TCSupport</Name>
     </ProjectReference>
