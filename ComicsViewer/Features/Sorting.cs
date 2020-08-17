@@ -58,56 +58,45 @@ namespace ComicsViewer.Features {
             // Author and DateAdded are not used for sorting nav items, so they're treated the same as Title.
             // for tags, we aren't really going to implement this algorithm since it's probably not worth it
             // for ItemCount and Random, we have no choice but to create all items first
+            switch (sortSelector) {
+                case SortSelector.Title:
+                case SortSelector.Author:  // useless for nav items
+                case SortSelector.DateAdded:  // not implemented for nav items
+                    return navigationTag switch {
+                        "authors" => PresortAndGroup(comics, comic => comic.DisplayAuthor),
+                        "categories" => PresortAndGroup(comics, comic => comic.DisplayCategory),
+                        "tags" => GroupAndSort(comics, comic => comic.Tags),
+                        _ => throw new ApplicationLogicException($"Unexpected navigation tag '{navigationTag}' when creating comic items."),
+                    };
+                default:
+                    break;
+            }
 
-            var canSortBeforeGrouping = 
-                (sortSelector == SortSelector.Title || sortSelector == SortSelector.Author || sortSelector == SortSelector.DateAdded)
-                && (navigationTag == "authors" || navigationTag == "categories");
-
-            return navigationTag switch {
-                "authors" => SortAndGroup(comics, comic => comic.DisplayAuthor, canSortBeforeGrouping, trackChangesFrom, onRequestingRefresh),
-                "categories" => SortAndGroup(comics, comic => comic.DisplayCategory, canSortBeforeGrouping, trackChangesFrom, onRequestingRefresh),
-                "tags" => SortAndGroupByMultiple(comics, comic => comic.Tags, trackChangesFrom, onRequestingRefresh),
+            var grouped = navigationTag switch {
+                "authors" => Group(comics, comic => new[] { comic.DisplayAuthor }),
+                "categories" => Group(comics, comic => new[] { comic.DisplayCategory }),
+                "tags" => Group(comics, comic => comic.Tags),
                 _ => throw new ApplicationLogicException($"Unexpected navigation tag '{navigationTag}' when creating comic items."),
             };
-    }
 
-        private static IEnumerable<ComicItem> SortAndGroup(
-            List<Comic> comics, Func<Comic, string> getGroupName, bool sortBeforeGrouping,
-            ViewModels.Pages.MainViewModel trackChangesFrom,
-            ComicItem.RequestingRefreshEventArgs onRequestingRefresh
-        ) {
-            // capitalizaton is ignored; the casing of the first item is used as the final returned result 
-            if (sortBeforeGrouping) {
-                return SortBeforeAndGroup(comics);
+            var items = grouped.Values.Select(value => navigationItem(value.name, value.comics)).ToList();
+
+
+            switch (sortSelector) {
+                case SortSelector.ItemCount:
+                    // note: the minus sign is intentional
+                    items.Sort((a, b) => -a.Comics.Count.CompareTo(b.Comics.Count));
+                    return items;
+                case SortSelector.Random:
+                    Shuffle(items);
+                    return items;
+                default:
+                    throw new ApplicationLogicException($"Unexpected navigation tag '{navigationTag}' when creating comic items.");
             }
 
-            var dict = new Dictionary<string, (string name, List<Comic> comics)>();
-
-            foreach (var comic in comics) {
-                var groupName = getGroupName(comic);
-                var groupKey = groupName.ToLowerInvariant();
-
-                if (!dict.ContainsKey(groupKey)) {
-                    dict[groupKey] = (groupName, new List<Comic> { comic });
-                } else {
-                    dict[groupKey].comics.Add(comic);
-                }
-            }
-
-            var sortedKeys = dict.Keys.ToList();
-            sortedKeys.Sort();
-
-            return sortedKeys.Select(key => navigationItem(dict[key].name, dict[key].comics));
-
-
-            ComicItem navigationItem(string name, List<Comic> comics) {
-                var item = ComicItem.NavigationItem(name, comics, trackChangesFrom);
-                item.RequestingRefresh += onRequestingRefresh;
-                return item;
-            }
-
-            IEnumerable<ComicItem> SortBeforeAndGroup(List<Comic> comics) {
-                var comicsWithSortName = comics.Select(comic => (sortName: getGroupName(comic).ToLowerInvariant(), comic)).ToList();
+            // we implement these helper functions here, so we don't have to copy trackChangesFrom and onRequestingRefresh over and over again.
+            IEnumerable<ComicItem> PresortAndGroup(List<Comic> comics, Func<Comic, string> getSortAndGroupName) {
+                var comicsWithSortName = comics.Select(comic => (sortName: getSortAndGroupName(comic).ToLowerInvariant(), comic)).ToList();
                 comicsWithSortName.Sort((a, b) => a.sortName.CompareTo(b.sortName));
 
                 var currentSortName = comicsWithSortName[0].sortName;
@@ -115,7 +104,7 @@ namespace ComicsViewer.Features {
 
                 foreach (var (sortName, comic) in comicsWithSortName.Skip(1)) {
                     if (sortName != currentSortName) {
-                        yield return navigationItem(getGroupName(currentGroup[0]), currentGroup);
+                        yield return navigationItem(getSortAndGroupName(currentGroup[0]), currentGroup);
 
                         currentSortName = sortName;
                         currentGroup = new List<Comic> { comic };
@@ -123,34 +112,38 @@ namespace ComicsViewer.Features {
                         currentGroup.Add(comic);
                     }
                 }
-
-                yield return navigationItem(getGroupName(currentGroup[0]), currentGroup);
             }
-        }
 
-        private static IEnumerable<ComicItem> SortAndGroupByMultiple(List<Comic> comics, Func<Comic, IEnumerable<string>> getGroupNames,
-            ViewModels.Pages.MainViewModel trackChangesFrom,
-            ComicItem.RequestingRefreshEventArgs onRequestingRefresh
-        ) {
-            // capitalizaton is ignored; the casing of the first item is used as the final returned result 
-            var dict = new Dictionary<string, (string name, List<Comic> comics)>();
+            IEnumerable<ComicItem> GroupAndSort(List<Comic> comics, Func<Comic, IEnumerable<string>> getSortAndGroupNames) {
+                var grouped = Group(comics, getSortAndGroupNames);
+                var sortedKeys = grouped.Keys.ToList();
+                sortedKeys.Sort();
 
-            foreach (var comic in comics) {
-                foreach (var groupName in getGroupNames(comic)) {
-                    var groupKey = groupName.ToLowerInvariant();
+                return sortedKeys.Select(key => navigationItem(grouped[key].name, grouped[key].comics));
+            }
 
-                    if (!dict.ContainsKey(groupKey)) {
-                        dict[groupKey] = (groupName, new List<Comic> { comic });
-                    } else {
-                        dict[groupKey].comics.Add(comic);
+            ComicItem navigationItem(string name, List<Comic> comics) {
+                var item = ComicItem.NavigationItem(name, comics, trackChangesFrom);
+                item.RequestingRefresh += onRequestingRefresh;
+                return item;
+            }
+
+            static Dictionary<string, (string name, List<Comic> comics)> Group(List<Comic> comics, Func<Comic, IEnumerable<string>> getGroupNames) {
+                var grouped = new Dictionary<string, (string name, List<Comic> comics)>();
+
+                foreach (var comic in comics) {
+                    foreach (var groupName in getGroupNames(comic)) {
+                        var groupKey = groupName.ToLowerInvariant();
+
+                        if (!grouped.ContainsKey(groupKey)) {
+                            grouped[groupKey] = (groupName, new List<Comic> { comic });
+                        } else {
+                            grouped[groupKey].comics.Add(comic);
+                        }
                     }
                 }
-            }
 
-            foreach (var pair in dict) {
-                var item = ComicItem.NavigationItem(pair.Value.name, pair.Value.comics, trackChangesFrom);
-                item.RequestingRefresh += onRequestingRefresh;
-                yield return item;
+                return grouped;
             }
         }
 
