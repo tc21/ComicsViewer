@@ -24,6 +24,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using WinRTXamlToolkit.Controls.Extensions;
 
 #nullable enable
 
@@ -31,6 +32,8 @@ namespace ComicsViewer.Pages {
     public sealed partial class ComicItemGrid : Page {
         public MainViewModel? MainViewModel => ViewModel?.MainViewModel;
         public ComicItemGridViewModel? ViewModel;
+
+        private ScrollViewer? VisibleComicsGridScrollViewer;
 
         public ComicItemGrid() {
             this.InitializeComponent();
@@ -527,7 +530,27 @@ namespace ComicsViewer.Pages {
         #endregion
 
         private void VisibleComicsGrid_Loaded(object sender, RoutedEventArgs e) {
+            // We have to access the scrollviewer programatically
+            this.VisibleComicsGridScrollViewer = this.VisibleComicsGrid.GetFirstDescendantOfType<ScrollViewer>();
+            if (this.VisibleComicsGridScrollViewer == null) {
+                throw new ApplicationLogicException("Could not retrieve VisibleComicsGrid ScrollViewer");
+            }
+
+            this.VisibleComicsGridScrollViewer.ViewChanged += this.VisibleComicsGridScrollViewer_ViewChanged;
+
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
+        }
+
+        private void VisibleComicsGridScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e) {
+            if (this.VisibleComicsGridScrollViewer == null) {
+                // impossible
+                return;
+            }
+
+            // we arbitrarily say 2000 pixels is close enough to the bottom.
+            if (this.VisibleComicsGridScrollViewer.ScrollableHeight - this.VisibleComicsGridScrollViewer.VerticalOffset < 2000) {
+                this.ViewModel?.RequestComicItems();
+            }
         }
     }
 }

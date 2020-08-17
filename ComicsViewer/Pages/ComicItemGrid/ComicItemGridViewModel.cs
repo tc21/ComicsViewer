@@ -38,10 +38,20 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* semi-manually managed properties */
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
-        internal void SetComicItems(IEnumerable<ComicItem> items) {
-            this.ComicItems.Clear();
+        private IEnumerable<ComicItem>? comicItemSource;
 
-            foreach (var item in items) {
+        private void SetComicItems(IEnumerable<ComicItem> items) {
+            this.ComicItems.Clear();
+            this.comicItemSource = items;
+            this.RequestComicItems();
+        }
+
+        public void RequestComicItems() {
+            if (this.comicItemSource == null) {
+                return;
+            }
+
+            foreach (var item in this.comicItemSource.Take(100)) {
                 this.ComicItems.Add(item);
             }
 
