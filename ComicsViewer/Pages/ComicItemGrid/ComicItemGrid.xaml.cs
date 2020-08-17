@@ -180,7 +180,7 @@ namespace ComicsViewer.Pages {
 
                 if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) is UIElement childElement &&
                     VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
-                    scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
+                    _ = scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
                 } else {
                     throw new ApplicationLogicException("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
                 }

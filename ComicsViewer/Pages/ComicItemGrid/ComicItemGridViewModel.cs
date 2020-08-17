@@ -56,13 +56,18 @@ namespace ComicsViewer.ViewModels.Pages {
         public int VisibleItemCount => this.ComicItems.Count;
 
         internal readonly MainViewModel MainViewModel;
-        private readonly ComicList? customComics;
-        private ComicList Comics => this.customComics ?? this.MainViewModel.Comics;
+
+        private List<Comic> loadedComics;
+        private readonly bool usingCustomComics;
+
+        //private readonly ComicList? customComics;
+        //private ComicList Comics => this.customComics ?? this.MainViewModel.Comics;
+
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         private readonly string navigationTag;
         // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
         // track of that order here
-        private Dictionary<string, int> randomSortSelectors;
+        //private Dictionary<string, int>? randomSortSelectors;
 
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
@@ -71,11 +76,14 @@ namespace ComicsViewer.ViewModels.Pages {
             Debug.WriteLine($"VM{debug_this_count} created");
 
             this.MainViewModel = appViewModel;
-
             this.navigationTag = appViewModel.ActiveNavigationTag;
 
             if (customComics is IEnumerable<Comic> comics) {
-                this.customComics = new ComicList(comics);
+                this.loadedComics = comics.ToList();
+                this.usingCustomComics = true;
+            } else {
+                this.loadedComics = appViewModel.Comics.ToList();
+                this.usingCustomComics = false;
             }
 
             // Note: please keep this line before setting SelectedSortIndex...
@@ -83,9 +91,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
             this.MainViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
             this.MainViewModel.ComicsModified += this.MainViewModel_ComicsModified;
-
-            var allComicItems = this.CreateComicItems(this.Comics, null, this.navigationTag);
-            this.randomSortSelectors = allComicItems.Select(item => item.Title).Distinct().ToDictionary(e => e, _ => 0);
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
 
@@ -114,67 +119,21 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         internal void RefreshComicItems() {
-            var comicItems = this.CreateComicItems(this.Comics, this.MainViewModel.Filter, this.navigationTag);
+            var comicItems = this.CreateSortedComicItems(this.loadedComics, (Sorting.SortSelector)this.SelectedSortIndex);
 
-            if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
-                // GetValueOrDefault is used here since items may have been added. to this.comics and we want the application to keep working
-                this.SetComicItems(comicItems.OrderBy(i => this.randomSortSelectors.GetValueOrDefault(i.Title, 0)).ToList());
-            } else {
-                this.SetComicItems(Sorting.Sorted(comicItems, (Sorting.SortSelector)this.SelectedSortIndex));
-            }
+            this.SetComicItems(comicItems);
         }
 
         #region Filtering and grouping
 
-        private IEnumerable<ComicItem> CreateComicItems(IEnumerable<Comic> comics, Filter? filter, string navigationTag) {
-            return navigationTag switch {
-                "default" => this.FilterAndGroupComicItems(comics, filter, null),
-                "comics" => this.FilterAndGroupComicItems(comics, filter, null),
-                "authors" => this.FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayAuthor }),
-                "categories" => this.FilterAndGroupComicItems(comics, filter, comic => new[] { comic.DisplayCategory }),
-                "tags" => this.FilterAndGroupComicItems(comics, filter, comic => comic.Tags),
-                _ => throw new ApplicationLogicException($"Invalid navigation tag '{navigationTag}' when creating comic items."),
-            };
-        }
-
-        private IEnumerable<ComicItem> FilterAndGroupComicItems(IEnumerable<Comic> comics, Filter? filter, Func<Comic, IEnumerable<string>>? groupBy) {
-            if (filter != null) {
-                comics = comics.Where(filter.ShouldBeVisible);
+        private  IEnumerable<ComicItem> CreateSortedComicItems(List<Comic> comics, Sorting.SortSelector sortSelector) {
+            if (this.MainViewModel.Filter != null) {
+                comics = comics.Where(this.MainViewModel.Filter.ShouldBeVisible).ToList();
             }
 
-            var comicItems = new List<ComicItem>();
-
-            if (groupBy == null) {
-                return comics.Select(comic => {
-                    var item = ComicItem.WorkItem(comic, trackChangesFrom: this.MainViewModel);
-                    item.RequestingRefresh += this.ComicItem_RequestingRefresh;
-                    return item;
-                });
-            } else {
-                return this.GroupByMultipleIgnoreCase(comics, groupBy);
-            }
-        }
-
-        private IEnumerable<ComicItem> GroupByMultipleIgnoreCase(IEnumerable<Comic> comics, Func<Comic, IEnumerable<string>> groupBy) {
-            /* when ignoring casing, we use the casing of the first item as the final returned result */
-            var dict = new Dictionary<string, (string name, List<Comic> comics)>();
-
-            foreach (var comic in comics) {
-                foreach (var groupName in groupBy(comic)) {
-                    var groupKey = groupName.ToLowerInvariant();
-                    if (!dict.ContainsKey(groupKey)) {
-                        dict[groupKey] = (groupName, new List<Comic>());
-                    }
-
-                    dict[groupKey].comics.Add(comic);
-                }
-            }
-
-            foreach (var pair in dict) {
-                var item = ComicItem.NavigationItem(pair.Value.name, pair.Value.comics, trackChangesFrom: this.MainViewModel);
-                item.RequestingRefresh += this.ComicItem_RequestingRefresh;
-                yield return item;
-            }
+            // although this method call can take a while, the program isn't in a useable state between the user choosing 
+            // a new sort selector and the sort finishing anyway
+            return Sorting.SortAndCreateComicItems(comics, sortSelector, this.navigationTag, this.MainViewModel, this.ComicItem_RequestingRefresh);
         }
 
         private void ComicItem_RequestingRefresh(ComicItem sender, ComicItem.RequestingRefreshType type) {
@@ -187,7 +146,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         break;
                     case ComicItem.RequestingRefreshType.Remove:
                         sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
-                        this.ComicItems.Remove(sender);
+                        _ = this.ComicItems.Remove(sender);
                         break;
                     default:
                         throw new ApplicationLogicException("Unhandled switch case");
@@ -312,9 +271,9 @@ namespace ComicsViewer.ViewModels.Pages {
                 case nameof(this.SelectedSortIndex):
                     Defaults.SettingsAccessor.SetLastSortSelection(this.navigationTag, this.SelectedSortIndex);
 
-                    if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
-                        this.randomSortSelectors = this.randomSortSelectors.Keys.ToDictionary(e => e, _ => App.Randomizer.Next());
-                    }
+                    //if ((Sorting.SortSelector)this.SelectedSortIndex == Sorting.SortSelector.Random) {
+                    //    this.randomSortSelectors = this.randomSortSelectors.Keys.ToDictionary(e => e, _ => App.Randomizer.Next());
+                    //}
 
                     this.RefreshComicItems();
                     break;
@@ -344,9 +303,13 @@ namespace ComicsViewer.ViewModels.Pages {
                         this.MainViewModel.NavigateOut();
                         return;
                     }
-
-                    foreach (var comic in e.ModifiedComics) {
-                        this.Comics.Add(comic);
+                       
+                    if (this.usingCustomComics) {
+                        foreach (var comic in e.ModifiedComics) {
+                            this.loadedComics.Add(comic);
+                        }
+                    } else {
+                        this.loadedComics = this.MainViewModel.Comics.ToList();
                     }
 
                     var newComicItems = e.ModifiedComics.Select(comic => {
