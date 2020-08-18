@@ -186,8 +186,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
-            } catch (FileNotFoundException) {
-                await ExpectedExceptions.FileNotFoundAsync();
+            } catch (FileNotFoundException e) {
+                await ExpectedExceptions.FileNotFoundAsync(e.FileName);
             }
         }
 

@@ -29,7 +29,7 @@ namespace ComicsViewer.Features {
         }
 
         public static async Task<bool> GenerateThumbnailAsync(Comic comic, UserProfile profile, bool replace = false) {
-            if (!(await TryGetThumbnailSourceAsync(comic, profile) is StorageFile imageFile)) {
+            if (!(await TryGetThumbnailSourceAsync(comic) is StorageFile imageFile)) {
                 return false;
             }
 
@@ -76,7 +76,7 @@ namespace ComicsViewer.Features {
             return await decoder.GetSoftwareBitmapAsync();
         }
 
-        private static async Task<StorageFile?> TryGetThumbnailSourceAsync(Comic comic, UserProfile profile) {
+        private static async Task<StorageFile?> TryGetThumbnailSourceAsync(Comic comic) {
             if (comic.ThumbnailSource is string path) {
                 try {
                     if (await StorageFile.GetFileFromPathAsync(path) is StorageFile file) {
@@ -84,6 +84,8 @@ namespace ComicsViewer.Features {
                     }
                 } catch (UnauthorizedAccessException) {
                     // weird shit happens with windows and file permissions. just ignore this
+                } catch (FileNotFoundException) {
+                    // we pretend the ThumbnailSource isn't set
                 }
             }
 

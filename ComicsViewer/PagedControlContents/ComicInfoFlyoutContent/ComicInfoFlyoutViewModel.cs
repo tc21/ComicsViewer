@@ -39,8 +39,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
-            } catch (FileNotFoundException) {
-                await ExpectedExceptions.FileNotFoundAsync();
+            } catch (FileNotFoundException e) {
+                await ExpectedExceptions.FileNotFoundAsync(e.FileName);
             }
 
             this.IsLoadingSubItems = false;

@@ -10,9 +10,12 @@ using Windows.UI.Popups;
 
 namespace ComicsViewer.Support {
     public static class ExpectedExceptions {
-        public static async Task FileNotFoundAsync() {
-            _ = await new MessageDialog(
-                "The application attempted to open a file, but it wasn't found.", "File not found").ShowAsync();
+        public static async Task FileNotFoundAsync(string? filename = null) {
+            var message = "The application attempted to open a file, but it wasn't found.";
+            if (filename != null) {
+                message += $" ({filename})";
+            }
+            _ = await new MessageDialog(message, "File not found").ShowAsync();
         }
 
         public static async Task UnauthorizedFileSystemAccessAsync() {
@@ -30,8 +33,8 @@ namespace ComicsViewer.Support {
                 case UnauthorizedAccessException _:
                     await UnauthorizedFileSystemAccessAsync();
                     return true;
-                case FileNotFoundException _:
-                    await UnauthorizedFileSystemAccessAsync();
+                case FileNotFoundException ef:
+                    await FileNotFoundAsync(ef.FileName);
                     return true;
                 default:
                     return await HandleIntendedBehaviorExceptionsAsync(e);
