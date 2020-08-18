@@ -276,15 +276,19 @@ namespace ComicsViewer.ViewModels.Pages {
                 _ = this.Tasks.Remove(task);
 
                 if (task.IsFaulted) {
+                    if (task.StoredException == null) {
+                        throw new ApplicationLogicException("A faulted task should have its StoredException property set!");
+                    }
+
                     if (exceptionHandler == null) {
                         // By default, let's notify the user of IntendedBehaviorExceptions (instead of crashing)
                         exceptionHandler = ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync;
                     }
 
-                    if (await exceptionHandler(task.StoredException!) == false) {
+                    if (await exceptionHandler(task.StoredException) == false) {
                         _ = await new MessageDialog(
-                            task.StoredException!.Message, 
-                            $"Unhandled {task.StoredException!} when running task {task.Name}"
+                            task.StoredException.ToString(),
+                            $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}"
                         ).ShowAsync();
                     }
                 }
