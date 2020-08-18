@@ -59,6 +59,7 @@ namespace ComicsViewer.ViewModels {
             this.OnPropertyChanged(nameof(this.Status));
         }
 
+        /// returns true if the task was canceled. returns false if the task was already faulted or completed.
         public bool Cancel() {
             if (this.task == null) {
                 throw new ArgumentException("Cannot cancel a task that hasn't been started");

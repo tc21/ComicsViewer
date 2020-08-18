@@ -20,8 +20,6 @@ namespace ComicsViewer.Support {
         }
 
         /* adding an item overwrites existing items. Call Add(replaceExisting: false) to not overwrite. */
-        public bool Add(Comic comic) => this.Add(comic, replaceExisting: true);
-
         public bool Add(Comic comic, bool replaceExisting = true) {
             if (!replaceExisting && this.Contains(comic)) {
                 return false;

@@ -62,7 +62,7 @@ namespace ComicsViewer.ViewModels.Pages {
             // Cancel tasks before switching
             if (this.IsTaskRunning) {
                 foreach (var item in this.taskNames.Keys.ToList()) {
-                    this.RequestCancelTask(item);
+                    _ = this.RequestCancelTask(item);
                 }
 
                 while (this.IsTaskRunning) {
@@ -272,8 +272,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var comicTask = new ComicTask(description, async (cc, p) => (await asyncAction(cc, p))!);
             comicTask.TaskCompleted += async (task, result)  => {
-                this.taskNames.Remove(tag);
-                this.Tasks.Remove(task);
+                _ = this.taskNames.Remove(tag);
+                _ = this.Tasks.Remove(task);
 
                 if (task.IsFaulted) {
                     if (exceptionHandler == null) {
@@ -310,7 +310,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var task = this.taskNames[tag];
-            task.Cancel();
+            _ = task.Cancel();
             return true;
         }
 
@@ -356,7 +356,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
                     await this.RemoveComicsAsync(this.Comics);
-                    await this.AddComicsAsync(result);
+                    _ = await this.AddComicsWithoutReplacingAsync(result);
                 }, 
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
@@ -370,7 +370,11 @@ namespace ComicsViewer.ViewModels.Pages {
                     await manager.AssignKnownMetadataAsync(result);
 
                     await this.RemoveComicsAsync(this.Comics.Where(comic => comic.Category == category.Name));
-                    await this.AddComicsAsync(result);
+
+                    var notAdded = await this.AddComicsWithoutReplacingAsync(result);
+                    if (notAdded.Count > 0) {
+                        await this.NotifyComicsNotAdded(notAdded);
+                    }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
@@ -383,9 +387,10 @@ namespace ComicsViewer.ViewModels.Pages {
                     var manager = await this.GetComicsManagerAsync();
                     await manager.AssignKnownMetadataAsync(result);
 
-                    /* this serves as a demo what you can pass anything into RemoveComics as long as the UniqueIdentifier matches */
-                    await this.RemoveComicsAsync(result.Where(this.Comics.Contains));
-                    await this.AddComicsAsync(result);
+                    var notAdded = await this.AddComicsWithoutReplacingAsync(result);
+                    if (notAdded.Count > 0) {
+                        await this.NotifyComicsNotAdded(notAdded);
+                    }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
@@ -399,17 +404,21 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        /* Example functions subject to change */
-        public async Task AddComicsAsync(IEnumerable<Comic> comics) {
+        /// <summary>
+        /// returns the list of comics that were not added, because they already exist. 
+        /// A successsful add where all comics were added would return an empty list.
+        /// </summary>
+        private async Task<List<Comic>> AddComicsWithoutReplacingAsync(IEnumerable<Comic> comics) {
             var added = new List<Comic>();
+            var duplicates = new List<Comic>();
 
             // we have to make a copy of comics, since the user might just pass this.comics (or more likely a query
             // based on it) to this function
             foreach (var comic in comics.ToList()) {
-                if (this.Comics.Add(comic)) {
+                if (this.Comics.Add(comic, replaceExisting: false)) {
                     added.Add(comic);
                 } else {
-                    // May have updated info? see also ComicList.Add
+                    duplicates.Add(comic);
                 }
             }
 
@@ -417,6 +426,18 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(added);
+
+            return duplicates;
+        }
+
+        private async Task NotifyComicsNotAdded(IEnumerable<Comic> comics) {
+            var message = "The following items were not added because they already exist:\n";
+
+            foreach (var comic in comics) {
+                message += $"\n{comic.UniqueIdentifier}";
+            }
+
+            _ = await new MessageDialog(message, "Warning: items not added").ShowAsync();
         }
 
         public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
