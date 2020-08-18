@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
@@ -103,7 +104,13 @@ namespace ComicsViewer.ViewModels.Pages {
                 return false;
             }
 
-            var comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.TitleComic.Path);
+            StorageFolder comicFolder;
+            try {
+                comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.TitleComic.Path);
+            } catch (FileNotFoundException) {
+                return false;
+            }
+
             var descriptionAdded = false;
 
             foreach (var descriptionSpecification in this.MainViewModel.Profile.ExternalDescriptions) {
