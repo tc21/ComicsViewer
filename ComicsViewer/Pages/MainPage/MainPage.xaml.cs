@@ -65,7 +65,7 @@ namespace ComicsViewer {
             await this.ViewModel.SetDefaultProfileAsync();
 
             // We're probably not supposed to directly access the filter but whatever
-            this.ViewModel.Filter.FilterChanged += this.Filter_FilterChanged;
+            this.ViewModel.Comics.Filter.FilterChanged += this.Filter_FilterChanged;
         }
 
         private void ViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
@@ -126,7 +126,7 @@ namespace ComicsViewer {
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
                         ViewModel = e.Tag switch {
-                            MainViewModel.SecondLevelNavigationTag => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics),
+                            MainViewModel.SecondLevelNavigationTag => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!),
                             _ => ComicItemGridViewModel.ForTopLevelNavigationTag(sender)
                         },
                         OnNavigatedTo = (grid, e) => this.activeContent = grid

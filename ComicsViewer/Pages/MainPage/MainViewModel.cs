@@ -24,7 +24,8 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
-        public ComicList Comics = new ComicList();
+        internal readonly MainComicList Comics = new MainComicList();
+        public ComicView ComicView => Comics.Filtered();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -86,9 +87,9 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
-            this.Comics = new ComicList(await manager.GetAllComicsAsync());
+            this.Comics.Refresh(await manager.GetAllComicsAsync());
 
-            this.Filter.Clear();
+            this.Comics.Filter.Clear();
 
             await this.RequestValidateAndRemoveComicsAsync();
         }
@@ -173,8 +174,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private void NavigateIntoComics(IEnumerable<Comic> comics) {
             var identifiers = comics.Select(item => item.UniqueIdentifier).ToHashSet();
-            this.Filter.GeneratedFilter = comic => identifiers.Contains(comic.UniqueIdentifier);
-            this.Filter.Metadata.GeneratedFilterItemCount = identifiers.Count;
+            this.Comics.Filter.GeneratedFilter = comic => identifiers.Contains(comic.UniqueIdentifier);
+            this.Comics.Filter.Metadata.GeneratedFilterItemCount = identifiers.Count;
         }
 
         public event NavigationRequestedEventHandler? NavigationRequested;
@@ -184,15 +185,15 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Search and filtering
 
-        internal readonly Filter Filter = new Filter();
+        //internal readonly Filter Filter = new Filter();
 
         // Called when a search is successfully compiled and submitted
         // Note: this happens at AppViewModel because filters are per-app
         public void SubmitSearch(Func<Comic, bool> search, string? searchText = null) {
-            this.Filter.Search = search;
+            this.Comics.Filter.Search = search;
 
             if (searchText != null) {
-                this.Filter.Metadata.SearchPhrase = searchText;
+                this.Comics.Filter.Metadata.SearchPhrase = searchText;
 
                 // Add this search to the recents list
                 if (searchText.Trim() != "") {
@@ -225,10 +226,10 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public FilterFlyoutNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
-            var info = this.GetAuxiliaryInfo(this.Filter);
+            var info = this.GetAuxiliaryInfo(this.Comics.Filter);
 
             return new FilterFlyoutNavigationArguments {
-                Filter = this.Filter,
+                Filter = this.Comics.Filter,
                 ParentViewModel = parentViewModel,
                 AuxiliaryInfo = info
             };
@@ -401,7 +402,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private async Task RequestValidateAndRemoveComicsAsync() {
-            await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count} comics...",
+            await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count()} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComics(this.Comics, this.Profile, checkFiles: false, cc, p),
                 async result => await this.RemoveComicsAsync(result),
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -419,14 +420,14 @@ namespace ComicsViewer.ViewModels.Pages {
             // we have to make a copy of comics, since the user might just pass this.comics (or more likely a query
             // based on it) to this function
             foreach (var comic in comics.ToList()) {
-                if (this.Comics.Add(comic, replaceExisting: false)) {
+                if (!this.Comics.Contains(comic)) {
                     added.Add(comic);
                 } else {
                     duplicates.Add(comic);
                 }
             }
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsAdded, added, true));
+            this.Comics.Add(added);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(added);
@@ -448,12 +449,12 @@ namespace ComicsViewer.ViewModels.Pages {
             var removed = new List<Comic>();
 
             foreach (var comic in comics.ToList()) {
-                if (this.Comics.Remove(comic)) {
+                if (this.Comics.Contains(comic)) {
                     removed.Add(comic);
                 }
             }
 
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsRemoved, removed, false));
+            this.Comics.Remove(removed);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsAsync(removed);
@@ -461,14 +462,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
         public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics, bool thumbnailChanged = false) {
+            this.Comics.NotifyModification(comics);
+
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);
-
-            this.ComicsModified(this, new ComicsModifiedEventArgs(ComicModificationType.ItemsChanged, comics, thumbnailChanged));
         }
-
-        public event ComicsModifiedEventHandler ComicsModified = delegate { };
-        public delegate void ComicsModifiedEventHandler(MainViewModel sender, ComicsModifiedEventArgs e);
 
         #endregion
     }
@@ -493,25 +491,5 @@ namespace ComicsViewer.ViewModels.Pages {
 
     public enum NavigationType {
         Back, New, Scroll
-    }
-
-    public class ComicsModifiedEventArgs {
-        public ComicModificationType ModificationType { get; }
-        public ComicList ModifiedComics { get; }
-        // Currently, this is mainly used to signal a thumbnail change
-        public bool ShouldReloadComics { get; }
-
-        public ComicsModifiedEventArgs(ComicModificationType modificationType, IEnumerable<Comic> modifiedComics, bool shouldReloadComics) {
-            this.ModificationType = modificationType;
-            this.ModifiedComics = new ComicList(modifiedComics);
-            this.ShouldReloadComics = shouldReloadComics;
-        }
-    }
-
-    public enum ComicModificationType {
-        ItemsAdded, ItemsRemoved,
-        ItemsChanged // specifically for metadata changes
-        // Refresh: handled by MainViewModel: there's nothing subviews can do anyway
-        // Note: if we implement the feature to combine multiple works into one, we will need more complicated behavior
     }
 }

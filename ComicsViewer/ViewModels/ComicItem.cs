@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
@@ -46,18 +47,18 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        private ComicItem(string title, ComicItemType itemType, List<Comic> comics, MainViewModel? trackChangesFrom) {
+        private ComicItem(string title, ComicItemType itemType, List<Comic> comics, ComicView? trackChangesFrom) {
             this.Title = title;
             this.ItemType = itemType;
             this.Comics = comics;
             this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
 
-            if (trackChangesFrom is MainViewModel viewModel) {
-                viewModel.ComicsModified += this.MainViewModel_ComicsModified;
+            if (trackChangesFrom is ComicView view) {
+                view.ComicChanged += this.View_ComicChanged;
             }
         }
 
-        public static ComicItem WorkItem(Comic comic, MainViewModel? trackChangesFrom) {
+        public static ComicItem WorkItem(Comic comic, ComicView? trackChangesFrom) {
             return new ComicItem(
                 comic.DisplayTitle,
                 ComicItemType.Work,
@@ -66,7 +67,7 @@ namespace ComicsViewer.ViewModels {
             );
         }
 
-        public static ComicItem NavigationItem(string name, IEnumerable<Comic> comics, MainViewModel? trackChangesFrom) {
+        public static ComicItem NavigationItem(string name, IEnumerable<Comic> comics, ComicView? trackChangesFrom) {
             if (comics.Count() == 0) {
                 throw new ApplicationLogicException("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
             }
@@ -79,54 +80,54 @@ namespace ComicsViewer.ViewModels {
             ); ;
         }
 
-        private void MainViewModel_ComicsModified(MainViewModel sender, ComicsModifiedEventArgs e) {
-            switch (e.ModificationType) {
-                case ComicModificationType.ItemsAdded:
+        private void View_ComicChanged(ComicView sender, ComicChangedEventArgs args) {
+            switch (args.Type) {
+                case ComicChangedType.Add:
                     /* We don't need to worry about this since adding items means creating new work items or updating
                      * nav items, but adding comics trigger a nav page reload. This may change the in the future */
                     return;
 
-                case ComicModificationType.ItemsChanged:
+                case ComicChangedType.Modified:
                     if (this.ItemType == ComicItemType.Navigation) {
                         /* Since (1) we cannot modify display author and category, we don't need to worry about updating 
                          * navigation comic items. This will not always be the case. */
                         return;
                     }
 
-                    if (e.ModifiedComics.Contains(this.TitleComic)) {
-                        var comic = e.ModifiedComics.GetStoredComic(this.TitleComic);
+                    // must be work item
+                    var match = args.Comics!.Where(comic => comic.UniqueIdentifier == this.TitleComic.UniqueIdentifier)
+                                            .FirstOrDefault();
 
-                        if (comic != this.TitleComic) {
-                            this.Comics.Clear();
-                            this.Comics.Add(comic);
-                        }
-
-                        this.Title = this.TitleComic.DisplayTitle;
-                        this.OnPropertyChanged("");
-
-                        if (e.ShouldReloadComics) {
-                            this.RequestingRefresh(this, RequestingRefreshType.Reload);
-                        }
+                    if (match == null) {
+                        return;
                     }
+
+                    if (match != this.TitleComic) {
+                        this.Comics.Clear();
+                        this.Comics.Add(match);
+                    }
+
+                    this.Title = this.TitleComic.DisplayTitle;
+                    this.OnPropertyChanged("");
 
                     return;
 
-                case ComicModificationType.ItemsRemoved:
+                case ComicChangedType.Remove:
                     var removalList = new List<Comic>();
 
                     foreach (var comic in this.Comics) {
-                        if (e.ModifiedComics.Contains(comic)) {
+                        if (args.Comics!.Contains(comic)) {
                             removalList.Add(comic);
                         }
                     }
 
                     foreach (var comic in removalList) {
-                        this.Comics.Remove(comic);
+                        _ = this.Comics.Remove(comic);
                     }
 
                     if (this.Comics.Count == 0) {
                         // Remove this ComicItem
-                        sender.ComicsModified -= this.MainViewModel_ComicsModified;
+                        sender.ComicChanged -= this.View_ComicChanged;
                         this.RequestingRefresh(this, RequestingRefreshType.Remove);
                     } else {
                         this.OnPropertyChanged("");
@@ -134,8 +135,12 @@ namespace ComicsViewer.ViewModels {
 
                     return;
 
+                case ComicChangedType.Refresh:
+                    // the parent will have call refresh, so we don't need to do anything.
+                    return;
+
                 default:
-                    throw new ApplicationLogicException("Unhandled switch case");
+                    throw new ApplicationLogicException($"{nameof(View_ComicChanged)}: unhandled switch case");
             }
         }
 

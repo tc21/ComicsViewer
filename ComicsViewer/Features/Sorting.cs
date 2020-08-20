@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace ComicsViewer.Features {
         // does not allow us to do so. Note: will sort the parameter comics in place.
         public static IEnumerable<ComicItem> SortAndCreateComicItems(
             List<Comic> comics, SortSelector sortSelector, string navigationTag, 
-            ViewModels.Pages.MainViewModel trackChangesFrom, 
+            ComicView trackChangesFrom, 
             ComicItem.RequestingRefreshEventArgs onRequestingRefresh
         ) {
             if (comics.Count == 0) {
@@ -27,28 +28,7 @@ namespace ComicsViewer.Features {
 
             if (navigationTag == ViewModels.Pages.MainViewModel.DefaultNavigationTag ||
                     navigationTag == ViewModels.Pages.MainViewModel.SecondLevelNavigationTag) {
-                // this means we are only showing work items in this page, which allows us to take a different set of shortcuts.
-                switch (sortSelector) {
-                    case SortSelector.Title:
-                        comics.Sort(CompareComicTitle);
-                        break;
-                    case SortSelector.ItemCount:  // item count is useless for work items
-                    case SortSelector.Author:
-                        comics.Sort(CompareComicAuthorThenTitle);
-                        break;
-                    case SortSelector.DateAdded:
-                        comics.Sort(CompareComicDateAddedThenAuthorAndTitle);
-                        break;
-                    case SortSelector.Random:
-                        Shuffle(comics);
-                        break;
-                }
-
-                return comics.Select(comic => {
-                    var item = ComicItem.WorkItem(comic, trackChangesFrom);
-                    item.RequestingRefresh += onRequestingRefresh;
-                    return item;
-                });
+                throw new ApplicationLogicException("Deprecated feature");
             }
 
             // only nav items
@@ -114,6 +94,7 @@ namespace ComicsViewer.Features {
                 }
             }
 
+
             IEnumerable<ComicItem> GroupAndSort(List<Comic> comics, Func<Comic, IEnumerable<string>> getSortAndGroupNames) {
                 var grouped = Group(comics, getSortAndGroupNames);
                 var sortedKeys = grouped.Keys.ToList();
@@ -147,32 +128,9 @@ namespace ComicsViewer.Features {
             }
         }
 
-        private static int CompareComicTitle(Comic a, Comic b) {
-            return a.DisplayTitle.CompareTo(b.DisplayTitle);
-        }
-
-        private static int CompareComicAuthorThenTitle(Comic a, Comic b) {
-            var result = a.DisplayAuthor.CompareTo(b.DisplayAuthor);
-            if (result != 0) {
-                return result;
-            }
-
-            return CompareComicTitle(a, b);
-        }
-
-        private static int CompareComicDateAddedThenAuthorAndTitle(Comic a, Comic b) {
-            var result = a.DateAdded.CompareTo(b.DateAdded);
-            if (result != 0) {
-                // note: this minus sign is intentional
-                return -result;
-            }
-
-            return CompareComicAuthorThenTitle(a, b);
-        }
-
         // Of course, there's no way to shuffle a list without generating all values.
         // Again, shuffles in place.
-        private static void Shuffle<T>(List<T> list) {
+        public static void Shuffle<T>(List<T> list) {
             // Fisher-Yates
             for (var i = list.Count - 1; i > 0; i--) {
                 var random = App.Randomizer.Next(i + 1);

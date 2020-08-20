@@ -127,6 +127,7 @@
     <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
     <Compile Include="Features\ExternalDescriptions.cs" />
     <Compile Include="Features\Filter.cs" />
+    <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Support\FileApiInterop.cs" />
     <Compile Include="Support\IntendedBehaviorException.cs" />
@@ -184,7 +185,6 @@
     <Compile Include="Features\Startup.cs" />
     <Compile Include="Features\UserProfile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Support\ComicList.cs" />
     <Compile Include="Controls\IPagedControl.cs" />
     <Compile Include="Controls\ExpandableChecklist.xaml.cs">
       <DependentUpon>ExpandableChecklist.xaml</DependentUpon>
