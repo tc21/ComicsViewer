@@ -24,12 +24,7 @@
 
                     <Border Grid.Row="0">
                         <Grid>
-                            <Image x:Name="ComicItemThumbnail">
-                                <Image.Source>
-                                    <BitmapImage UriSource="{x:Bind ThumbnailPath, Mode=OneWay}"
-                                             CreateOptions="IgnoreImageCache"/>
-                                </Image.Source>
-                            </Image>
+                            <Image x:Name="ComicItemThumbnail" Source="{x:Bind ThumbnailImage, Mode=OneWay}" />
 
                             <Grid Visibility="{x:Bind IsLoved, Mode=OneWay}">
                                 <Polygon Points="0,0 40,40 0,40" Fill="#EF386A" VerticalAlignment="Bottom" HorizontalAlignment="Left" />

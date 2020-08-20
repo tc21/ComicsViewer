@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
@@ -36,7 +38,7 @@ namespace ComicsViewer.ViewModels {
         };
 
         /* manually managed so it can be refreshed */
-        public string ThumbnailPath { get; private set; }
+        public BitmapImage ThumbnailImage { get; private set; }
 
         public Comic TitleComic {
             get {
@@ -51,7 +53,7 @@ namespace ComicsViewer.ViewModels {
             this.Title = title;
             this.ItemType = itemType;
             this.Comics = comics;
-            this.ThumbnailPath = Thumbnail.ThumbnailPath(this.TitleComic);
+            this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(this.TitleComic)) };
 
             if (trackChangesFrom is ComicView view) {
                 view.ComicChanged += this.View_ComicChanged;
@@ -80,7 +82,7 @@ namespace ComicsViewer.ViewModels {
             ); ;
         }
 
-        private void View_ComicChanged(ComicView sender, ComicChangedEventArgs args) {
+        private async void View_ComicChanged(ComicView sender, ComicChangedEventArgs args) {
             switch (args.Type) {
                 case ComicChangedType.Add:
                     /* We don't need to worry about this since adding items means creating new work items or updating
@@ -136,7 +138,22 @@ namespace ComicsViewer.ViewModels {
                     return;
 
                 case ComicChangedType.Refresh:
-                    // the parent will have call refresh, so we don't need to do anything.
+                    // the parent will have called refresh, so we don't need to do anything.
+                    return;
+
+                case ComicChangedType.ReloadThumbnail:
+                    if (args.Comics!.Contains(this.TitleComic)) {
+                        var image = new BitmapImage();
+                        var thumbnailFile = await StorageFile.GetFileFromPathAsync(Thumbnail.ThumbnailPath(this.TitleComic));
+
+                        using (var stream = await thumbnailFile.OpenReadAsync()) {
+                            await image.SetSourceAsync(stream);
+                        }
+
+                        this.ThumbnailImage = image;
+                        this.OnPropertyChanged(nameof(this.ThumbnailImage));
+                    }
+
                     return;
 
                 default:

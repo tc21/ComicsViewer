@@ -217,7 +217,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 if (success) {
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                         Windows.UI.Core.CoreDispatcherPriority.Normal,
-                        async () => await this.MainViewModel.NotifyComicsChangedAsync(new[] { item.TitleComic }, thumbnailChanged: true));
+                        () => this.MainViewModel.NotifyThumbnailChanged(item.TitleComic)
+                    );
                 }
 
                 if (cc.IsCancellationRequested) {
@@ -248,7 +249,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
             if (success) {
-                await this.MainViewModel.NotifyComicsChangedAsync(new[] { comicItem.TitleComic }, thumbnailChanged: true);
+                this.MainViewModel.NotifyThumbnailChanged(comicItem.TitleComic);
             } else {
                 comicItem.TitleComic.Metadata.ThumbnailSource = cached;
             }
@@ -352,6 +353,8 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
                 case ComicChangedType.Refresh:
                     this.RefreshComicItems();
+                    break;
+                case ComicChangedType.ReloadThumbnail:
                     break;
                 default:
                     throw new ApplicationLogicException($"{nameof(Comics_ComicChanged)}: unhandled switch case");

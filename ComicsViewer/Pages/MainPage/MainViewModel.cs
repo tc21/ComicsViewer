@@ -461,11 +461,15 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
-        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics, bool thumbnailChanged = false) {
+        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics) {
             this.Comics.NotifyModification(comics);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);
+        }
+
+        public void NotifyThumbnailChanged(Comic comic) {
+            this.Comics.NotifyThumbnailChanged(new[] { comic });
         }
 
         #endregion

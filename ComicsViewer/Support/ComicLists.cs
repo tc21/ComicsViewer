@@ -58,6 +58,11 @@ namespace ComicsViewer.Support {
             this.OnComicChanged(this, new ComicChangedEventArgs(ComicChangedType.Modified, comics));
         }
 
+        // another method purely for the purpose of UI
+        public void NotifyThumbnailChanged(IEnumerable<Comic> comics) {
+            this.OnComicChanged(this, new ComicChangedEventArgs(ComicChangedType.ReloadThumbnail, comics));
+        }
+
         public void Refresh(IEnumerable<Comic> comics) {
             this.RefreshComics(comics);
             this.OnComicChanged(this, new ComicChangedEventArgs(ComicChangedType.Refresh));
@@ -139,6 +144,7 @@ namespace ComicsViewer.Support {
                 case ComicChangedType.Add:
                 case ComicChangedType.Remove:
                 case ComicChangedType.Modified:
+                case ComicChangedType.ReloadThumbnail:
                     propagateAfterFiltering(args);
                     break;
                 case ComicChangedType.Refresh:
@@ -197,6 +203,8 @@ namespace ComicsViewer.Support {
                     break;
                 case ComicChangedType.Refresh:
                     this.RefreshComics(sender);
+                    break;
+                case ComicChangedType.ReloadThumbnail:
                     break;
                 default:
                     throw new ApplicationLogicException($"{nameof(MutableComicCollection)}.{nameof(TrackChangesFrom_ComicChanged)}: unhandled switch case");
@@ -373,6 +381,6 @@ namespace ComicsViewer.Support {
     }
 
     public enum ComicChangedType {
-        Add, Remove, Modified, Refresh
+        Add, Remove, Modified, ReloadThumbnail, Refresh
     }
 }

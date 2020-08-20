@@ -21,12 +21,7 @@
                         AllowDrop="True"
                         DragEnter="ThumbnailBorder_DragEnter"
                         Drop="ThumbnailBorder_Drop">
-                    <Image Grid.Row="1">
-                        <Image.Source>
-                            <BitmapImage UriSource="{x:Bind ViewModel.Item.ThumbnailPath, Mode=OneWay}"
-                                         CreateOptions="IgnoreImageCache"/>
-                        </Image.Source>
-                    </Image>
+                    <Image Grid.Row="1" Source="{x:Bind ViewModel.Item.ThumbnailImage, Mode=OneWay}" />
                 </Border>
             </StackPanel>
 
