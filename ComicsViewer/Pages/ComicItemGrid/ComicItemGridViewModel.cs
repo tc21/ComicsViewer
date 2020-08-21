@@ -110,7 +110,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 Sorting.SortSelector.DateAdded => ComicSortSelector.DateAdded,
                 Sorting.SortSelector.ItemCount => ComicSortSelector.Author,
                 Sorting.SortSelector.Random => ComicSortSelector.Random,
-                _ => throw new ApplicationLogicException($"{nameof(GetWorkItemSortSelector)}: unhandled switch case"),
+                _ => throw new ProgrammerError($"{nameof(GetWorkItemSortSelector)}: unhandled switch case"),
             };
         }
 
@@ -121,7 +121,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 Sorting.SortSelector.DateAdded => ComicPropertySortSelector.Name,
                 Sorting.SortSelector.ItemCount => ComicPropertySortSelector.ItemCount,
                 Sorting.SortSelector.Random => ComicPropertySortSelector.Random,
-                _ => throw new ApplicationLogicException($"{nameof(GetNavItemSortSelector)}: unhandled switch case"),
+                _ => throw new ProgrammerError($"{nameof(GetNavItemSortSelector)}: unhandled switch case"),
             };
         }
 
@@ -131,7 +131,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {
             if (appViewModel.ActiveNavigationTag == MainViewModel.SecondLevelNavigationTag) {
-                throw new ApplicationLogicException($"ForTopLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
+                throw new ProgrammerError($"ForTopLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
             return new ComicItemGridViewModel(appViewModel, appViewModel.ComicView);
@@ -139,25 +139,27 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
             if (appViewModel.ActiveNavigationTag != MainViewModel.SecondLevelNavigationTag) {
-                throw new ApplicationLogicException($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
+                throw new ProgrammerError($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
             return new ComicItemGridViewModel(appViewModel, comics);
         }
 
         internal void RefreshComicItems() {
-            // TODO
             var comicItems = this.CreateComicItems(this.comics, (Sorting.SortSelector)this.SelectedSortIndex);
-
             this.SetComicItems(comicItems);
         }
 
         #region Filtering and grouping
 
+        private static bool IsWorkItemNavigationTag(string navigationTag) {
+            return (navigationTag == MainViewModel.DefaultNavigationTag || navigationTag == MainViewModel.SecondLevelNavigationTag);
+        }
+
         private  IEnumerable<ComicItem> CreateComicItems(ComicView comics, Sorting.SortSelector sortSelector) {
             // although this method call can take a while, the program isn't in a useable state between the user choosing 
             // a new sort selector and the sort finishing anyway
-            if (this.navigationTag == MainViewModel.DefaultNavigationTag || this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+            if (IsWorkItemNavigationTag(this.navigationTag)) {
                 return comics.Select(comic => {
                     var item = ComicItem.WorkItem(comic, trackChangesFrom: this.comics);
                     item.RequestingRefresh += this.ComicItem_RequestingRefresh;
@@ -170,7 +172,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     "authors" => comic => new[] { comic.DisplayAuthor },
                     "categories" => comic => new[] { comic.DisplayCategory },
                     "tags" => comic => comic.Tags,
-                    _ => throw new ApplicationLogicException("unhandled switch case")
+                    _ => throw new ProgrammerError("unhandled switch case")
                 },
                 this.GetNavItemSortSelector(sortSelector)
             );
@@ -195,7 +197,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         _ = this.ComicItems.Remove(sender);
                         break;
                     default:
-                        throw new ApplicationLogicException("Unhandled switch case");
+                        throw new ProgrammerError("Unhandled switch case");
                 }
             }
         }
@@ -207,7 +209,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
             if (items.First().ItemType == ComicItemType.Navigation) {
                 if (items.Count() != 1) {
-                    throw new ApplicationLogicException("Should not allow the user to open multiple navigation" +
+                    throw new ProgrammerError("Should not allow the user to open multiple navigation" +
                                                         " items at once (use the search into feature instead)");
                 }
 
@@ -263,7 +265,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task TryRedefineThumbnailAsync(ComicItem comicItem, StorageFile file) {
             if (comicItem.ItemType != ComicItemType.Work) {
-                throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
+                throw new ProgrammerError("Custom thumbnails for groupped items is not supported.");
             }
 
             var comic = comicItem.TitleComic.WithUpdatedMetadata(metadata => {
@@ -280,7 +282,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task TryRedefineThumbnailFromFilePickerAsync(ComicItem comicItem) {
             if (comicItem.ItemType != ComicItemType.Work) {
-                throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
+                throw new ProgrammerError("Custom thumbnails for groupped items is not supported.");
             }
 
             var picker = new FileOpenPicker {
@@ -340,8 +342,7 @@ namespace ComicsViewer.ViewModels.Pages {
                      * reversed the previous behavior of navigating out due to it being bad UX but the current 
                      * behavior is technically incorrect. */
 
-                    if (!(this.navigationTag == MainViewModel.DefaultNavigationTag
-                            || this.navigationTag == MainViewModel.SecondLevelNavigationTag)) {
+                    if (!IsWorkItemNavigationTag(this.navigationTag)) {
                         this.RefreshComicItems();
                         break;
                     }
@@ -372,7 +373,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
 
                 default:
-                    throw new ApplicationLogicException($"{nameof(Comics_ComicsChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(Comics_ComicsChanged)}: unhandled switch case");
             }
         }
 

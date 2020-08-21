@@ -47,7 +47,7 @@ namespace ComicsViewer.Features {
 
         public static async Task<UserProfile> LoadProfileAsync(string name) {
             if (!LoadedProfiles.Contains(name)) {
-                throw new ApplicationLogicException($"Profile '{name}' is not in the list of loaded profiles");
+                throw new ProgrammerError($"Profile '{name}' is not in the list of loaded profiles");
             }
 
             var profileFolder = await Defaults.GetProfileFolderAsync();

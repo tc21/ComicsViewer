@@ -55,7 +55,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task SetProfileAsync(string newProfileName) {
             if (!ProfileManager.LoadedProfiles.Contains(newProfileName)) {
-                throw new ApplicationLogicException("The application should not allow the user to switch to a non-existent profile.");
+                throw new ProgrammerError("The application should not allow the user to switch to a non-existent profile.");
             }
 
             this.IsLoadingProfile = true;
@@ -84,7 +84,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private async void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             if (e.NewProile != this.Profile) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
@@ -280,7 +280,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 if (task.IsFaulted) {
                     if (task.StoredException == null) {
-                        throw new ApplicationLogicException("A faulted task should have its StoredException property set!");
+                        throw new ProgrammerError("A faulted task should have its StoredException property set!");
                     }
 
                     if (exceptionHandler == null) {

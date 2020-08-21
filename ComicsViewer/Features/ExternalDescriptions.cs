@@ -23,7 +23,7 @@ namespace ComicsViewer.Features {
                     var content = this.FileType switch {
                         ExternalFileType.FileName => file.Name,
                         ExternalFileType.Content => await ReadFileToEnd(file),
-                        _ => throw new ApplicationLogicException("Unhandled switch case")
+                        _ => throw new ProgrammerError("Unhandled switch case")
                     };
 
                     var filteredContent = this.Filter.FilterType switch {

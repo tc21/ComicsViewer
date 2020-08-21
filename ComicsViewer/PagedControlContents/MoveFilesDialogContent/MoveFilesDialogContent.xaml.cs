@@ -57,7 +57,7 @@ namespace ComicsViewer.Pages {
 
         private void MoveComicsButton_Click(object sender, RoutedEventArgs e) {
             if (!(this.CategoryComboBox.SelectedItem is NamedPath category)) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             _ = this.MainViewModel!.StartUniqueTaskAsync(

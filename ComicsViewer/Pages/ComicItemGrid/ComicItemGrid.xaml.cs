@@ -81,7 +81,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (!(sender is GridView)) {
-                throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
+                throw new ProgrammerError("Only ComicItemGrid should be able to call this event handler");
             }
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
@@ -147,7 +147,7 @@ namespace ComicsViewer.Pages {
         // Prepares the grid before the right click context menu is shown
         private void VisibleComicsGrid_RightTapped(object sender, RightTappedRoutedEventArgs e) {
             if (!(sender is GridView grid)) {
-                throw new ApplicationLogicException("Only ComicItemGrid should be able to call this event handler");
+                throw new ProgrammerError("Only ComicItemGrid should be able to call this event handler");
             }
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
@@ -185,7 +185,7 @@ namespace ComicsViewer.Pages {
                     VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
                     _ = scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
                 } else {
-                    throw new ApplicationLogicException("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
+                    throw new ProgrammerError("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
                 }
             }
         }
@@ -199,11 +199,11 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicItemGridNavigationArguments args)) {
-                throw new ApplicationLogicException("A ComicItemGrid must receive a ComicItemGridNavigationArguments as its parameter.");
+                throw new ProgrammerError("A ComicItemGrid must receive a ComicItemGridNavigationArguments as its parameter.");
             }
 
             if (args.ViewModel == null) {
-                throw new ApplicationLogicException("A ComicItemGrid must received a viewmodel in its navigation arguments");
+                throw new ProgrammerError("A ComicItemGrid must received a viewmodel in its navigation arguments");
             }
 
             if (e.NavigationMode == NavigationMode.New) {
@@ -382,7 +382,7 @@ namespace ComicsViewer.Pages {
 
         private void ComicItemGridContextFlyout_Opening(object sender, object e) {
             if (!(sender is MenuFlyout)) {
-                throw new ApplicationLogicException("Only MenuFlyout should be allowed to call this handler");
+                throw new ProgrammerError("Only MenuFlyout should be allowed to call this handler");
             }
 
             // you can right click on empty space, but we don't want anything to happen
@@ -427,7 +427,7 @@ namespace ComicsViewer.Pages {
                 "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
                              (count == 1 ? "" : " " + count.PluralString("comic")),
                 "searchAuthor" => $"Show all items by {ComicItems().First().TitleComic.DisplayAuthor}",
-                _ => throw new ApplicationLogicException($"Unhandled tag name for flyout item: '{tag}'")
+                _ => throw new ProgrammerError($"Unhandled tag name for flyout item: '{tag}'")
             };
         }
 
@@ -533,7 +533,7 @@ namespace ComicsViewer.Pages {
             // We have to access the scrollviewer programatically
             this.VisibleComicsGridScrollViewer = this.VisibleComicsGrid.GetFirstDescendantOfType<ScrollViewer>();
             if (this.VisibleComicsGridScrollViewer == null) {
-                throw new ApplicationLogicException("Could not retrieve VisibleComicsGrid ScrollViewer");
+                throw new ProgrammerError("Could not retrieve VisibleComicsGrid ScrollViewer");
             }
 
             this.VisibleComicsGridScrollViewer.ViewChanged += this.VisibleComicsGridScrollViewer_ViewChanged;

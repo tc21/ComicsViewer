@@ -24,7 +24,7 @@ namespace ComicsViewer.XamlHelpers {
 
         private static void OnVisibilityToEnabledChanged(object sender, DependencyPropertyChangedEventArgs args) {
             if (!(sender is Control control)) {
-                throw new ApplicationLogicException("This binding is not valid except on controls");
+                throw new ProgrammerError("This binding is not valid except on controls");
             }
 
             if ((bool)args.NewValue) {

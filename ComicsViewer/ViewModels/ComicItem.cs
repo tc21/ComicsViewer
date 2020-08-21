@@ -26,7 +26,7 @@ namespace ComicsViewer.ViewModels {
         public string Subtitle => this.ItemType switch {
             ComicItemType.Work => this.TitleComic.DisplayAuthor,
             ComicItemType.Navigation => this.Comics.Count().PluralString("Item"),
-            _ => throw new ApplicationLogicException()
+            _ => throw new ProgrammerError()
         };
 
         public bool IsLoved => this.ItemType switch {
@@ -45,7 +45,7 @@ namespace ComicsViewer.ViewModels {
         public Comic TitleComic {
             get {
                 if (this.Comics.Count == 0) {
-                    throw new ApplicationLogicException("ComicItem.TitleComic: ComicItem does not contain comics");
+                    throw new ProgrammerError("ComicItem.TitleComic: ComicItem does not contain comics");
                 }
                 return this.Comics[0];
             }
@@ -71,7 +71,7 @@ namespace ComicsViewer.ViewModels {
 
         public static ComicItem NavigationItem(string name, IEnumerable<Comic> comics, ComicView trackChangesFrom) {
             if (comics.Count() == 0) {
-                throw new ApplicationLogicException("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
+                throw new ProgrammerError("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
             }
 
             return new ComicItem(
@@ -158,7 +158,7 @@ namespace ComicsViewer.ViewModels {
                     return;
 
                 default:
-                    throw new ApplicationLogicException($"{nameof(View_ComicsChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(View_ComicsChanged)}: unhandled switch case");
             }
         }
 

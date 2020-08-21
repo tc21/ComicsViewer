@@ -64,7 +64,7 @@ namespace ComicsViewer.Support {
             UserProfile profile, NamedPath category, CancellationToken cc, IProgress<int>? progress = null
         ) {
             if (!profile.RootPaths.Contains(category)) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             var result = new List<Comic>();

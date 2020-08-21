@@ -196,7 +196,7 @@
     <Compile Include="Support\DeferredNotify.cs" />
     <Compile Include="Support\ComicsLoader.cs" />
     <Compile Include="Features\Search.cs" />
-    <Compile Include="Support\ApplicationLogicException.cs" />
+    <Compile Include="Support\ProgrammerError.cs" />
     <Compile Include="Features\Thumbnail.cs" />
     <Compile Include="ViewModels\ComicItem.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />

@@ -100,7 +100,7 @@ namespace ComicsViewer {
             switch (e.NavigationType) {
                 case NavigationType.Back:
                     if (e.Tag == null) {
-                        throw new ApplicationLogicException("Navigating with NavigationType.Back must be accompanied with a target tag type");
+                        throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target tag type");
                     }
 
                     if (!this.ContentFrame.CanGoBack) {
@@ -121,7 +121,7 @@ namespace ComicsViewer {
                     break;
                 case NavigationType.New:
                     if (e.PageType == null || (e.Tag == MainViewModel.SecondLevelNavigationTag && e.Comics == null)) {
-                        throw new ApplicationLogicException("Navigating with NavigationType.Back must be accompanied with a target PageType and Comic list");
+                        throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target PageType and Comic list");
                     }
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
@@ -140,7 +140,7 @@ namespace ComicsViewer {
                         (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
                     break;
                 default:
-                    throw new ApplicationLogicException($"Unhandled NavigationType '{e.NavigationType}'.");
+                    throw new ProgrammerError($"Unhandled NavigationType '{e.NavigationType}'.");
             }
 
         }

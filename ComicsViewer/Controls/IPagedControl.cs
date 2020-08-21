@@ -58,11 +58,11 @@ namespace ComicsViewer.Controls {
     public static class PagedControlNavigationHelper {
         public static void Navigate(IPagedControl container, Type pageType, object parameter) {
             if (!typeof(IPagedControlContent).IsAssignableFrom(pageType)) {
-                throw new ApplicationLogicException("An argument to IPagedItemContainer.NavigateTo must conform to IPagedItemContent");
+                throw new ProgrammerError("An argument to IPagedItemContainer.NavigateTo must conform to IPagedItemContent");
             }
 
             if (container.Content != container.ContentFrame) {
-                throw new ApplicationLogicException("IPagedItemContainer cannot have custom content");
+                throw new ProgrammerError("IPagedItemContainer cannot have custom content");
             }
 
             container.ContentFrame.NavigateToType(
@@ -82,11 +82,11 @@ namespace ComicsViewer.Controls {
 
         public static (PagedControlAccessor, T) FromNavigationArguments<T>(object navigationArguments) {
             if (!(navigationArguments is PagedControlNavigationArguments args)) {
-                throw new ApplicationLogicException("FromNavigationArguments must receive an argument of type PagedItemNavigationArguments as its argument");
+                throw new ProgrammerError("FromNavigationArguments must receive an argument of type PagedItemNavigationArguments as its argument");
             }
 
             if (!(args.Parameter is T param)) {
-                throw new ApplicationLogicException("PagedItemNavigationArguments.Parameter was of incorrect type");
+                throw new ProgrammerError("PagedItemNavigationArguments.Parameter was of incorrect type");
             }
 
             return (new PagedControlAccessor(args.Container), param);

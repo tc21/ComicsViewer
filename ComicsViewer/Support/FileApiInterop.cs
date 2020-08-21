@@ -56,7 +56,7 @@ namespace ComicsViewer.Support.Interop {
             );
 
             if (output_length == 0) {
-                throw new ApplicationLogicException(
+                throw new ProgrammerError(
                     $"When calling ThrowLastError: FormatMessage indicated an error with error code {GetLastError()}");
             }
 
@@ -195,7 +195,7 @@ namespace ComicsViewer.Support.Interop {
             }
 
             if (path.EndsWith("\\") || path.EndsWith("/") || newName.EndsWith("\\") || newName.EndsWith("/")) {
-                throw new ApplicationLogicException("Argument must not end in a slash");
+                throw new ProgrammerError("Argument must not end in a slash");
             }
 
             if (createIntermediateDirectories) {

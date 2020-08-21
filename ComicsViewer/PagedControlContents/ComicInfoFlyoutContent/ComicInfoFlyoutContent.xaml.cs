@@ -48,7 +48,7 @@ namespace ComicsViewer.Pages {
 
         private async void ListView_ItemClick(object sender, ItemClickEventArgs e) {
             if (!(e.ClickedItem is ComicSubitem item)) {
-                throw new ApplicationLogicException("ListView_ItemClick received unexpected item");
+                throw new ProgrammerError("ListView_ItemClick received unexpected item");
             }
 
             await this.ViewModel!.OpenItemAsync(item);

@@ -59,7 +59,7 @@ namespace ComicsViewer.Pages {
 
         private async void SaveButton_Click(object sender, RoutedEventArgs e) {
             if (!(this.ThumbnailGrid.SelectedItem is ThumbnailGridItem item)) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             await this.ParentViewModel!.TryRedefineThumbnailAsync(this.Item!, item.File);

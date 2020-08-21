@@ -33,7 +33,7 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is SettingsPageNavigationArguments args)) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             this.ViewModel = new SettingsPageViewModel(args.MainViewModel, args.Profile);
@@ -108,7 +108,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (!(((FrameworkElement)sender).DataContext is NamedPath namedPath)) {
-                throw new ApplicationLogicException();
+                throw new ProgrammerError();
             }
 
             await this.MainViewModel!.RequestReloadCategoryAsync(namedPath);

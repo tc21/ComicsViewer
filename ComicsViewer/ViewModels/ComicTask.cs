@@ -44,7 +44,7 @@ namespace ComicsViewer.ViewModels {
                     this.StoredException = finishedTask.Exception.InnerException;
                     this.Status = "faulted";
                 } else {
-                    throw new ApplicationLogicException();
+                    throw new ProgrammerError();
                 }
 
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {

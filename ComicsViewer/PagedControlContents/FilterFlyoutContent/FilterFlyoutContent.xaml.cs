@@ -35,7 +35,7 @@ namespace ComicsViewer.Pages {
             var (_, args) = PagedControlAccessor.FromNavigationArguments<FilterFlyoutNavigationArguments>(e.Parameter);
 
             if (args.Filter == null || args.AuxiliaryInfo == null || args.ParentViewModel == null) {
-                throw new ApplicationLogicException("args cannot be null");
+                throw new ProgrammerError("args cannot be null");
             }
 
             this.ViewModel = new FilterFlyoutViewModel(args.ParentViewModel, args.Filter, args.AuxiliaryInfo);

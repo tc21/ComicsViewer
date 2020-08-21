@@ -40,7 +40,7 @@ namespace ComicsViewer.Pages {
             this.PagedControlAccessor = controller;
 
             if (args.ComicItem.ItemType != ComicItemType.Work) {
-                throw new ApplicationLogicException("EditComicInfoDialog can only be created for work item");
+                throw new ProgrammerError("EditComicInfoDialog can only be created for work item");
             }
 
             this.ViewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
@@ -50,8 +50,8 @@ namespace ComicsViewer.Pages {
             await this.ViewModel!.SaveComicInfoAsync(
                 title: this.ComicTitleTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
-                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ApplicationLogicException(),
-                disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ApplicationLogicException()
+                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError(),
+                disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ProgrammerError()
             );
 
             this.PagedControlAccessor!.CloseContainer();

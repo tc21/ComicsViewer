@@ -11,8 +11,8 @@ namespace ComicsViewer {
     /// Represents an error caused by programmer error. By design, this should be impossible, but we all make mistakes.
     /// This error should not be handled. It represents a bug that needs to be fixed.
     /// </summary>
-    internal class ApplicationLogicException : Exception {
-        public ApplicationLogicException(string message) : base(message) { }
-        public ApplicationLogicException() : base() { }
+    internal class ProgrammerError : Exception {
+        public ProgrammerError(string message) : base(message) { }
+        public ProgrammerError() : base() { }
     }
 }
