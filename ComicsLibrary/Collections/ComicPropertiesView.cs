@@ -71,8 +71,7 @@ namespace ComicsLibrary.Collections {
         }
 
         /// <summary>
-        /// Sorts this view in-place. At the end of the sort, a <see cref="ComicPropertiesChanged"/> event is fired
-        /// with type <see cref="ComicPropertyChangeType.Refresh"/>.
+        /// Sorts this view in-place.
         /// </summary>
         public void Sort(ComicPropertySortSelector sortSelector) {
             this.sortSelector = sortSelector;
@@ -82,8 +81,6 @@ namespace ComicsLibrary.Collections {
             } else {
                 this.sortedComicProperties.Sort(ComicPropertyComparers.Make(sortSelector));
             }
-
-            this.ComicPropertiesChanged?.Invoke(this, new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.Refresh));
         }
 
         private void AddProperty(string name, List<Comic> comics) {
@@ -137,7 +134,7 @@ namespace ComicsLibrary.Collections {
             return index;
         }
 
-        private void AddComic(Comic comic, bool supressEvents = false) {
+        private void AddComic(Comic comic) {
             // ToHashSet isn't a thing in .net standard 2.0...
             var properties = new HashSet<string>(this.getProperties(comic));
 
@@ -146,39 +143,21 @@ namespace ComicsLibrary.Collections {
                     this.accessor[property].Add(comic);
                     /* note: if the sortSelector is ItemCount, adding or removing an item will actually change an item's sort order! 
                      * we pretend it doesn't happen, but in the future we can choose to reload the item. */
-                    if (!supressEvents) {
-                        this.ComicPropertiesChanged?.Invoke(this,
-                            new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.ItemsChanged, property, added: new[] { comic }));
-                    }
                 } else {
                     this.AddProperty(property, new List<Comic> { comic });
-                    // we need to create a new list, not use the one passed to AddProperty, since AddProperty consumes the list.
-                    if (!supressEvents) {
-                        this.ComicPropertiesChanged?.Invoke(this,
-                        new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.Added, property, added: new[] { comic }));
-                    }
                 }
             }
 
             this.savedProperties[comic.UniqueIdentifier] = properties;
         }
 
-        private void RemoveComic(Comic comic, bool supressEvents = false) {
+        private void RemoveComic(Comic comic) {
             foreach (var property in this.savedProperties[comic.UniqueIdentifier]) {
                 var comics = this.accessor[property];
                 _ = comics.Remove(comic);
 
                 if (comics.Count == 0) {
                     this.RemoveProperty(property);
-                    if (!supressEvents) {
-                        this.ComicPropertiesChanged?.Invoke(this,
-                        new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.Removed, property, removed: new[] { comic }));
-                    }
-                } else {
-                    if (!supressEvents) {
-                        this.ComicPropertiesChanged?.Invoke(this,
-                        new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.ItemsChanged, property, removed: new[] { comic }));
-                    }
                 }
             }
 
@@ -207,10 +186,8 @@ namespace ComicsLibrary.Collections {
                     this.accessor.Clear();
 
                     foreach (var comic in sender) {
-                        this.AddComic(comic, supressEvents: true);
+                        this.AddComic(comic);
                     }
-
-                    this.ComicPropertiesChanged?.Invoke(this, new ComicPropertiesChangedEventArgs(ComicPropertyChangeType.Refresh));
 
                     break;
 
@@ -219,8 +196,6 @@ namespace ComicsLibrary.Collections {
             }
         }
 
-        //#region Dictionary-like behavior
-
         public ComicProperty this[string key] => new ComicProperty(key, this.accessor[key]);
         bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
 
@@ -228,114 +203,6 @@ namespace ComicsLibrary.Collections {
 
         public IEnumerator<ComicProperty> GetEnumerator() => this.sortedComicProperties.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-        //#endregion
-
-        /// <summary>
-        /// The ComicPropertyChanged event allows external classes using a ComicPropertiesView to
-        /// update their information about comics that have changed in this view.
-        /// </summary> 
-        public event ComicPropertiesChangedEventHandler? ComicPropertiesChanged;
-        public delegate void ComicPropertiesChangedEventHandler(SortedComicPropertiesView sender, ComicPropertiesChangedEventArgs e);
     }
 
-    public class ComicPropertiesChangedEventArgs {
-        public readonly ComicPropertyChangeType Type;
-        public readonly string? PropertyName;
-        public readonly IEnumerable<Comic>? Added;
-        public readonly IEnumerable<Comic>? Removed;
-        public readonly int? PreviousPosition;
-        public readonly int? CurrentPosition;
-
-        public ComicPropertiesChangedEventArgs(ComicPropertyChangeType type, string? propertyName = null,
-                IEnumerable<Comic>? added = null, IEnumerable<Comic>? removed = null,
-                int? previousPosition = null, int? currentPosition = null) {
-            this.Type = type;
-            this.PropertyName = propertyName;
-            this.Added = added;
-            this.Removed = removed;
-            this.PreviousPosition = previousPosition;
-            this.CurrentPosition = currentPosition;
-        }
-    }
-
-    public enum ComicPropertyChangeType {
-        /// <summary>
-        /// Represents a new property name that did not previously exist. Comics that should belong to the property are
-        /// stored in <c>Added</c>.
-        /// </summary>
-        Added,
-
-        /// <summary>
-        /// Represents a property that no longer exists. Comics that used to belong to the property are stored in 
-        /// <c>Removed</c>.
-        /// </summary>
-        Removed,
-
-        /// <summary>
-        /// Represents a property that has its contents changed. New comics are in <c>Added</c>, and removed comics in <c>removed</c>.
-        /// </summary>
-        ItemsChanged,
-
-        /// <summary>
-        /// Represents a property that has changed positions in the sorting order, because an item was added or removed
-        /// just now.
-        /// </summary>
-        PositionChanged,
-
-        /// <summary>
-        /// Represents that this view has changed so much that it cannot hope to tell which items have been added,
-        /// and which have been removed. Receivers should just reload everything from this view.
-        /// </summary>
-        Refresh
-    }
-    //public class ComicPropertyView : IReadOnlyDictionary<string, IReadOnlyList<Comic>> {
-    //    private readonly Dictionary<string, List<Comic>> mapping = new Dictionary<string, List<Comic>>();
-    //    private readonly Func<Comic, IEnumerable<string>> getProperties;
-
-    //    internal ComicPropertyView(Func<Comic, IEnumerable<string>> getProperties, SortedComicView trackChangesFrom) {
-    //        this.getProperties = getProperties;
-    //        trackChangesFrom.ComicChanged += this.TrackChangesFrom_ComicChanged;
-    //    }
-
-    //    private void TrackChangesFrom_ComicChanged(SortedComicView sender, ComicChangedEventArgs args) {
-    //        if (args.Type == ComicChangedType.Change || args.Type == ComicChangedType.Remove) {
-    //            foreach (var property in this.getProperties(args.OldComic!)) {
-    //                _ = this.mapping[property].Remove(args.OldComic!);
-    //                if (this.mapping[property].Count == 0) {
-    //                    _ = this.mapping.Remove(property);
-    //                }
-    //            }
-    //        }
-
-    //        if (args.Type == ComicChangedType.Change || args.Type == ComicChangedType.Remove) {
-    //            foreach (var property in this.getProperties(args.NewComic!)) {
-    //                if (this.mapping.ContainsKey(property)) {
-    //                    this.mapping[property] = new List<Comic> { args.NewComic! };
-    //                } else {
-    //                    this.mapping[property].Add(args.NewComic!);
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    #region IReadOnlyDictionary implementation 
-
-    //    public IReadOnlyList<Comic> this[string key] => this.mapping[key];
-    //    public IEnumerable<string> Keys => this.mapping.Keys;
-    //    public IEnumerable<IReadOnlyList<Comic>> Values => this.mapping.Values;
-    //    public int Count => this.mapping.Count;
-    //    public bool ContainsKey(string key) => this.mapping.ContainsKey(key);
-
-    //    public IEnumerator<KeyValuePair<string, IReadOnlyList<Comic>>> GetEnumerator() {
-    //        foreach (var (key, value) in this.mapping) {
-    //            yield return new KeyValuePair<string, IReadOnlyList<Comic>>(key, value);
-    //        }
-    //    }
-
-    //    public bool TryGetValue(string key, out IReadOnlyList<Comic> value) => this.TryGetValue(key, out value);
-    //    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-    //    #endregion
-    //}
 }
