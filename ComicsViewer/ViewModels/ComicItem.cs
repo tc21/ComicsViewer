@@ -21,6 +21,7 @@ namespace ComicsViewer.ViewModels {
         public string Title { get; set; }
         public ComicItemType ItemType { get; }
         internal List<Comic> Comics { get; }
+        internal ComicView TrackingChangesFrom { get; }
 
         public string Subtitle => this.ItemType switch {
             ComicItemType.Work => this.TitleComic.DisplayAuthor,
@@ -50,18 +51,16 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        private ComicItem(string title, ComicItemType itemType, List<Comic> comics, ComicView? trackChangesFrom) {
+        private ComicItem(string title, ComicItemType itemType, List<Comic> comics, ComicView trackChangesFrom) {
             this.Title = title;
             this.ItemType = itemType;
             this.Comics = comics;
             this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(this.TitleComic)) };
-
-            if (trackChangesFrom is ComicView view) {
-                view.ComicsChanged += this.View_ComicsChanged;
-            }
+            this.TrackingChangesFrom = trackChangesFrom;
+            this.TrackingChangesFrom.ComicsChanged += this.View_ComicsChanged;
         }
 
-        public static ComicItem WorkItem(Comic comic, ComicView? trackChangesFrom) {
+        public static ComicItem WorkItem(Comic comic, ComicView trackChangesFrom) {
             return new ComicItem(
                 comic.DisplayTitle,
                 ComicItemType.Work,
@@ -70,7 +69,7 @@ namespace ComicsViewer.ViewModels {
             );
         }
 
-        public static ComicItem NavigationItem(string name, IEnumerable<Comic> comics, ComicView? trackChangesFrom) {
+        public static ComicItem NavigationItem(string name, IEnumerable<Comic> comics, ComicView trackChangesFrom) {
             if (comics.Count() == 0) {
                 throw new ApplicationLogicException("ComicNavigationItem should not receive an empty IEnumerable in its constructor.");
             }
@@ -100,13 +99,11 @@ namespace ComicsViewer.ViewModels {
                         /* We don't need to worry navigation items since adding items means creating new work items or updating
                          * nav items, but adding comics trigger a nav page reload. This may change the in the future */
                         var match = e.Modified.Where(comic => comic.UniqueIdentifier == this.TitleComic.UniqueIdentifier)
-                                              .FirstOrDefault();
+                                              .FirstOrNull();
 
-                        if (match != null) {
-                            if (match != this.TitleComic) {
-                                this.Comics.Clear();
-                                this.Comics.Add(match);
-                            }
+                        if (match is Comic comic) {
+                            this.Comics.Clear();
+                            this.Comics.Add(comic);
 
                             this.Title = this.TitleComic.DisplayTitle;
                             this.OnPropertyChanged("");

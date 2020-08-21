@@ -30,28 +30,29 @@ namespace ComicsViewer.ViewModels.Pages {
         public string ComicCategory => this.Comic.DisplayCategory;
 
         public async Task SaveComicInfoAsync(string title, string tags, bool loved, bool disliked) {
-            if (title != this.ComicTitle) {
-                this.Comic.Metadata.DisplayTitle = title.Trim();
-            }
-
-            if (tags != this.ComicTags) {
-                this.Comic.Metadata.Tags.Clear();
-                foreach (var tag in tags.Split(',', StringSplitOptions.RemoveEmptyEntries)) {
-                    this.Comic.Metadata.Tags.Add(tag.Trim());
+            var modified = this.Comic.WithUpdatedMetadata(metadata => {
+                if (title != this.ComicTitle) {
+                    metadata.DisplayTitle = title.Trim();
                 }
-            }
 
-            if (loved != this.ComicLoved) {
-                this.Comic.Metadata.Loved = loved;
-            }
+                if (tags != this.ComicTags) {
+                    metadata.Tags = tags.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToHashSet();
+                }
 
-            if (disliked != this.ComicDisliked) {
-                this.Comic.Metadata.Disliked = disliked;
-            }
+                if (loved != this.ComicLoved) {
+                    metadata.Loved = loved;
+                }
+
+                if (disliked != this.ComicDisliked) {
+                    metadata.Disliked = disliked;
+                }
+
+                return metadata;
+            });
 
             // we don't care about what happens after this, the program works even if you don't await this,
             // but it's probably best practice to do so anyway
-            await this.MainViewModel.NotifyComicsChangedAsync(new[] { this.Comic });
+            await this.MainViewModel.UpdateComicAsync(new[] { modified });
         }
     }
 }

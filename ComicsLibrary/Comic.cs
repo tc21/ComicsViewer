@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace ComicsLibrary {
-    public class Comic {
+    public struct Comic {
         /* title and author are part of the comic's identity. to replace these, remove the comic and create a new one */
         public string Title { get; }
         public string Author { get; }
@@ -18,11 +20,8 @@ namespace ComicsLibrary {
             this.Title = title;
             this.Author = author;
             this.Category = category;
-            this.Metadata = metadata ?? new ComicMetadata();
+            this.Metadata = metadata ?? ComicMetadata.Default();
         }
-
-        public Comic(string path, string title, string author, string category)
-            : this(path, title, author, category, new ComicMetadata()) { }
 
         private const string OldestDate = "1970-01-01 12:00:00";
 
@@ -49,19 +48,27 @@ namespace ComicsLibrary {
         public bool IsSame(Comic other) {
             return this.UniqueIdentifier == other.UniqueIdentifier;
         }
+
+        public Comic WithUpdatedMetadata(Func<ComicMetadata, ComicMetadata> changes) {
+            var copy = this;
+            copy.Metadata = changes(this.Metadata);
+            return copy;
+        }
     }
 
-    public class ComicMetadata {
+    public struct ComicMetadata {
         public string? DisplayTitle { get; set; }
-        public HashSet<string> Tags { get; set; } = new HashSet<string>();
-        public bool Loved { get; set; } = false;
-        public bool Disliked { get; set; } = false;
+        public HashSet<string> Tags { get; set; }
+        public bool Loved { get; set; }
+        public bool Disliked { get; set; }
         public string? ThumbnailSource { get; set; }
         public string DateAdded { get; set; }
 
-        public ComicMetadata() {
-            // an estimate of the actual dateAdded, assuming the comic is saved immediately, in SQLite's default format
-            this.DateAdded = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        }
+        public static ComicMetadata Default() => new ComicMetadata {
+            Tags = new HashSet<string>(),
+            Disliked = false,
+            Loved = false,
+            DateAdded = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        };
     }
 }

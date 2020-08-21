@@ -131,13 +131,12 @@ namespace ComicsViewer.ViewModels.Pages {
             return new ComicItemGridViewModel(appViewModel, appViewModel.ComicView);
         }
 
-        public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, IEnumerable<Comic> comics) {
+        public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
             if (appViewModel.ActiveNavigationTag != MainViewModel.SecondLevelNavigationTag) {
                 throw new ApplicationLogicException($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
-            var set = comics.Select(c => c.UniqueIdentifier).ToHashSet();
-            return new ComicItemGridViewModel(appViewModel, appViewModel.ComicView.Filtered(c => set.Contains(c.UniqueIdentifier)));
+            return new ComicItemGridViewModel(appViewModel, comics);
         }
 
         internal void RefreshComicItems() {
@@ -261,24 +260,15 @@ namespace ComicsViewer.ViewModels.Pages {
                 throw new ApplicationLogicException("Custom thumbnails for groupped items is not supported.");
             }
 
-            var cached = comicItem.TitleComic.Metadata.ThumbnailSource;
-            comicItem.TitleComic.Metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.TitleComic.Path);
+            var comic = comicItem.TitleComic.WithUpdatedMetadata(metadata => {
+                metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.TitleComic.Path);
+                return metadata;
+            });
 
-            bool success;
-
-            try {
-                success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(
-                    comicItem.TitleComic, file, this.MainViewModel.Profile, replace: true);
-            } catch (Exception e) {
-                comicItem.TitleComic.Metadata.ThumbnailSource = cached;
-                throw e;
-            }
-
-
+            var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(comic, file, this.MainViewModel.Profile, replace: true);
             if (success) {
-                this.MainViewModel.NotifyThumbnailChanged(comicItem.TitleComic);
-            } else {
-                comicItem.TitleComic.Metadata.ThumbnailSource = cached;
+                this.MainViewModel.NotifyThumbnailChanged(comic);
+                await this.MainViewModel.UpdateComicAsync(new[] { comic });
             }
         }
 
@@ -316,10 +306,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     break;
             }
-        }
-
-        private void Filter_FilterChanged(Filter filter) {
-            this.RefreshComicItems();
         }
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
@@ -385,25 +371,26 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task ToggleDislikedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
-            var comics = selectedItems.Select(item => item.TitleComic).ToList();
             var newStatus = !comics.All(item => item.Disliked);
 
-            foreach (var item in selectedItems) {
-                item.TitleComic.Metadata.Disliked = newStatus;
-            }
+            var changes = selectedItems.Select(item => item.TitleComic.WithUpdatedMetadata(metadata => {
+                metadata.Disliked = newStatus;
+                return metadata;
+            }));
 
-            await this.MainViewModel.NotifyComicsChangedAsync(comics);
+            await this.MainViewModel.UpdateComicAsync(changes);
         }
 
         public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
             var comics = selectedItems.Select(item => item.TitleComic).ToList();
             var newStatus = !comics.All(item => item.Loved);
 
-            foreach (var item in selectedItems) {
-                item.TitleComic.Metadata.Loved = newStatus;
-            }
+            var changes = selectedItems.Select(item => item.TitleComic.WithUpdatedMetadata(metadata => {
+                metadata.Loved = newStatus;
+                return metadata;
+            }));
 
-            await this.MainViewModel.NotifyComicsChangedAsync(comics);
+            await this.MainViewModel.UpdateComicAsync(changes);
         }
 
         internal void Dispose() {

@@ -154,6 +154,7 @@ namespace ComicsViewer.ViewModels.Pages {
             });
         }
 
+        // note: we have already validateed that item is a nav item
         public void NavigateInto(ComicItem item, NavigationTransitionInfo? transitionInfo = null) {
             this.NavigationLevel = 1;
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
@@ -161,7 +162,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 Tag = SecondLevelNavigationTag,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                Comics = item.Comics
+                Comics = item.TrackingChangesFrom
             });
         }
 
@@ -358,7 +359,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 async result => {
                     // TODO: we should probably figure out how to only update what we need
                     var manager = await this.GetComicsManagerAsync();
-                    await manager.AssignKnownMetadataAsync(result);
+                    result = await manager.RetrieveKnownMetadataAsync(result);
 
                     // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
                     await this.RemoveComicsAsync(this.Comics);
@@ -373,7 +374,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
-                    await manager.AssignKnownMetadataAsync(result);
+                    result = await manager.RetrieveKnownMetadataAsync(result);
 
                     await this.RemoveComicsAsync(this.Comics.Where(comic => comic.Category == category.Name));
 
@@ -391,7 +392,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
-                    await manager.AssignKnownMetadataAsync(result);
+                    result = await manager.RetrieveKnownMetadataAsync(result);
 
                     var notAdded = await this.AddComicsWithoutReplacingAsync(result);
                     if (notAdded.Count > 0) {
@@ -461,8 +462,13 @@ namespace ComicsViewer.ViewModels.Pages {
             await manager.RemoveComicsAsync(removed);
         }
 
-        /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
-        public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics) {
+        ///// <summary>
+        ///// Sends a list of comic metadata to MainComicList. After MainComicList updates its comics, it will
+        ///// invoke the appropriate commands notifying of the change.
+        ///// </summary>
+        ///// <param name="comics"></param>
+        ///// <returns></returns>
+        public async Task UpdateComicAsync(IEnumerable<Comic> comics) {
             this.Comics.Modify(comics);
 
             var manager = await this.GetComicsManagerAsync();
@@ -488,7 +494,7 @@ namespace ComicsViewer.ViewModels.Pages {
     public class NavigationRequestedEventArgs {
         public Type? PageType { get; set; }
         public string? Tag { get; set; }
-        public IEnumerable<Comic>? Comics { get; set; }
+        public ComicView? Comics { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
         public NavigationType NavigationType { get; set; } = NavigationType.New;

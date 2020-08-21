@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using TC.Database;
 using TC.Database.MicrosoftSqlite;
 
+#nullable enable
+
 namespace ComicsLibrary.SQL {
     public class ComicsDatabaseConnection {
         private const string table_comics = "comics";
@@ -50,9 +52,7 @@ namespace ComicsLibrary.SQL {
 
             while (await reader.ReadAsync()) {
                 var comic = this.ReadComicFromRow(reader);
-                if (comic != null) {
-                    comics.Add(comic);
-                }
+                comics.Add(comic);
             }
 
             return comics;
@@ -123,12 +123,13 @@ namespace ComicsLibrary.SQL {
 
             // Update tags
             var storedMetadata = await this.TryGetComicMetadataAsync(comic);
-            if (storedMetadata == null) {
+
+            if (!(storedMetadata is ComicMetadata metadata)) {
                 return;
             }
 
-            var delete = storedMetadata.Tags.Except(comic.Tags);
-            var add = comic.Tags.Except(storedMetadata.Tags);
+            var delete = metadata.Tags.Except(comic.Tags);
+            var add = comic.Tags.Except(metadata.Tags);
 
             foreach (var tag in delete) {
                 if (await this.TryGetComicTagXrefIdAsync(comicid, await this.AddTagAsync(tag)) is int xrefid) {

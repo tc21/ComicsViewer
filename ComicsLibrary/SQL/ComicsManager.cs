@@ -59,17 +59,19 @@ namespace ComicsLibrary.SQL {
         }
 
         /* After loading comics from disk, you may want to query known metadata from the database */
-        public async Task AssignKnownMetadataAsync(IEnumerable<Comic> comics) {
-            using var transaction = this.Connection.BeginTransaction();
+        public async Task<List<Comic>> RetrieveKnownMetadataAsync(IEnumerable<Comic> comics) {
+            var result = new List<Comic>();
 
             foreach (var comic in comics) {
                 var metadata = await this.TryGetMetadataAsync(comic);
-                if (metadata != null) {
-                    comic.Metadata = metadata;
+                if (metadata is ComicMetadata m) {
+                    var copy = comic;
+                    copy.Metadata = m;
+                    result.Add(copy);
                 }
             }
 
-            transaction.Commit();
+            return result;
         }
     }
 }
