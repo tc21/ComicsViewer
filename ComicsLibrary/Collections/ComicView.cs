@@ -132,7 +132,15 @@ namespace ComicsLibrary.Collections {
         /// 
         /// <item>In a <see cref="ComicsChangedEventArgs"/>: By design, all items in <c>Removed</c> and <c>Modified</c> previously
         /// existed, while none in <c>Added</c> did. All items in <c>Added</c> and <c>Modified</c> currently exist.</item>
+        /// 
         /// </list>
+        /// 
+        /// <remarks>
+        /// Note: the only information that is guaranteed to be accurate for modified items is a comic's hard-coded title, 
+        /// author, category, and UniqueIdentifier.
+        /// Do not rely on a modified comic's metadata to be from before it was modified. Most likely, it contains the new data
+        /// that has already been modified.
+        /// </remarks>
         /// </summary>
         ItemsChanged,
 

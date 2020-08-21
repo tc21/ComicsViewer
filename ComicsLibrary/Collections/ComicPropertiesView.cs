@@ -44,6 +44,10 @@ namespace ComicsLibrary.Collections {
         private readonly Dictionary<string, List<Comic>> accessor = new Dictionary<string, List<Comic>>();
         private readonly List<ComicProperty> sortedComicProperties = new List<ComicProperty>();
 
+        /* when we remove an item, we have to remove its previous mappings, but that information isn't provided in a
+         * ViewChangedEventArgs, so we have to remember it ourselves. */
+        private readonly Dictionary<string, HashSet<string>> savedProperties = new Dictionary<string, HashSet<string>>();
+
         private readonly Func<Comic, IEnumerable<string>> getProperties;
         private ComicPropertySortSelector sortSelector;
 
@@ -134,7 +138,10 @@ namespace ComicsLibrary.Collections {
         }
 
         private void AddComic(Comic comic, bool supressEvents = false) {
-            foreach (var property in this.getProperties(comic)) {
+            // ToHashSet isn't a thing in .net standard 2.0...
+            var properties = new HashSet<string>(this.getProperties(comic));
+
+            foreach (var property in properties) {
                 if (this.ContainsProperty(property)) {
                     this.accessor[property].Add(comic);
                     /* note: if the sortSelector is ItemCount, adding or removing an item will actually change an item's sort order! 
@@ -152,10 +159,12 @@ namespace ComicsLibrary.Collections {
                     }
                 }
             }
+
+            this.savedProperties[comic.UniqueIdentifier] = properties;
         }
 
         private void RemoveComic(Comic comic, bool supressEvents = false) {
-            foreach (var property in this.getProperties(comic)) {
+            foreach (var property in this.savedProperties[comic.UniqueIdentifier]) {
                 var comics = this.accessor[property];
                 _ = comics.Remove(comic);
 
@@ -172,6 +181,8 @@ namespace ComicsLibrary.Collections {
                     }
                 }
             }
+
+            _ = this.savedProperties.Remove(comic.UniqueIdentifier);
         }
 
         private void Parent_ViewChanged(ComicView sender, ComicView.ViewChangedEventArgs e) {
