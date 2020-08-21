@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 namespace ComicsViewer.ClassExtensions {
     public static class IEnumerable_FirstOrNull {
         public static T? FirstOrNull<T>(this IEnumerable<T> enumerable) where T : struct {
-            try {
-                return enumerable.First();
-            } catch (InvalidOperationException) {
-                return null;
+            var enumerator = enumerable.GetEnumerator();
+
+            if (enumerator.MoveNext()) {
+                return enumerator.Current;
             }
+
+            return null;
         }
     }
 }
