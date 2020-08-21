@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsLibrary.Collections;
 using ComicsLibrary.SQL;
 using ComicsViewer.Features;
 using ComicsViewer.Pages;
@@ -462,7 +463,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* The program only knows how to change one comic at a time, so we'll generalize this function when we get there */
         public async Task NotifyComicsChangedAsync(IEnumerable<Comic> comics) {
-            this.Comics.NotifyModification(comics);
+            this.Comics.Modify(comics);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);

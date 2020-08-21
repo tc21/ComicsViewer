@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsLibrary.Collections;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
@@ -56,7 +57,7 @@ namespace ComicsViewer.ViewModels {
             this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(this.TitleComic)) };
 
             if (trackChangesFrom is ComicView view) {
-                view.ComicChanged += this.View_ComicChanged;
+                view.ComicsChanged += this.View_ComicsChanged;
             }
         }
 
@@ -82,67 +83,70 @@ namespace ComicsViewer.ViewModels {
             ); ;
         }
 
-        private async void View_ComicChanged(ComicView sender, ComicChangedEventArgs args) {
-            switch (args.Type) {
-                case ComicChangedType.Add:
-                    /* We don't need to worry about this since adding items means creating new work items or updating
+
+        private async void View_ComicsChanged(ComicView sender, ComicView.ComicsChangedEventArgs e) {
+            // The new system is not implemented for nav items yet.
+            if (this.ItemType == ComicItemType.Navigation) {
+                return;
+            }
+
+            switch (e.Type) {  // switch ChangeType
+                case ComicView.ChangeType.ItemsChanged:
+                    // Added: handled by ComicItemGrid
+
+                    /* We don't need to worry about adding nav items since adding items means creating new work items or updating
                      * nav items, but adding comics trigger a nav page reload. This may change the in the future */
-                    return;
+                    if (e.Modified.Count() > 0) {
+                        /* We don't need to worry navigation items since adding items means creating new work items or updating
+                         * nav items, but adding comics trigger a nav page reload. This may change the in the future */
+                        var match = e.Modified.Where(comic => comic.UniqueIdentifier == this.TitleComic.UniqueIdentifier)
+                                              .FirstOrDefault();
 
-                case ComicChangedType.Modified:
-                    if (this.ItemType == ComicItemType.Navigation) {
-                        /* Since (1) we cannot modify display author and category, we don't need to worry about updating 
-                         * navigation comic items. This will not always be the case. */
-                        return;
-                    }
+                        if (match != null) {
+                            if (match != this.TitleComic) {
+                                this.Comics.Clear();
+                                this.Comics.Add(match);
+                            }
 
-                    // must be work item
-                    var match = args.Comics!.Where(comic => comic.UniqueIdentifier == this.TitleComic.UniqueIdentifier)
-                                            .FirstOrDefault();
+                            this.Title = this.TitleComic.DisplayTitle;
+                            this.OnPropertyChanged("");
 
-                    if (match == null) {
-                        return;
-                    }
-
-                    if (match != this.TitleComic) {
-                        this.Comics.Clear();
-                        this.Comics.Add(match);
-                    }
-
-                    this.Title = this.TitleComic.DisplayTitle;
-                    this.OnPropertyChanged("");
-
-                    return;
-
-                case ComicChangedType.Remove:
-                    var removalList = new List<Comic>();
-
-                    foreach (var comic in this.Comics) {
-                        if (args.Comics!.Contains(comic)) {
-                            removalList.Add(comic);
+                            // an item can't be modified and removed at the same time
+                            return;
                         }
                     }
 
-                    foreach (var comic in removalList) {
-                        _ = this.Comics.Remove(comic);
-                    }
+                    if (e.Removed.Count() > 0) {
+                        // note: nav items don't implement the new system yet, but this scode is generalized.
+                        var removalList = new List<Comic>();
 
-                    if (this.Comics.Count == 0) {
-                        // Remove this ComicItem
-                        sender.ComicChanged -= this.View_ComicChanged;
-                        this.RequestingRefresh(this, RequestingRefreshType.Remove);
-                    } else {
-                        this.OnPropertyChanged("");
+                        foreach (var comic in this.Comics) {
+                            if (e.Removed.Contains(comic)) {
+                                removalList.Add(comic);
+                            }
+                        }
+
+                        foreach (var comic in removalList) {
+                            _ = this.Comics.Remove(comic);
+                        }
+
+                        if (this.Comics.Count == 0) {
+                            // Remove this ComicItem
+                            sender.ComicsChanged -= this.View_ComicsChanged;
+                            this.RequestingRefresh(this, RequestingRefreshType.Remove);
+                        } else {
+                            this.OnPropertyChanged("");
+                        }
                     }
 
                     return;
 
-                case ComicChangedType.Refresh:
+                case ComicView.ChangeType.Refresh:
                     // the parent will have called refresh, so we don't need to do anything.
                     return;
 
-                case ComicChangedType.ReloadThumbnail:
-                    if (args.Comics!.Contains(this.TitleComic)) {
+                case ComicView.ChangeType.ThumbnailChanged:
+                    if (e.Modified!.Contains(this.TitleComic)) {
                         var image = new BitmapImage();
                         var thumbnailFile = await StorageFile.GetFileFromPathAsync(Thumbnail.ThumbnailPath(this.TitleComic));
 
@@ -157,7 +161,7 @@ namespace ComicsViewer.ViewModels {
                     return;
 
                 default:
-                    throw new ApplicationLogicException($"{nameof(View_ComicChanged)}: unhandled switch case");
+                    throw new ApplicationLogicException($"{nameof(View_ComicsChanged)}: unhandled switch case");
             }
         }
 

@@ -17,6 +17,8 @@ using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
+using ComicsLibrary.Collections;
+using ComicsLibrary.Sorting;
 
 #nullable enable
 
@@ -89,19 +91,19 @@ namespace ComicsViewer.ViewModels.Pages {
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
-            this.comics.ComicChanged += this.Comics_ComicChanged;
+            this.comics.ComicsChanged += this.Comics_ComicsChanged;
 
             // Loads the actual comic items
             this.RefreshComicItems();
         }
 
-        private SortedComicView.SortSelector GetWorkItemSortSelector(Sorting.SortSelector sortSelector) {
+        private ComicSortSelector GetWorkItemSortSelector(Sorting.SortSelector sortSelector) {
             return sortSelector switch {
-                Sorting.SortSelector.Title => SortedComicView.SortSelector.Title,
-                Sorting.SortSelector.Author => SortedComicView.SortSelector.Author,
-                Sorting.SortSelector.DateAdded => SortedComicView.SortSelector.DateAdded,
-                Sorting.SortSelector.ItemCount => SortedComicView.SortSelector.Author,
-                Sorting.SortSelector.Random => SortedComicView.SortSelector.Random,
+                Sorting.SortSelector.Title => ComicSortSelector.Title,
+                Sorting.SortSelector.Author => ComicSortSelector.Author,
+                Sorting.SortSelector.DateAdded => ComicSortSelector.DateAdded,
+                Sorting.SortSelector.ItemCount => ComicSortSelector.Author,
+                Sorting.SortSelector.Random => ComicSortSelector.Random,
                 _ => throw new ApplicationLogicException($"{nameof(GetWorkItemSortSelector)}: unhandled switch case"),
             };
         }
@@ -304,60 +306,56 @@ namespace ComicsViewer.ViewModels.Pages {
         private static int debug_count = 0;
         private readonly int debug_this_count = ++debug_count;
 
-        private void Comics_ComicChanged(ComicView sender, ComicChangedEventArgs args) {
-            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicChanged)} called for view model {this.navigationTag}");
+        private void Comics_ComicsChanged(ComicView sender, ComicView.ComicsChangedEventArgs e) {
+            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.navigationTag}");
 
-            switch (args.Type) {
-                case ComicChangedType.Add:
-                    /* If we are on a WorkItem tab, we just need to add the comics to the view.
+            switch (e.Type) { // switch ChangeType
+                case ComicView.ChangeType.ItemsChanged:
+                    /* Notes on adding: 
+                     * If we are on a WorkItem tab, we just need to add the comics to the view.
                      * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
                      * to handle new item groups, and we say fuck that */
+
+                    /* notes on modifying: 
+                     * TODO: When modifying a comic (not removing), we may remove a tag/category/author that 
+                     * belongs to the currently active second-level navigation item. The item should be removed,
+                     * but isn't due to navigation items not knowing what kind of navigation item they are. We
+                     * reversed the previous behavior of navigating out due to it being bad UX but the current 
+                     * behavior is technically incorrect. */
+
                     if (!(this.navigationTag == MainViewModel.DefaultNavigationTag
                             || this.navigationTag == MainViewModel.SecondLevelNavigationTag)) {
                         this.RefreshComicItems();
                         break;
                     }
 
-                    var newComicItems = args.Comics!.Select(comic => {
+                    var addedItems = e.Added.Select(comic => {
                         var item = ComicItem.WorkItem(comic, this.comics);
                         item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                        this.ComicItems.Insert(0, item);
                         return item;
                     });
-
-                    foreach (var item in newComicItems) {
-                        this.ComicItems.Insert(0, item);
-                    }
 
                     /* Generate thumbnails for added items */
                     /* There may be many view models active at any given moment. The if statement ensures that only
                      * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
                     if (this.navigationTag != MainViewModel.SecondLevelNavigationTag) {
-                        this.RequestGenerateThumbnails(newComicItems);
+                        this.RequestGenerateThumbnails(addedItems);
                     }
 
+                    /* individual ComicItems will call ComicItem_RequestingRefresh to update or remove themselves, 
+                     * so we don't need any logic in this section to handle modified and removed. */
                     break;
 
-                case ComicChangedType.Modified:
-                case ComicChangedType.Remove:
-                    // TODO: When modifying a comic (not removing), we may remove a tag/category/author that 
-                    // belongs to the currently active second-level navigation item. The item should be removed,
-                    // but isn't due to navigation items not knowing what kind of navigation item they are. We
-                    // reversed the previous behavior of navigating out due to it being bad UX but the current 
-                    // behavior is technically incorrect.
-                    if (!(this.navigationTag == MainViewModel.DefaultNavigationTag 
-                            || this.navigationTag == MainViewModel.SecondLevelNavigationTag)) {
-                        this.RefreshComicItems();
-                    }
-
-                    // individual ComicItems will call ComicItem_RequestingRefresh to update or remove themselves
-                    break;
-                case ComicChangedType.Refresh:
+                case ComicView.ChangeType.Refresh:
                     this.RefreshComicItems();
                     break;
-                case ComicChangedType.ReloadThumbnail:
+
+                case ComicView.ChangeType.ThumbnailChanged:
                     break;
+
                 default:
-                    throw new ApplicationLogicException($"{nameof(Comics_ComicChanged)}: unhandled switch case");
+                    throw new ApplicationLogicException($"{nameof(Comics_ComicsChanged)}: unhandled switch case");
             }
         }
 
@@ -386,7 +384,7 @@ namespace ComicsViewer.ViewModels.Pages {
         internal void Dispose() {
             this.PropertyChanged -= this.ComicViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
-            this.comics.ComicChanged -= this.Comics_ComicChanged;
+            this.comics.ComicsChanged -= this.Comics_ComicsChanged;
 
             foreach (var item in this.ComicItems) {
                 item.RequestingRefresh -= this.ComicItem_RequestingRefresh;

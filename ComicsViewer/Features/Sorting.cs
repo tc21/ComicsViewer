@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsLibrary.Collections;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using System;
