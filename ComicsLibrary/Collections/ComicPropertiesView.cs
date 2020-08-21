@@ -60,6 +60,11 @@ namespace ComicsLibrary.Collections {
                 this.AddComic(comic);
             }
 
+            /* If you refer to the comments by AddComic, Adding a comic actually invalidates a sort!
+             * So we sort again. It doubles our runtime, but the runtime of sorting anywhere between
+             * 4 to 1000 items (which is the scale we're at) is negligible (and doubling doesn't change complexity). */
+            this.Sort(this.sortSelector);
+
             parent.ViewChanged += this.Parent_ViewChanged;
         }
 
