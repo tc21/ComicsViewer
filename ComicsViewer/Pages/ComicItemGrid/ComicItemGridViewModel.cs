@@ -40,11 +40,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* semi-manually managed properties */
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
-        private IEnumerable<ComicItem>? comicItemSource;
+        private IEnumerator<ComicItem>? comicItemSource;
 
         private void SetComicItems(IEnumerable<ComicItem> items) {
             this.ComicItems.Clear();
-            this.comicItemSource = items;
+            this.comicItemSource = items.GetEnumerator();
             this.RequestComicItems();
         }
 
@@ -53,8 +53,14 @@ namespace ComicsViewer.ViewModels.Pages {
                 return;
             }
 
-            this.ComicItems.AddRange(this.comicItemSource.Take(100));
-            this.comicItemSource = this.comicItemSource.Skip(100);
+            for (var i = 0; i < 100; i++) {
+                if (this.comicItemSource.MoveNext()) {
+                    this.ComicItems.Add(this.comicItemSource.Current);
+                } else {
+                    this.comicItemSource = null;
+                    break;
+                }
+            }
 
             this.OnPropertyChanged(nameof(this.VisibleItemCount));
         }
