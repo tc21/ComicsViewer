@@ -72,40 +72,6 @@ namespace ComicsViewer.Support {
             return result;
         }
 
-        /* Used to automatically remove comics that no longer exist. The most basic form of this function should return
-         * a bool, but since this is a time-consuming task, we will do it all at once. */
-        /* A proposed change is to allow choosing between checking for folder existing vs. checking for files existing */
-        public async static Task<IEnumerable<Comic>> FindInvalidComics(
-            IEnumerable<Comic> comics, UserProfile profile, bool checkFiles, CancellationToken cc, IProgress<int>? progress = null
-        ) {
-            var invalidComics = new List<Comic>();
-            var i = 0;
-
-            // Make a copy in case the user decides to modify the underlying list
-            comics = comics.ToList();
-
-            foreach (var comic in comics) {
-                try {
-                    var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
-
-                    if (checkFiles && (await profile.FolderContainsValidComicAsync(folder))) {
-                        invalidComics.Add(comic);
-                    }
-
-                } catch (FileNotFoundException) {
-                    invalidComics.Add(comic);
-                }
-
-                i += 1;
-                progress?.Report(i);
-                if (cc.IsCancellationRequested) {
-                    return invalidComics;
-                }
-            }
-
-            return invalidComics;
-        }
-
         private static async Task FinishFromImportedFolderAsync(
             List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 

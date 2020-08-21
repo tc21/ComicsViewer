@@ -91,8 +91,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Comics.Refresh(await manager.GetAllComicsAsync());
 
             this.Comics.Filter.Clear();
-
-            await this.RequestValidateAndRemoveComicsAsync();
         }
 
         /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
@@ -399,14 +397,6 @@ namespace ComicsViewer.ViewModels.Pages {
                         await this.NotifyComicsNotAdded(notAdded);
                     }
                 },
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
-            );
-        }
-
-        private async Task RequestValidateAndRemoveComicsAsync() {
-            await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count()} comics...",
-                (cc, p) => ComicsLoader.FindInvalidComics(this.Comics, this.Profile, checkFiles: false, cc, p),
-                async result => await this.RemoveComicsAsync(result),
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
