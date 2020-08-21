@@ -195,6 +195,15 @@ namespace ComicsViewer.ViewModels.Pages {
                     case ComicItem.RequestingRefreshType.Remove:
                         sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
                         _ = this.ComicItems.Remove(sender);
+
+                        if (this.ComicItems.Count < 100) {
+                            this.RequestComicItems();
+                        }
+
+                        if (this.ComicItems.Count == 0 && this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                            this.MainViewModel.NavigateOut();
+                        }
+
                         break;
                     default:
                         throw new ProgrammerError("Unhandled switch case");
