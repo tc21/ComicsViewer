@@ -40,8 +40,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
-            } catch (FileNotFoundException e) {
-                await ExpectedExceptions.FileNotFoundAsync(e.FileName);
+            } catch (FileNotFoundException) {
+                await ExpectedExceptions.ComicNotFoundAsync(this.Item.TitleComic);
             }
 
             this.IsLoadingSubItems = false;

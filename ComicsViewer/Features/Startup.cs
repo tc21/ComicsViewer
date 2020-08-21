@@ -34,8 +34,12 @@ namespace ComicsViewer.Features {
             }
         }
 
-        public static void OpenContainingFolderAsync(Comic comic) {
-            _ = Launcher.LaunchFolderPathAsync(comic.Path);
+        public static async Task OpenContainingFolderAsync(Comic comic) {
+            if (!Support.Interop.FileApiInterop.FileOrDirectoryExists(comic.Path)) {
+                await Support.ExpectedExceptions.ComicNotFoundAsync(comic);
+            }
+
+            _ = await Launcher.LaunchFolderPathAsync(comic.Path);
         }
     }
 }

@@ -216,8 +216,8 @@ namespace ComicsViewer.ViewModels.Pages {
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
             if (items.First().ItemType == ComicItemType.Navigation) {
                 if (items.Count() != 1) {
-                    throw new ProgrammerError("Should not allow the user to open multiple navigation" +
-                                                        " items at once (use the search into feature instead)");
+                    throw new ProgrammerError("Should not allow the user to open multiple navigation " +
+                                              "items at once (use the search into feature instead)");
                 }
 
                 this.MainViewModel.NavigateInto(items.First());
@@ -233,7 +233,11 @@ namespace ComicsViewer.ViewModels.Pages {
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
             } catch (FileNotFoundException e) {
-                await ExpectedExceptions.FileNotFoundAsync(e.FileName);
+                if (items.Count() == 1) {
+                    await ExpectedExceptions.ComicNotFoundAsync(items.First().TitleComic);
+                } else {
+                    await ExpectedExceptions.FileNotFoundAsync(e.FileName, "The folder for an item could not be found.", cancelled: false);
+                }
             }
         }
 

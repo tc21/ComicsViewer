@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsLibrary;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,22 +11,27 @@ using Windows.UI.Popups;
 
 namespace ComicsViewer.Support {
     public static class ExpectedExceptions {
-        public static async Task FileNotFoundAsync(string? filename = null) {
-            var message = "The application attempted to open a file, but it wasn't found.";
+        public static Task FileNotFoundAsync(string? filename = null, string message = "The application attempted to open a file, but it wasn't found.", bool cancelled = true) {
             if (filename != null) {
                 message += $" ({filename})";
             }
-            _ = await new MessageDialog(message, "File not found").ShowAsync();
+
+            return IntendedBehaviorAsync(message, "File not found", cancelled);
+        }
+        public static Task ComicNotFoundAsync(Comic comic) {
+            return IntendedBehaviorAsync($"The folder for item {comic.Title} could not be found. ({comic.Path})", "Item not found");
         }
 
-        public static async Task UnauthorizedFileSystemAccessAsync() {
-            _ = await new MessageDialog(
-                "Please enable file system access in settings to open comics.", "Access denied").ShowAsync();
+        public static Task UnauthorizedFileSystemAccessAsync(bool cancelled = true) {
+            return IntendedBehaviorAsync("Please enable file system access in settings to open comics.", "Access denied");
         }
 
-        public static async Task IntendedBehaviorAsync(string message) {
-            _ = await new MessageDialog(
-                message, "An operation was unsuccessful").ShowAsync();
+        public static async Task IntendedBehaviorAsync(string message, string title = "An operation was unsuccessful", bool cancelled = true) {
+            if (cancelled) {
+                message += "\n(Note: the operation that caused this error has been cancelled.)";
+            }
+
+            _ = await new MessageDialog(message, title).ShowAsync();
         }
 
         public static async Task<bool> HandleFileRelatedExceptionsAsync(Exception e) {
@@ -43,8 +49,8 @@ namespace ComicsViewer.Support {
 
         public static async Task<bool> HandleIntendedBehaviorExceptionsAsync(Exception e) {
             switch (e) {
-                case IntendedBehaviorException _:
-                    await IntendedBehaviorAsync(e.Message);
+                case IntendedBehaviorException ib:
+                    await IntendedBehaviorAsync(ib.Message, ib.Title);
                     return true;
                 default:
                     return false;

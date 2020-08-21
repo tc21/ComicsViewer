@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.Support {
     internal class IntendedBehaviorException : Exception {
-        public IntendedBehaviorException(string message) : base(message) { }
+        public string Title { get; }
+        public IntendedBehaviorException(string message, string title = "An operation was unsuccessful") : base(message) {
+            this.Title = title;
+        }
     }
 }

@@ -244,7 +244,10 @@ namespace ComicsViewer.Pages {
         #region Redefining thumbnails
 
         private async Task RedefineThumbnailAsync(ComicItem item) {
-            var folder = await StorageFolder.GetFolderFromPathAsync(item.TitleComic.Path);
+            if (!(await item.TitleComic.GetFolderAndNotifyErrorsAsync() is StorageFolder folder)) {
+                return;
+            }
+
             var images = await Thumbnail.GetPossibleThumbnailFilesAsync(folder);
 
             _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
@@ -313,7 +316,7 @@ namespace ComicsViewer.Pages {
                 this.ShowInExplorerCommand = new XamlUICommand();
                 this.ShowInExplorerCommand.ExecuteRequested += (sender, args) => {
                     foreach (var item in this.SelectedItems) {
-                        Startup.OpenContainingFolderAsync(item.TitleComic);
+                        _ = Startup.OpenContainingFolderAsync(item.TitleComic);
                     }
                 };
                 this.ShowInExplorerCommand.CanExecuteRequested += this.CanExecuteHandler(()

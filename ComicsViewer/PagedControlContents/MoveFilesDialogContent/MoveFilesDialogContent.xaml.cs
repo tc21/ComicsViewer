@@ -78,6 +78,11 @@ namespace ComicsViewer.Pages {
                                     $"because an item with the same name already exists at the destination.");
                             }
 
+                            if (!FileApiInterop.FileOrDirectoryExists(comic.Path)) {
+                                throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}': " +
+                                    $"the folder for this item could not be found. ({comic.Path})", "Item not found");
+                            }
+
                             FileApiInterop.MoveDirectory(comic.Path, targetPath);
 
                             if (FileApiInterop.GetDirectoryContents(originalAuthorPath).Count() == 0) {
