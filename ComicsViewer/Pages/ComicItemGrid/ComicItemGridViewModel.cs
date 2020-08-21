@@ -100,9 +100,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.navigationTag = appViewModel.ActiveNavigationTag;
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
-
-            // this sort result is instantly thrown away, but we don't need to optimize for that
-            this.comics = comics.Sorted(ComicSortSelector.Random);
+            this.comics = comics.Sorted((ComicSortSelector)this.SelectedSortIndex);
 
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
@@ -164,7 +162,7 @@ namespace ComicsViewer.ViewModels.Pages {
          * You are supposed to call SortedComicView.Sort, which will then trigger events that call SetComicItems. So a
          * list of workItems is already sorted here. On the other hand, we have to manually sort our ComicPropertiesView,
          * because we didn't need to waste time working out an event-based ComicPropertiesView */
-        private void SortAndSetComicNavigationItems(ComicPropertySortSelector sortSelector) { 
+        private void SortAndSetComicNavigationItems(ComicPropertySortSelector sortSelector) {
             var view = comics.SortedProperties(
                 this.navigationTag switch {
                     "authors" => comic => new[] { comic.DisplayAuthor },
