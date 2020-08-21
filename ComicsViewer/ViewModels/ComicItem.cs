@@ -84,14 +84,14 @@ namespace ComicsViewer.ViewModels {
         }
 
 
-        private async void View_ComicsChanged(ComicView sender, ComicView.ComicsChangedEventArgs e) {
+        private async void View_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
             // The new system is not implemented for nav items yet.
             if (this.ItemType == ComicItemType.Navigation) {
                 return;
             }
 
             switch (e.Type) {  // switch ChangeType
-                case ComicView.ChangeType.ItemsChanged:
+                case ComicChangeType.ItemsChanged:
                     // Added: handled by ComicItemGrid
 
                     /* We don't need to worry about adding nav items since adding items means creating new work items or updating
@@ -141,11 +141,11 @@ namespace ComicsViewer.ViewModels {
 
                     return;
 
-                case ComicView.ChangeType.Refresh:
+                case ComicChangeType.Refresh:
                     // the parent will have called refresh, so we don't need to do anything.
                     return;
 
-                case ComicView.ChangeType.ThumbnailChanged:
+                case ComicChangeType.ThumbnailChanged:
                     if (e.Modified!.Contains(this.TitleComic)) {
                         var image = new BitmapImage();
                         var thumbnailFile = await StorageFile.GetFileFromPathAsync(Thumbnail.ThumbnailPath(this.TitleComic));

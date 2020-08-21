@@ -32,14 +32,14 @@ namespace ComicsLibrary.Collections {
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
             switch (e.Type) {  // switch ChangeType
-                case ChangeType.ItemsChanged:
+                case ComicChangeType.ItemsChanged:
                     this.RemoveComics(e.Remove);
                     this.AddComics(e.Add);
                     break;
-                case ChangeType.Refresh:
+                case ComicChangeType.Refresh:
                     this.RefreshComics(sender);
                     break;
-                case ChangeType.ThumbnailChanged:
+                case ComicChangeType.ThumbnailChanged:
                     // do nothing; propagate
                     break;
                 default:

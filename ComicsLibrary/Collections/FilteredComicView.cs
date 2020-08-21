@@ -32,7 +32,7 @@ namespace ComicsLibrary.Collections {
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
             switch (e.Type) {  // switch ChangeType
-                case ChangeType.ItemsChanged:
+                case ComicChangeType.ItemsChanged:
                     var add = e.Add.Where(this.filter);
                     var remove = e.Remove.Where(this.filter);
 
@@ -42,11 +42,11 @@ namespace ComicsLibrary.Collections {
 
                     return;
 
-                case ChangeType.Refresh:
+                case ComicChangeType.Refresh:
                     this.OnComicChanged(e);
                     return;
 
-                case ChangeType.ThumbnailChanged:
+                case ComicChangeType.ThumbnailChanged:
                     var changed = e.Add.Where(this.filter);
                     if (changed.Count() > 0) {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add: changed));

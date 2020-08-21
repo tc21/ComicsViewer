@@ -31,12 +31,12 @@ namespace ComicsLibrary.Collections {
 
         public void Add(IEnumerable<Comic> comics) {
             this.AddComics(comics);
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.ItemsChanged, add: comics));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
         }
 
         public void Remove(IEnumerable<Comic> comics) {
             this.RemoveComics(comics);
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.ItemsChanged, remove: comics));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
         }
 
         // you should pass in the new list of comics
@@ -46,12 +46,12 @@ namespace ComicsLibrary.Collections {
             this.RemoveComics(comics);
             this.AddComics(comics);
 
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.ItemsChanged, add: comics, remove: removed));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: removed));
         }
 
         public void Refresh(IEnumerable<Comic> comics) {
             this.RefreshComics(comics);
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.Refresh));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.Refresh));
         }
 
         public override bool Contains(Comic comic) => this.comics.ContainsKey(comic.UniqueIdentifier);

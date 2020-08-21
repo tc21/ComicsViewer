@@ -67,7 +67,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public int VisibleItemCount => this.ComicItems.Count;
 
         internal readonly MainViewModel MainViewModel;
-
+        
         private readonly SortedComicView comics;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
@@ -108,6 +108,17 @@ namespace ComicsViewer.ViewModels.Pages {
             };
         }
 
+        private ComicPropertySortSelector GetNavItemSortSelector(Sorting.SortSelector sortSelector) {
+            return sortSelector switch {
+                Sorting.SortSelector.Title => ComicPropertySortSelector.Name,
+                Sorting.SortSelector.Author => ComicPropertySortSelector.Name,
+                Sorting.SortSelector.DateAdded => ComicPropertySortSelector.Name,
+                Sorting.SortSelector.ItemCount => ComicPropertySortSelector.ItemCount,
+                Sorting.SortSelector.Random => ComicPropertySortSelector.Random,
+                _ => throw new ApplicationLogicException($"{nameof(GetNavItemSortSelector)}: unhandled switch case"),
+            };
+        }
+
         ~ComicItemGridViewModel() {
             Debug.WriteLine($"VM{debug_this_count} destroyed");
         }
@@ -131,14 +142,14 @@ namespace ComicsViewer.ViewModels.Pages {
 
         internal void RefreshComicItems() {
             // TODO
-            var comicItems = this.CreateSortedComicItems(this.comics.ToList(), (Sorting.SortSelector)this.SelectedSortIndex);
+            var comicItems = this.CreateComicItems(this.comics, (Sorting.SortSelector)this.SelectedSortIndex);
 
             this.SetComicItems(comicItems);
         }
 
         #region Filtering and grouping
 
-        private  IEnumerable<ComicItem> CreateSortedComicItems(List<Comic> comics, Sorting.SortSelector sortSelector) {
+        private  IEnumerable<ComicItem> CreateComicItems(ComicView comics, Sorting.SortSelector sortSelector) {
             // although this method call can take a while, the program isn't in a useable state between the user choosing 
             // a new sort selector and the sort finishing anyway
             if (this.navigationTag == MainViewModel.DefaultNavigationTag || this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
@@ -148,8 +159,22 @@ namespace ComicsViewer.ViewModels.Pages {
                     return item;
                 });
             }
-        
-            return Sorting.SortAndCreateComicItems(comics, sortSelector, this.navigationTag, this.comics, this.ComicItem_RequestingRefresh);
+
+            var view = comics.SortedProperties(
+                this.navigationTag switch {
+                    "authors" => comic => new[] { comic.DisplayAuthor },
+                    "categories" => comic => new[] { comic.DisplayCategory },
+                    "tags" => comic => comic.Tags,
+                    _ => throw new ApplicationLogicException("unhandled switch case")
+                },
+                this.GetNavItemSortSelector(sortSelector)
+            );
+
+            return view.Select(property => {
+                var item = ComicItem.NavigationItem(property.Name, property.Comics, view.PropertyView(property.Name));
+                item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                return item;
+            });
         }
 
         private void ComicItem_RequestingRefresh(ComicItem sender, ComicItem.RequestingRefreshType type) {
@@ -306,11 +331,11 @@ namespace ComicsViewer.ViewModels.Pages {
         private static int debug_count = 0;
         private readonly int debug_this_count = ++debug_count;
 
-        private void Comics_ComicsChanged(ComicView sender, ComicView.ComicsChangedEventArgs e) {
+        private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
             Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.navigationTag}");
 
             switch (e.Type) { // switch ChangeType
-                case ComicView.ChangeType.ItemsChanged:
+                case ComicChangeType.ItemsChanged:
                     /* Notes on adding: 
                      * If we are on a WorkItem tab, we just need to add the comics to the view.
                      * If we are on another tab, though, we will need to be able to create new ComicItems on the fly
@@ -347,11 +372,11 @@ namespace ComicsViewer.ViewModels.Pages {
                      * so we don't need any logic in this section to handle modified and removed. */
                     break;
 
-                case ComicView.ChangeType.Refresh:
+                case ComicChangeType.Refresh:
                     this.RefreshComicItems();
                     break;
 
-                case ComicView.ChangeType.ThumbnailChanged:
+                case ComicChangeType.ThumbnailChanged:
                     break;
 
                 default:

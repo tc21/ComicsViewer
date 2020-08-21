@@ -36,6 +36,11 @@ namespace ComicsLibrary.Collections {
         public virtual FilteredComicView Filtered(Func<Comic, bool> filter)
             => new FilteredComicView(this, filter);
 
+        public virtual SortedComicPropertiesView SortedProperties(
+            Func<Comic, IEnumerable<string>> getProperties, Sorting.ComicPropertySortSelector sortSelector
+        ) {
+            return new SortedComicPropertiesView(this, getProperties, sortSelector);
+        }
 
         /// <summary>
         /// The ViewChanged event is propagated down to children views so they can update their information if needed.
@@ -44,19 +49,19 @@ namespace ComicsLibrary.Collections {
         /// Overriding classes are required to ensure their implementation propagates events only for comics that need
         /// to be added or removed
         /// </summary>
-        protected event ViewChangedEventHandler? ViewChanged;
-        protected delegate void ViewChangedEventHandler(ComicView sender, ViewChangedEventArgs e);
+        protected internal event ViewChangedEventHandler? ViewChanged;
+        protected internal delegate void ViewChangedEventHandler(ComicView sender, ViewChangedEventArgs e);
         protected void OnComicChanged(ViewChangedEventArgs e) {
             this.ViewChanged?.Invoke(this, e);
             this.ComicsChanged?.Invoke(this, e.ToComicsChangedEventArgs());
         }
 
-        protected class ViewChangedEventArgs {
-            public readonly ChangeType Type;
+        protected internal class ViewChangedEventArgs {
+            public readonly ComicChangeType Type;
             public readonly IEnumerable<Comic> Add;
             public readonly IEnumerable<Comic> Remove;
 
-            public ViewChangedEventArgs(ChangeType type, IEnumerable<Comic>? add = null, IEnumerable<Comic>? remove = null) {
+            public ViewChangedEventArgs(ComicChangeType type, IEnumerable<Comic>? add = null, IEnumerable<Comic>? remove = null) {
                 this.Type = type;
                 this.Add = add ?? new Comic[0];
                 this.Remove = remove ?? new Comic[0];
@@ -64,7 +69,7 @@ namespace ComicsLibrary.Collections {
 
             public ComicsChangedEventArgs ToComicsChangedEventArgs() {
                 switch (this.Type) {  // switch ChangeType
-                    case ChangeType.ItemsChanged:
+                    case ComicChangeType.ItemsChanged:
                         var removed = this.Remove.ToDictionary(c => c.UniqueIdentifier);
 
                         var modified = new List<Comic>();
@@ -81,10 +86,10 @@ namespace ComicsLibrary.Collections {
 
                         return new ComicsChangedEventArgs(this.Type, added, modified, removed.Values.ToList());
 
-                    case ChangeType.Refresh:
+                    case ComicChangeType.Refresh:
                         return new ComicsChangedEventArgs(this.Type);
 
-                    case ChangeType.ThumbnailChanged:
+                    case ComicChangeType.ThumbnailChanged:
                         return new ComicsChangedEventArgs(this.Type, modified: this.Add);
 
                     default:
@@ -99,52 +104,52 @@ namespace ComicsLibrary.Collections {
         /// </summary> 
         public event ComicsChangedEventHandler? ComicsChanged;
         public delegate void ComicsChangedEventHandler(ComicView sender, ComicsChangedEventArgs e);
+    }
 
-        public class ComicsChangedEventArgs {
-            public readonly ChangeType Type;
-            public readonly IEnumerable<Comic>? Added;
-            public readonly IEnumerable<Comic>? Modified;
-            public readonly IEnumerable<Comic>? Removed;
+    public class ComicsChangedEventArgs {
+        public readonly ComicChangeType Type;
+        public readonly IEnumerable<Comic>? Added;
+        public readonly IEnumerable<Comic>? Modified;
+        public readonly IEnumerable<Comic>? Removed;
 
-            internal ComicsChangedEventArgs(ChangeType type, IEnumerable<Comic>? added = null,
-                                          IEnumerable<Comic>? modified = null, IEnumerable<Comic>? removed = null) {
-                this.Type = type;
-                this.Added = added;
-                this.Modified = modified;
-                this.Removed = removed;
-            }
+        internal ComicsChangedEventArgs(ComicChangeType type, IEnumerable<Comic>? added = null,
+                                      IEnumerable<Comic>? modified = null, IEnumerable<Comic>? removed = null) {
+            this.Type = type;
+            this.Added = added;
+            this.Modified = modified;
+            this.Removed = removed;
         }
+    }
 
-        public enum ChangeType {
-            /// <summary>
-            /// <list type="table">
-            /// 
-            /// <item>Represents that one or more items has changed. <br/></item>
-            /// 
-            /// <item>In a <see cref="ViewChangedEventArgs"/>: <c>Add</c> and <c>Remove</c> have been populated with items that have been 
-            /// added to and removed from the sender. Child views should add/remove, and propagate, where appropriate.</item>
-            /// 
-            /// <item>In a <see cref="ComicsChangedEventArgs"/>: By design, all items in <c>Removed</c> and <c>Modified</c> previously
-            /// existed, while none in <c>Added</c> did. All items in <c>Added</c> and <c>Modified</c> currently exist.</item>
-            /// </list>
-            /// </summary>
-            ItemsChanged,
+    public enum ComicChangeType {
+        /// <summary>
+        /// <list type="table">
+        /// 
+        /// <item>Represents that one or more items has changed. <br/></item>
+        /// 
+        /// <item>In a <see cref="ViewChangedEventArgs"/>: <c>Add</c> and <c>Remove</c> have been populated with items that have been 
+        /// added to and removed from the sender. Child views should add/remove, and propagate, where appropriate.</item>
+        /// 
+        /// <item>In a <see cref="ComicsChangedEventArgs"/>: By design, all items in <c>Removed</c> and <c>Modified</c> previously
+        /// existed, while none in <c>Added</c> did. All items in <c>Added</c> and <c>Modified</c> currently exist.</item>
+        /// </list>
+        /// </summary>
+        ItemsChanged,
 
-            /// <summary>
-            /// <list type="table">
-            /// <item>Only sent by external requests. Nothing about the underlying comics of this view has changed, but the
-            /// thumbnails for the items in has changed.</item>
-            /// <item>In a <see cref="ViewChangedEventArgs"/>: items are stored in <see cref="ViewChangedEventArgs.Add"/>.</item>
-            /// <item>In a <see cref="ComicsChangedEventArgs"/>: items are stored in <see cref="ComicsChangedEventArgs.Modified"/>.</item>
-            /// </list>
-            /// </summary>
-            ThumbnailChanged,
+        /// <summary>
+        /// <list type="table">
+        /// <item>Only sent by external requests. Nothing about the underlying comics of this view has changed, but the
+        /// thumbnails for the items in has changed.</item>
+        /// <item>In a <see cref="ViewChangedEventArgs"/>: items are stored in <see cref="ViewChangedEventArgs.Add"/>.</item>
+        /// <item>In a <see cref="ComicsChangedEventArgs"/>: items are stored in <see cref="ComicsChangedEventArgs.Modified"/>.</item>
+        /// </list>
+        /// </summary>
+        ThumbnailChanged,
 
-            /// <summary>
-            /// Represents that this view has changed so much that it cannot hope to tell which items have been added,
-            /// and which have been removed. Receivers should just reload everything from this view.
-            /// </summary>
-            Refresh
-        }
+        /// <summary>
+        /// Represents that this view has changed so much that it cannot hope to tell which items have been added,
+        /// and which have been removed. Receivers should just reload everything from this view.
+        /// </summary>
+        Refresh
     }
 }

@@ -16,7 +16,7 @@ namespace ComicsViewer.Support {
 
         // another method purely for the purpose of UI
         public void NotifyThumbnailChanged(IEnumerable<Comic> comics) {
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.ThumbnailChanged, comics));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ThumbnailChanged, comics));
         }
 
         private ComicView? filtered;
@@ -29,7 +29,7 @@ namespace ComicsViewer.Support {
         }
 
         private void Filter_FilterChanged(Filter filter) {
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.Refresh));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.Refresh));
         }
     }
 }

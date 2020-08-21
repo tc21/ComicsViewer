@@ -12,7 +12,7 @@ namespace ComicsLibrary.Collections {
     public class SortedComicView : MutableComicView {
         private readonly Dictionary<string, Comic> comicAccessor;  // allows for O(1) access of sortedComics
         private readonly List<Comic> sortedComics;
-        private readonly ComicSortSelector sortSelector;
+        private ComicSortSelector sortSelector;
 
         internal SortedComicView(
             ComicView trackChangesFrom,
@@ -36,10 +36,11 @@ namespace ComicsLibrary.Collections {
         }
 
         public void Sort(ComicSortSelector sortSelector) {
+            this.sortSelector = sortSelector;
             SortComics(this.sortedComics, sortSelector);
             // TODO we might make a "Sorted" enum, so that children can ignore this event,
             // but you can't change the sort of an invisible grid anyway
-            this.OnComicChanged(new ViewChangedEventArgs(ChangeType.Refresh));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.Refresh));
         }
 
         private static void SortComics(List<Comic> comics, ComicSortSelector sortSelector) {
@@ -69,7 +70,7 @@ namespace ComicsLibrary.Collections {
 
             int index;
 
-            if (sortSelector == ComicSortSelector.Random) {
+            if (this.sortSelector == ComicSortSelector.Random) {
                 index = General.Randomizer.Next(this.Count() + 1);
             } else {
                 index = this.sortedComics.BinarySearch(comic, ComicComparers.Make(this.sortSelector));
@@ -83,7 +84,7 @@ namespace ComicsLibrary.Collections {
         }
 
         private protected override void RemoveComic(Comic comic) {
-            if (sortSelector == ComicSortSelector.Random) {
+            if (this.sortSelector == ComicSortSelector.Random) {
                 if (!this.sortedComics.Remove(comic)) {
                     throw new ArgumentException("comic doesn't exist in this collection");
                 }
