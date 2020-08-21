@@ -203,7 +203,6 @@
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
     <Compile Include="Support\CountedString.cs" />
     <Compile Include="Support\FilterViewAuxiliaryInfo.cs" />
-    <Compile Include="Features\Sorting.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
   </ItemGroup>
   <ItemGroup>

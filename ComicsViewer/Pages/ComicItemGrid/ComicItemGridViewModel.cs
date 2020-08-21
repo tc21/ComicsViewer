@@ -33,6 +33,11 @@ namespace ComicsViewer.ViewModels.Pages {
                     return;
                 }
 
+                // turns out if for unforseen reasons this was set to an invalid value, it would crash the app
+                if (value >= this.SortSelectors.Length) {
+                    value = Defaults.SettingsAccessor.DefaultSortSelection(this.navigationTag);
+                }
+
                 this.selectedSortIndex = value;
                 this.OnPropertyChanged();
             }
@@ -66,7 +71,10 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         /* manually managed properties */
-        public string[] SortSelectors => Sorting.SortSelectorNames;
+        public string[] SortSelectors => IsWorkItemNavigationTag(this.navigationTag)
+            ? SortSelectorNames.ComicSortSelectorNames
+            : SortSelectorNames.ComicPropertySortSelectorNames;
+
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public string ProfileName => this.MainViewModel.Profile.Name;
@@ -92,37 +100,17 @@ namespace ComicsViewer.ViewModels.Pages {
             this.navigationTag = appViewModel.ActiveNavigationTag;
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
-            this.comics = comics.Sorted(this.GetWorkItemSortSelector((Sorting.SortSelector)this.SelectedSortIndex));
+
+            // this sort result is instantly thrown away, but we don't need to optimize for that
+            this.comics = comics.Sorted(ComicSortSelector.Random);
 
             // Note: please keep this line before setting SelectedSortIndex...
             this.PropertyChanged += this.ComicViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
 
-            // Loads the actual comic items
+            // Sorts and loads the actual comic items
             this.RefreshComicItems();
-        }
-
-        private ComicSortSelector GetWorkItemSortSelector(Sorting.SortSelector sortSelector) {
-            return sortSelector switch {
-                Sorting.SortSelector.Title => ComicSortSelector.Title,
-                Sorting.SortSelector.Author => ComicSortSelector.Author,
-                Sorting.SortSelector.DateAdded => ComicSortSelector.DateAdded,
-                Sorting.SortSelector.ItemCount => ComicSortSelector.Author,
-                Sorting.SortSelector.Random => ComicSortSelector.Random,
-                _ => throw new ProgrammerError($"{nameof(GetWorkItemSortSelector)}: unhandled switch case"),
-            };
-        }
-
-        private ComicPropertySortSelector GetNavItemSortSelector(Sorting.SortSelector sortSelector) {
-            return sortSelector switch {
-                Sorting.SortSelector.Title => ComicPropertySortSelector.Name,
-                Sorting.SortSelector.Author => ComicPropertySortSelector.Name,
-                Sorting.SortSelector.DateAdded => ComicPropertySortSelector.Name,
-                Sorting.SortSelector.ItemCount => ComicPropertySortSelector.ItemCount,
-                Sorting.SortSelector.Random => ComicPropertySortSelector.Random,
-                _ => throw new ProgrammerError($"{nameof(GetNavItemSortSelector)}: unhandled switch case"),
-            };
         }
 
         ~ComicItemGridViewModel() {
@@ -145,28 +133,38 @@ namespace ComicsViewer.ViewModels.Pages {
             return new ComicItemGridViewModel(appViewModel, comics);
         }
 
-        internal void RefreshComicItems() {
-            var comicItems = this.CreateComicItems(this.comics, (Sorting.SortSelector)this.SelectedSortIndex);
-            this.SetComicItems(comicItems);
-        }
-
         #region Filtering and grouping
 
         private static bool IsWorkItemNavigationTag(string navigationTag) {
             return (navigationTag == MainViewModel.DefaultNavigationTag || navigationTag == MainViewModel.SecondLevelNavigationTag);
         }
 
-        private  IEnumerable<ComicItem> CreateComicItems(ComicView comics, Sorting.SortSelector sortSelector) {
-            // although this method call can take a while, the program isn't in a useable state between the user choosing 
-            // a new sort selector and the sort finishing anyway
+        /* although these method calls can take a while, the program isn't in a useable state between the user choosing 
+         * a new sort selector and the sort finishing anyway */
+        private void RefreshComicItems() {
             if (IsWorkItemNavigationTag(this.navigationTag)) {
-                return comics.Select(comic => {
-                    var item = ComicItem.WorkItem(comic, trackChangesFrom: this.comics);
-                    item.RequestingRefresh += this.ComicItem_RequestingRefresh;
-                    return item;
-                });
+                this.SetComicWorkItems();
+            } else {
+                this.SortAndSetComicNavigationItems((ComicPropertySortSelector)this.SelectedSortIndex);
             }
 
+        }
+
+        private void SetComicWorkItems() {
+            var items = this.comics.Select(comic => {
+                var item = ComicItem.WorkItem(comic, trackChangesFrom: this.comics);
+                item.RequestingRefresh += this.ComicItem_RequestingRefresh;
+                return item;
+            });
+
+            this.SetComicItems(items);
+        }
+
+        /* We have an unfortunate discrepancy here, caused by how we implemented sorting:
+         * You are supposed to call SortedComicView.Sort, which will then trigger events that call SetComicItems. So a
+         * list of workItems is already sorted here. On the other hand, we have to manually sort our ComicPropertiesView,
+         * because we didn't need to waste time working out an event-based ComicPropertiesView */
+        private void SortAndSetComicNavigationItems(ComicPropertySortSelector sortSelector) { 
             var view = comics.SortedProperties(
                 this.navigationTag switch {
                     "authors" => comic => new[] { comic.DisplayAuthor },
@@ -174,14 +172,16 @@ namespace ComicsViewer.ViewModels.Pages {
                     "tags" => comic => comic.Tags,
                     _ => throw new ProgrammerError("unhandled switch case")
                 },
-                this.GetNavItemSortSelector(sortSelector)
+                sortSelector
             );
 
-            return view.Select(property => {
+            var items = view.Select(property => {
                 var item = ComicItem.NavigationItem(property.Name, property.Comics, view.PropertyView(property.Name));
                 item.RequestingRefresh += this.ComicItem_RequestingRefresh;
                 return item;
             });
+
+            this.SetComicItems(items);
         }
 
         private void ComicItem_RequestingRefresh(ComicItem sender, ComicItem.RequestingRefreshType type) {
@@ -319,7 +319,12 @@ namespace ComicsViewer.ViewModels.Pages {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
                     Defaults.SettingsAccessor.SetLastSortSelection(this.navigationTag, this.SelectedSortIndex);
-                    this.comics.Sort(this.GetWorkItemSortSelector((Sorting.SortSelector)this.SelectedSortIndex));
+
+                    if (IsWorkItemNavigationTag(this.navigationTag)) {
+                        this.comics.Sort((ComicSortSelector)this.SelectedSortIndex);
+                    }
+
+                    this.RefreshComicItems();
 
                     break;
             }

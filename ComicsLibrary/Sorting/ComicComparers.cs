@@ -7,6 +7,10 @@ namespace ComicsLibrary.Sorting {
         Title, Author, DateAdded, Random
     }
 
+    public static partial class SortSelectorNames {
+        public static readonly string[] ComicSortSelectorNames = new[] { "Title", "Author", "Date Added", "Random" };
+    }
+
     public static class ComicComparers {
         private class TitleComparer : IComparer<Comic> {
             public int Compare(Comic x, Comic y) => CompareComic(x, y);

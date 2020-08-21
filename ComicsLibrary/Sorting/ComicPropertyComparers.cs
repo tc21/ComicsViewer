@@ -8,6 +8,10 @@ namespace ComicsLibrary.Sorting {
         Name, ItemCount, Random
     }
 
+    public static partial class SortSelectorNames {
+        public static readonly string[] ComicPropertySortSelectorNames = new[] { "Name", "Item Count", "Random" };
+    }
+
     public class ComicPropertyComparers {
         private class NameComparer : IComparer<ComicProperty> {
             public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);

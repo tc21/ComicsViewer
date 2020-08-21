@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsLibrary.Sorting;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -197,11 +198,11 @@ namespace ComicsViewer.Features {
         private static readonly Dictionary<string, object> defaultSettings = new Dictionary<string, object> {
             ["LastProfile"] = "",
             ["SortSelections"] = new Dictionary<string, int>() {
-                ["comics"] = (int)Sorting.SortSelector.Author,
-                ["authors"] = (int)Sorting.SortSelector.Title,
-                ["tags"] = (int)Sorting.SortSelector.Title,
-                ["categories"] = (int)Sorting.SortSelector.Title,
-                ["default"] =(int)Sorting.SortSelector.Title
+                ["comics"] = (int)ComicSortSelector.Author,
+                ["authors"] = (int)ComicPropertySortSelector.Name,
+                ["tags"] = (int)ComicPropertySortSelector.Name,
+                ["categories"] = (int)ComicPropertySortSelector.Name,
+                ["default"] =(int)ComicSortSelector.Author
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...
             ["SavedSearches"] = "",
@@ -214,6 +215,9 @@ namespace ComicsViewer.Features {
                 get => defaultSettingsAccessor.Get<string>("LastProfile");
                 set => defaultSettingsAccessor.Set("LastProfile", value);
             }
+
+            public static int DefaultSortSelection(string pageType)
+                => defaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", pageType);
 
             public static int GetLastSortSelection(string pageType)
                 => defaultSettingsAccessor.GetCollectionItem<int>("SortSelections", pageType);
