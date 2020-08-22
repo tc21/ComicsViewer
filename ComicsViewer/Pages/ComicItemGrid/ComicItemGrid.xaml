@@ -81,14 +81,14 @@
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
                 <uc:ComicsMenuFlyoutItem Tag="open"
+                                         SymbolIcon="OpenFile"
                                          Command="{x:Bind ContextMenuCommands.OpenItemsCommand}"/>
                 <uc:ComicsMenuFlyoutItem Text="Edit info"
                                          SymbolIcon="Edit"
                                          Command="{x:Bind ContextMenuCommands.EditInfoCommand}"/>
                 <uc:ComicsMenuFlyoutItem Tag="editNavItem" 
                                          SymbolIcon="Edit"
-                                         Command="{x:Bind ContextMenuCommands.EditNavigationItemCommand}"
-                                         />
+                                         Command="{x:Bind ContextMenuCommands.EditNavigationItemCommand}"/>
                 <uc:ComicsMenuFlyoutItem Tag="love" 
                                          FontIcon="&#xEB51;"
                                          Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
@@ -122,6 +122,7 @@
                                          SymbolIcon="MoveToFolder"
                                          Command="{x:Bind ContextMenuCommands.MoveFilesCommand}"/>
                 <uc:ComicsMenuFlyoutItem Tag="remove" 
+                                         SymbolIcon="Delete"
                                          Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"/>
             </MenuFlyout>
 

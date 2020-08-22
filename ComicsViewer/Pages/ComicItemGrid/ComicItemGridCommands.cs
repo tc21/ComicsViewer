@@ -111,7 +111,7 @@ namespace ComicsViewer.Pages {
         internal ComicItemGridCommands(ComicItemGrid parent) {
             // Opens selected comics or navigates into the selected navigation item
             this.OpenItemsCommand = new ComicItemGridCommand(parent,
-                execute: args => args.MainViewModel.FilterToSelected(args.Items),
+                execute: async args => await args.ViewModel.OpenItemsAsync(args.Items),
                 canExecute: args => args.IsWorkItems || args.Count == 1
             );
 

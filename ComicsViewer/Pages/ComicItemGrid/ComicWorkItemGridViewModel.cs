@@ -1,9 +1,12 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
+using ComicsViewer.Features;
 using ComicsViewer.Support;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -42,15 +45,21 @@ namespace ComicsViewer.ViewModels.Pages {
                 ComicItem.WorkItem(comic, trackChangesFrom: this.comics)));
         }
 
-        public override Task OpenItemsAsync(IEnumerable<ComicItem> items) {
-            if (items.Count() != 1) {
-                throw new ProgrammerError("Should not allow the user to open multiple navigation " +
-                                          "items at once (use the search into feature instead)");
+        public override async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
+            // Although we don't have to await these, we will need to do so for it to throw an 
+            // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
+            try {
+                var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.TitleComic.Path, this.MainViewModel.Profile));
+                await Task.WhenAll(tasks);
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
+            } catch (FileNotFoundException e) {
+                if (items.Count() == 1) {
+                    await ExpectedExceptions.ComicNotFoundAsync(items.First().TitleComic);
+                } else {
+                    await ExpectedExceptions.FileNotFoundAsync(e.FileName, "The folder for an item could not be found.", cancelled: false);
+                }
             }
-
-            this.MainViewModel.NavigateInto(items.First());
-
-            return Task.CompletedTask;
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
