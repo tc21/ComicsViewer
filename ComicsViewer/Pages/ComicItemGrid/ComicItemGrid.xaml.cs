@@ -134,6 +134,13 @@ namespace ComicsViewer.Pages {
             );
         }
 
+        public async Task ShowEditNavigationItemDialogAsync(ComicItem item) {
+            _ = await new PagedContentDialog { Title = "Rename tag" }.NavigateAndShowAsync(
+                typeof(EditNavigationItemDialogContent),
+                new EditNavigationItemDialogNavigationArguments(this.ViewModel!, this.ViewModel!.NavigationTag, item.Title)
+            );
+        }
+
         public async Task ShowMoveFilesDialogAsync(IEnumerable<ComicItem> items) {
             /* Currently, the application is not able to handle moving files while changing its author or title. So the
              * only thing we can actually change is category. We are thus limiting the ability to move files to moving
@@ -281,6 +288,7 @@ namespace ComicsViewer.Pages {
             public XamlUICommand DislikeComicsCommand { get; }
             public XamlUICommand MoveFilesCommand { get; }
             public XamlUICommand SearchAuthorCommand { get; }
+            public XamlUICommand EditNavigationItemCommand { get; }
 
             private readonly ComicItemGrid parent;
             private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -336,6 +344,15 @@ namespace ComicsViewer.Pages {
                     => await parent.ShowEditComicInfoDialogAsync(this.SelectedItems.First());
                 this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
+
+                // Renames a tag, etc.
+                this.EditNavigationItemCommand = new XamlUICommand();
+                this.EditNavigationItemCommand.ExecuteRequested += async (sender, args)
+                    => await parent.ShowEditNavigationItemDialogAsync(this.SelectedItems.First());
+                this.EditNavigationItemCommand.CanExecuteRequested += this.CanExecuteHandler(() => 
+                    this.SelectedItemType == ComicItemType.Navigation && this.SelectedItemCount == 1 
+                       && parent.ViewModel!.NavigationTag == Support.NavigationTag.Tags
+                );
 
                 // Opens the comic info flyout to the "Edit Info" page
                 this.RedefineThumbnailCommand = new XamlUICommand();
@@ -430,6 +447,8 @@ namespace ComicsViewer.Pages {
                 "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
                              (count == 1 ? "" : " " + count.PluralString("comic")),
                 "searchAuthor" => $"Show all items by {ComicItems().First().TitleComic.DisplayAuthor}",
+                // TODO: this should change in the future.
+                "editNavItem" => $"Rename tag",
                 _ => throw new ProgrammerError($"Unhandled tag name for flyout item: '{tag}'")
             };
         }

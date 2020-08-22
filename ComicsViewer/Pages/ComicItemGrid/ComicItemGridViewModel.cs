@@ -35,7 +35,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 // turns out if for unforseen reasons this was set to an invalid value, it would crash the app
                 if (value >= this.SortSelectors.Length) {
-                    value = Defaults.SettingsAccessor.DefaultSortSelection(this.navigationTag);
+                    value = Defaults.SettingsAccessor.DefaultSortSelection(this.NavigationTag);
                 }
 
                 this.selectedSortIndex = value;
@@ -71,7 +71,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         /* manually managed properties */
-        public string[] SortSelectors => IsWorkItemNavigationTag(this.navigationTag)
+        public string[] SortSelectors => this.NavigationTag.IsWorkItemNavigationTag()
             ? SortSelectorNames.ComicSortSelectorNames
             : SortSelectorNames.ComicPropertySortSelectorNames;
 
@@ -85,7 +85,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly SortedComicView comics;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
-        private readonly NavigationTag navigationTag;
+        internal readonly NavigationTag NavigationTag;
         // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
         // track of that order here
         //private Dictionary<string, int>? randomSortSelectors;
@@ -97,7 +97,7 @@ namespace ComicsViewer.ViewModels.Pages {
             Debug.WriteLine($"VM{debug_this_count} created");
 
             this.MainViewModel = appViewModel;
-            this.navigationTag = appViewModel.ActiveNavigationTag;
+            this.NavigationTag = appViewModel.ActiveNavigationTag;
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
             this.comics = comics.Sorted((ComicSortSelector)this.SelectedSortIndex);
@@ -133,14 +133,10 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Filtering and grouping
 
-        private static bool IsWorkItemNavigationTag(NavigationTag navigationTag) {
-            return (navigationTag == NavigationTag.Comics || navigationTag == NavigationTag.Detail);
-        }
-
         /* although these method calls can take a while, the program isn't in a useable state between the user choosing 
          * a new sort selector and the sort finishing anyway */
         private void RefreshComicItems() {
-            if (IsWorkItemNavigationTag(this.navigationTag)) {
+            if (this.NavigationTag.IsWorkItemNavigationTag()) {
                 this.SetComicWorkItems();
             } else {
                 this.SortAndSetComicNavigationItems((ComicPropertySortSelector)this.SelectedSortIndex);
@@ -164,7 +160,7 @@ namespace ComicsViewer.ViewModels.Pages {
          * because we didn't need to waste time working out an event-based ComicPropertiesView */
         private void SortAndSetComicNavigationItems(ComicPropertySortSelector sortSelector) {
             var view = comics.SortedProperties(
-                this.navigationTag switch {
+                this.NavigationTag switch {
                     NavigationTag.Author => comic => new[] { comic.DisplayAuthor },
                     NavigationTag.Category => comic => new[] { comic.DisplayCategory },
                     NavigationTag.Tags => comic => comic.Tags,
@@ -194,7 +190,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
                         _ = this.ComicItems.Remove(sender);
 
-                        if (this.ComicItems.Count == 0 && this.navigationTag == NavigationTag.Detail) {
+                        if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
                             this.MainViewModel.NavigateOut();
                         }
 
@@ -316,9 +312,9 @@ namespace ComicsViewer.ViewModels.Pages {
         private void ComicViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
-                    Defaults.SettingsAccessor.SetLastSortSelection(this.navigationTag, this.SelectedSortIndex);
+                    Defaults.SettingsAccessor.SetLastSortSelection(this.NavigationTag, this.SelectedSortIndex);
 
-                    if (IsWorkItemNavigationTag(this.navigationTag)) {
+                    if (this.NavigationTag.IsWorkItemNavigationTag()) {
                         this.comics.Sort((ComicSortSelector)this.SelectedSortIndex);
                     }
 
@@ -338,7 +334,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly int debug_this_count = ++debug_count;
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
-            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.navigationTag}");
+            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
 
             switch (e.Type) { // switch ChangeType
                 case ComicChangeType.ItemsChanged:
@@ -354,7 +350,7 @@ namespace ComicsViewer.ViewModels.Pages {
                      * reversed the previous behavior of navigating out due to it being bad UX but the current 
                      * behavior is technically incorrect. */
 
-                    if (!IsWorkItemNavigationTag(this.navigationTag)) {
+                    if (!this.NavigationTag.IsWorkItemNavigationTag()) {
                         this.RefreshComicItems();
                         break;
                     }
@@ -369,7 +365,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     /* Generate thumbnails for added items */
                     /* There may be many view models active at any given moment. The if statement ensures that only
                      * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
-                    if (this.navigationTag != NavigationTag.Detail) {
+                    if (this.NavigationTag != NavigationTag.Detail) {
                         this.RequestGenerateThumbnails(addedItems);
                     }
 

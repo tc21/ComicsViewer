@@ -24,8 +24,8 @@ namespace ComicsViewer.Support {
     }
 
     public static class NavigationTag_ToTagName {
-        public static string ToTagName(this NavigationTag type) {
-            return type switch {
+        public static string ToTagName(this NavigationTag tag) {
+            return tag switch {
                 NavigationTag.Comics => "comics",
                 NavigationTag.Author => "authors",
                 NavigationTag.Category => "categories",
@@ -33,6 +33,10 @@ namespace ComicsViewer.Support {
                 NavigationTag.Detail => "default",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
+        }
+
+        public static bool IsWorkItemNavigationTag(this NavigationTag tag) {
+            return (tag == NavigationTag.Comics || tag == NavigationTag.Detail);
         }
     }
 }

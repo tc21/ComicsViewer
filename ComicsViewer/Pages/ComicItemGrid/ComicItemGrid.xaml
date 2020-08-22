@@ -85,6 +85,10 @@
                 <uc:ComicsMenuFlyoutItem Text="Edit info"
                                          SymbolIcon="Edit"
                                          Command="{x:Bind ContextMenuCommands.EditInfoCommand}"/>
+                <uc:ComicsMenuFlyoutItem Tag="editNavItem" 
+                                         SymbolIcon="Edit"
+                                         Command="{x:Bind ContextMenuCommands.EditNavigationItemCommand}"
+                                         />
                 <uc:ComicsMenuFlyoutItem Tag="love" 
                                          FontIcon="&#xEB51;"
                                          Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
