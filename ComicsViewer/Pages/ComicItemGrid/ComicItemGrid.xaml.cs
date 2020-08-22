@@ -161,9 +161,13 @@ namespace ComicsViewer.Pages {
         }
 
         public async Task ShowEditNavigationItemDialogAsync(ComicItem item) {
+            if (!(this.ViewModel is ComicNavigationItemGridViewModel vm)) {
+                throw new ProgrammerError($"{nameof(ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
+            }
+
             _ = await new PagedContentDialog { Title = "Rename tag" }.NavigateAndShowAsync(
                 typeof(EditNavigationItemDialogContent),
-                new EditNavigationItemDialogNavigationArguments(this.ViewModel!, this.ViewModel!.NavigationTag, item.Title)
+                new EditNavigationItemDialogNavigationArguments(vm, item.Title)
             );
         }
 

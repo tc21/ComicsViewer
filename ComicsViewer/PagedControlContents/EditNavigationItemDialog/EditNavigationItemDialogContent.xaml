@@ -8,7 +8,7 @@
     x:Class="ComicsViewer.Pages.EditNavigationItemDialogContent"
     mc:Ignorable="d"
     d:RequestedTheme="Dark"
-    d:Width="480"
+    Width="400"
     >
     <Page.Resources>
         <Custom:StringFormatConverter x:Key="StringFormatConverter"/>

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
+    // really a RenameTagViewModel for now...
     public class EditNavigationItemDialogViewModel : ViewModelBase {
         private bool inputIsValid = false;
         public bool InputIsValid {
@@ -41,10 +42,11 @@ namespace ComicsViewer.ViewModels.Pages {
         public string ItemTitle { get; }
         public string? newItemTitle;
 
-        private readonly NavigationTag navigationTag;
+        private NavigationTag NavigationTag => this.parent.NavigationTag;
+        private readonly ComicNavigationItemGridViewModel parent;
 
-        public EditNavigationItemDialogViewModel(ComicItemGridViewModel parent, NavigationTag navigationTag, string propertyName) {
-            this.navigationTag = navigationTag;
+        public EditNavigationItemDialogViewModel(ComicNavigationItemGridViewModel parent, string propertyName) {
+            this.parent = parent;
             this.ItemTitle = propertyName;
         }
 
@@ -53,6 +55,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             if (this.GetItemTitleInvalidReason(newTitle) is string reason) {
                 this.InputInvalidReason = reason;
+                this.newItemTitle = null;
                 this.InputIsValid = false;
             } else {
                 this.newItemTitle = newTitle;
@@ -60,18 +63,30 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
         
-        public void Save() {
-            // TODO;
+        public Task Save() {
+            if (this.newItemTitle == null) {
+                throw new ProgrammerError("should not allow Save() to be called unless new name is valid.");
+            }
+
+            return this.parent.MainViewModel.RenameTagAsync(this.ItemTitle, newItemTitle);
         }
 
         // returns null if title is valid.
         private string? GetItemTitleInvalidReason(string title) {
-            switch (this.navigationTag) {
+            switch (this.NavigationTag) {
                 case NavigationTag.Tags:
                     if (title.Contains(",")) {
                         return "Tag name cannot contain commas.";
                     }
+
+                    if (this.parent.ComicProperties.ContainsProperty(title)) {
+                        return "A tag with the same name already exists. (In the future, we will support merging tags.)";
+                    }
+
                     break;
+
+                default:
+                    throw new ProgrammerError("Editing properties other than tags not yet supported");
             }
 
             if (title.Trim() == "") {

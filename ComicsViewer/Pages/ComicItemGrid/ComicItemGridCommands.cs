@@ -178,7 +178,7 @@ namespace ComicsViewer.Pages {
             this.EditNavigationItemCommand = new ComicItemGridCommand(parent,
                 execute: async args => await args.Grid.ShowEditNavigationItemDialogAsync(args.Items.First()),
                 // TODO implement editing for authors and categories as well
-                canExecute: args => args.ViewModel.NavigationTag == Support.NavigationTag.Tags && args.Count == 1
+                canExecute: args => args.ViewModel.NavigationTag == NavigationTag.Tags && args.Count == 1
             );
         }
     }

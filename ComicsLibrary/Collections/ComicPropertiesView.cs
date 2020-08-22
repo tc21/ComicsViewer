@@ -97,7 +97,7 @@ namespace ComicsLibrary.Collections {
         }
 
         public ComicProperty this[string key] => new ComicProperty(key, this.accessor[key]);
-        bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
+        public bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
 
         public int Count => this.sortedComicProperties.Count;
 

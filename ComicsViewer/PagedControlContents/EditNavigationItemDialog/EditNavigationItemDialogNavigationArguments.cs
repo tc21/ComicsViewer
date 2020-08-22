@@ -10,13 +10,11 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.Pages {
     public class EditNavigationItemDialogNavigationArguments {
-        public ComicItemGridViewModel ParentViewModel { get; }
-        public NavigationTag NavigationTag { get; }
+        public ComicNavigationItemGridViewModel ParentViewModel { get; }
         public string PropertyName { get; }
 
-        public EditNavigationItemDialogNavigationArguments(ComicItemGridViewModel parent, NavigationTag navigationTag, string propertyName) {
+        public EditNavigationItemDialogNavigationArguments(ComicNavigationItemGridViewModel parent, string propertyName) {
             this.ParentViewModel = parent;
-            this.NavigationTag = navigationTag;
             this.PropertyName = propertyName;
         }
     }

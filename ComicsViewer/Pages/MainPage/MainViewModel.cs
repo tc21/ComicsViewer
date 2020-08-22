@@ -487,6 +487,25 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         #endregion
+
+        #region Providing features
+
+        public async Task RenameTagAsync(string tag, string newName) {
+            var manager = await this.GetComicsManagerAsync();
+            await manager.RenameTagAsync(tag, newName);
+
+            // we don't have to reload items from the database because we know exactly what they should look like after the change
+            var updatedComics = this.Comics.Where(c => c.Tags.Contains(tag)).Select(c => c.WithUpdatedMetadata(metadata => {
+                metadata.Tags = new HashSet<string>(metadata.Tags);
+                _ = metadata.Tags.Remove(tag);
+                _ = metadata.Tags.Add(newName);
+                return metadata;
+            })).ToList();
+
+            this.Comics.Modify(updatedComics);
+        }
+
+        #endregion
     }
 
     public class ProfileChangedEventArgs {

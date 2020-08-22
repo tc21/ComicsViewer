@@ -34,11 +34,7 @@ namespace ComicsViewer.Pages {
                 PagedControlAccessor.FromNavigationArguments<EditNavigationItemDialogNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = controller;
 
-            if (args.NavigationTag.IsWorkItemNavigationTag()) {
-                throw new ProgrammerError("EditComicInfoDialog can only be created for navigation items");
-            }
-
-            this.ViewModel = new EditNavigationItemDialogViewModel(args.ParentViewModel, args.NavigationTag, args.PropertyName);
+            this.ViewModel = new EditNavigationItemDialogViewModel(args.ParentViewModel, args.PropertyName);
         }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e) {
@@ -49,8 +45,8 @@ namespace ComicsViewer.Pages {
             this.ViewModel!.TrySetNewItemTitle(textBox.Text);
         }
 
-        private void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
-            this.ViewModel!.Save();
+        private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
+            await this.ViewModel!.Save();
             this.PagedControlAccessor!.CloseContainer();
         }
 
