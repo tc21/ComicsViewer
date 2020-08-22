@@ -44,10 +44,6 @@ namespace ComicsLibrary.Collections {
         private readonly Dictionary<string, List<Comic>> accessor = new Dictionary<string, List<Comic>>();
         private readonly List<ComicProperty> sortedComicProperties = new List<ComicProperty>();
 
-        /* when we remove an item, we have to remove its previous mappings, but that information isn't provided in a
-         * ViewChangedEventArgs, so we have to remember it ourselves. */
-        private readonly Dictionary<string, HashSet<string>> savedProperties = new Dictionary<string, HashSet<string>>();
-
         private readonly Func<Comic, IEnumerable<string>> getProperties;
         private ComicPropertySortSelector sortSelector;
         private bool sorted = false;
@@ -120,8 +116,6 @@ namespace ComicsLibrary.Collections {
             if (!preserveSort) {
                 this.sorted = false;
             }
-
-            this.savedProperties[comic.UniqueIdentifier] = properties;
         }
 
         private void RemoveComic(Comic comic) {
@@ -130,12 +124,10 @@ namespace ComicsLibrary.Collections {
                     $"(this is not a constraint but a design decision)");
             }
 
-            foreach (var property in this.savedProperties[comic.UniqueIdentifier]) {
+            foreach (var property in this.getProperties(comic)) {
                 // RemoveComicFromProperty will call RemoveProperty if the property becomes empty
                 this.RemoveComicFromProperty(property, comic);
             }
-
-            _ = this.savedProperties.Remove(comic.UniqueIdentifier);
         }
 
         /// <summary>
