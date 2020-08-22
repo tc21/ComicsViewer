@@ -13,7 +13,10 @@ namespace ComicsLibrary.Collections {
     /// change their contents. Any changes will be signaled by one or more <see cref="ComicsChanged"/> events.
     /// </summary>
     public abstract class ComicView : IEnumerable<Comic> {
+        public static ComicView Empty = new ComicList();
+
         public abstract int Count();
+        // comics should be considered equivalent if their UniqueIdentifier is the same.
         public abstract bool Contains(Comic comic);
         public abstract Comic GetStored(Comic comic);
         public abstract IEnumerator<Comic> GetEnumerator();
@@ -84,13 +87,13 @@ namespace ComicsLibrary.Collections {
                             }
                         }
 
-                        return new ComicsChangedEventArgs(this.Type, added, modified, removed.Values.ToList());
+                        return new ComicsChangedEventArgs(this.Type, new ComicList(added), new ComicList(modified), new ComicList(removed.Values));
 
                     case ComicChangeType.Refresh:
                         return new ComicsChangedEventArgs(this.Type);
 
                     case ComicChangeType.ThumbnailChanged:
-                        return new ComicsChangedEventArgs(this.Type, modified: this.Add);
+                        return new ComicsChangedEventArgs(this.Type, modified: new ComicList(this.Add));
 
                     default:
                         throw new ProgrammerError($"{nameof(ViewChangedEventArgs)}.{nameof(ToComicsChangedEventArgs)}: unhandled switch case");
@@ -108,16 +111,16 @@ namespace ComicsLibrary.Collections {
 
     public class ComicsChangedEventArgs {
         public readonly ComicChangeType Type;
-        public readonly IEnumerable<Comic>? Added;
-        public readonly IEnumerable<Comic>? Modified;
-        public readonly IEnumerable<Comic>? Removed;
+        public readonly ComicView Added;
+        public readonly ComicView Modified;
+        public readonly ComicView Removed;
 
-        internal ComicsChangedEventArgs(ComicChangeType type, IEnumerable<Comic>? added = null,
-                                      IEnumerable<Comic>? modified = null, IEnumerable<Comic>? removed = null) {
+        internal ComicsChangedEventArgs(ComicChangeType type, ComicView? added = null,
+                                      ComicView? modified = null, ComicView? removed = null) {
             this.Type = type;
-            this.Added = added;
-            this.Modified = modified;
-            this.Removed = removed;
+            this.Added = added ?? ComicView.Empty;
+            this.Modified = modified ?? ComicView.Empty;
+            this.Removed = removed ?? ComicView.Empty;
         }
     }
 

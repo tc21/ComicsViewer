@@ -34,7 +34,7 @@ namespace ComicsLibrary.Collections {
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
                     var add = e.Add.Where(this.filter);
-                    var remove = e.Remove.Where(this.filter);
+                    var remove = e.Remove.Where(this.filter); 
 
                     if (add.Count() > 0 || remove.Count() > 0) {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add, remove));

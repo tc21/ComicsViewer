@@ -11,6 +11,10 @@ namespace ComicsLibrary.Collections {
         private readonly Dictionary<string, Comic> comics = new Dictionary<string, Comic>();
 
         public ComicList() : base(null) { }
+        
+        public ComicList(IEnumerable<Comic> comics) : base(null) {
+            this.AddComics(comics);
+        }
 
         private protected override void AddComic(Comic comic)
             => this.comics.Add(comic.UniqueIdentifier, comic);
@@ -46,7 +50,7 @@ namespace ComicsLibrary.Collections {
             this.RemoveComics(comics);
             this.AddComics(comics);
 
-            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: removed));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: comics));
         }
 
         public void Refresh(IEnumerable<Comic> comics) {
