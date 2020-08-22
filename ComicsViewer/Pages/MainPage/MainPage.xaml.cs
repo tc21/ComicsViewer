@@ -134,15 +134,14 @@ namespace ComicsViewer {
 
                     this.activeContent = null;
                     this.ContentFrame.BackStack.Clear();
-                    this.ContentFrame.Navigate(e.PageType, navigationArguments, e.TransitionInfo);
-
-                    this.currentView.AppViewBackButtonVisibility =
-                        (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
+                    _ = this.ContentFrame.Navigate(e.PageType, navigationArguments, e.TransitionInfo);
                     break;
                 default:
                     throw new ProgrammerError($"Unhandled NavigationType '{e.NavigationType}'.");
             }
 
+            this.currentView.AppViewBackButtonVisibility =
+                (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
         }
 
         private async void NavigationView_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args) {
@@ -156,7 +155,7 @@ namespace ComicsViewer {
                 if (!(this.ContentFrame.Content is SettingsPage)) {
                     this.ViewModel.NavigationLevel = 2;
                     this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
-                    this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel!, this.ViewModel!.Profile));
+                    _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel!, this.ViewModel!.Profile));
                 }
                 return;
             }

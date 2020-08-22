@@ -52,7 +52,7 @@
                 <ColumnDefinition x:Name="RightPaddingColumn" Width="0"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="1" 
-                       Text="Comics"
+                       Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        Margin="12 8 0 8"/>
         </Grid>

@@ -32,6 +32,20 @@ namespace ComicsViewer.ViewModels.Pages {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
         }
 
+        public string Title { get; private set; } = "Comics";
+
+        private string? PageName {
+            set {
+                if (value == null) {
+                    this.Title = "Comics";
+                } else {
+                    this.Title = $"Comics - {value}";
+                }
+
+                this.OnPropertyChanged(nameof(this.Title));
+            }
+        }
+
         #region Profiles 
 
         internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
@@ -137,6 +151,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
                 NavigationType = navigationType
             });
+
+            this.PageName = null;
         }
 
         public void NavigateOut(bool ignoreCache = false) {
@@ -150,6 +166,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 NavigationType = NavigationType.Back,
                 Tag = this.selectedTopLevelNavigationTag
             });
+
+            this.PageName = null;
         }
 
         // note: we have already validateed that item is a nav item
@@ -162,17 +180,19 @@ namespace ComicsViewer.ViewModels.Pages {
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
                 Comics = item.TrackingChangesFrom
             });
+
+            this.PageName = item.Title;
         }
 
-        public void NavigateIntoSelected(IEnumerable<ComicItem> items) {
-            this.NavigateIntoComics(items.SelectMany(item => item.Comics));
+        public void FilterToSelected(IEnumerable<ComicItem> items) {
+            this.FilterToComics(items.SelectMany(item => item.Comics));
         }
 
-        public void NavigateIntoAuthor(string displayName) {
-            this.NavigateIntoComics(this.Comics.Where(comic => comic.DisplayAuthor == displayName));
+        public void FilterToAuthor(string displayName) {
+            this.FilterToComics(this.Comics.Where(comic => comic.DisplayAuthor == displayName));
         }
 
-        private void NavigateIntoComics(IEnumerable<Comic> comics) {
+        private void FilterToComics(IEnumerable<Comic> comics) {
             var identifiers = comics.Select(item => item.UniqueIdentifier).ToHashSet();
             this.Comics.Filter.GeneratedFilter = comic => identifiers.Contains(comic.UniqueIdentifier);
             this.Comics.Filter.Metadata.GeneratedFilterItemCount = identifiers.Count;

@@ -299,7 +299,7 @@ namespace ComicsViewer.Pages {
 
                 // Generates and executes a search limiting visible items to those selected
                 this.SearchSelectedCommand = new XamlUICommand();
-                this.SearchSelectedCommand.ExecuteRequested += (sender, args) => parent.MainViewModel!.NavigateIntoSelected(this.SelectedItems);
+                this.SearchSelectedCommand.ExecuteRequested += (sender, args) => parent.MainViewModel!.FilterToSelected(this.SelectedItems);
                 this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(()
                     => this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
 
@@ -369,7 +369,7 @@ namespace ComicsViewer.Pages {
 
                 this.SearchAuthorCommand = new XamlUICommand();
                 this.SearchAuthorCommand.ExecuteRequested += (sender, args)
-                    => parent.MainViewModel!.NavigateIntoAuthor(this.SelectedItems.First().TitleComic.DisplayAuthor);
+                    => parent.MainViewModel!.FilterToAuthor(this.SelectedItems.First().TitleComic.DisplayAuthor);
                 this.SearchAuthorCommand.CanExecuteRequested += 
                     this.CanExecuteHandler(() => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
             }
