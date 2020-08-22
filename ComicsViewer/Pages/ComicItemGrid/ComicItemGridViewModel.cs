@@ -194,10 +194,6 @@ namespace ComicsViewer.ViewModels.Pages {
                         sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
                         _ = this.ComicItems.Remove(sender);
 
-                        if (this.ComicItems.Count < 100) {
-                            this.RequestComicItems();
-                        }
-
                         if (this.ComicItems.Count == 0 && this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
                             this.MainViewModel.NavigateOut();
                         }
