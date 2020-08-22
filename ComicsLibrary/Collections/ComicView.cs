@@ -36,10 +36,10 @@ namespace ComicsLibrary.Collections {
         public virtual FilteredComicView Filtered(Func<Comic, bool> filter)
             => new FilteredComicView(this, filter);
 
-        public virtual SortedComicPropertiesView SortedProperties(
+        public virtual OneTimeComicPropertiesVIew SortedProperties(
             Func<Comic, IEnumerable<string>> getProperties, Sorting.ComicPropertySortSelector sortSelector
         ) {
-            return new SortedComicPropertiesView(this, getProperties, sortSelector);
+            return new OneTimeComicPropertiesVIew(this, getProperties, sortSelector);
         }
 
         /// <summary>
