@@ -50,6 +50,7 @@ namespace ComicsLibrary.Collections {
 
         private readonly Func<Comic, IEnumerable<string>> getProperties;
         private ComicPropertySortSelector sortSelector;
+        private bool sorted = false;
 
         public SortedComicPropertiesView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties, ComicPropertySortSelector sortSelector) {
             this.parent = parent;
@@ -57,12 +58,9 @@ namespace ComicsLibrary.Collections {
             this.sortSelector = sortSelector;
 
             foreach (var comic in parent) {
-                this.AddComic(comic);
+                this.AddComic(comic, preserveSort: false);
             }
 
-            /* If you refer to the comments by AddComic, Adding a comic actually invalidates a sort!
-             * So we sort again. It doubles our runtime, but the runtime of sorting anywhere between
-             * 4 to 1000 items (which is the scale we're at) is negligible (and doubling doesn't change complexity). */
             this.Sort(this.sortSelector);
 
             parent.ViewChanged += this.Parent_ViewChanged;
@@ -86,30 +84,146 @@ namespace ComicsLibrary.Collections {
             } else {
                 this.sortedComicProperties.Sort(ComicPropertyComparers.Make(sortSelector));
             }
+
+            this.sorted = true;
         }
 
-        private void AddProperty(string name, List<Comic> comics) {
+        // the caller must ensure this.sortSelector is not .Random
+        private int GetIndexOfExistingPropertyNotRandomSortOrder(string name) {
+            var property = this[name];
+            var index = this.sortedComicProperties.BinarySearch(property, ComicPropertyComparers.Make(this.sortSelector));
+
+            if (index < 0) {
+                throw new ProgrammerError($"{nameof(GetIndexOfExistingPropertyNotRandomSortOrder)} retrieving a property that doesn't exist " +
+                    $"(this will also fail if the list is no longer sorted)");
+            }
+
+            while (this.sortedComicProperties[index].Name != name) {
+                index += 1;
+            }
+
+            return index;
+        }
+
+        private void AddComic(Comic comic, bool preserveSort = true) {
+            // ToHashSet isn't a thing in .net standard 2.0...
+            var properties = new HashSet<string>(this.getProperties(comic));
+
+            foreach (var property in properties) {
+                if (this.ContainsProperty(property)) {
+                    this.AddComicToProperty(property, comic, preserveSort);
+                } else {
+                    this.AddProperty(property, new List<Comic> { comic }, preserveSort);
+                }
+            }
+
+            if (!preserveSort) {
+                this.sorted = false;
+            }
+
+            this.savedProperties[comic.UniqueIdentifier] = properties;
+        }
+
+        private void RemoveComic(Comic comic) {
+            if (!this.sorted) {
+                throw new ProgrammerError($"{nameof(RemoveComic)} should not be called when the list is not guaranteed to be sorted." +
+                    $"(this is not a constraint but a design decision)");
+            }
+
+            foreach (var property in this.savedProperties[comic.UniqueIdentifier]) {
+                // RemoveComicFromProperty will call RemoveProperty if the property becomes empty
+                this.RemoveComicFromProperty(property, comic);
+            }
+
+            _ = this.savedProperties.Remove(comic.UniqueIdentifier);
+        }
+
+        /// <summary>
+        /// This function handles property adding, including for situations that might influence an item's sort order.
+        /// We don't need any info about how a property moved, but it might help in the future: 
+        /// for example, we might have RemoveProperty return an item's previous position, and AddProperty return and item's new position.
+        /// 
+        /// This function is designed to only be called from <see cref="AddComic"/>, as such, calling it from elsewhere will result in incorrect 
+        /// behavior when called in a certain way. Specifically, constraints that an item must not already exist, and
+        /// setting the sorting flag only happens there.
+        /// </summary>
+        private void AddComicToProperty(string property, Comic comic, bool preserveSort = true) {
+            /* Note on this implementation of AddComicToProperty:
+             * currently, there is no method of relaying any addition, removal, or otherwise change of a property to a ComicItemGridViewController.
+             * The current behavior is to throw away this ComicPropertiesView, and create a new one. In other words, we don't even have to bothre handling
+             * Adding an item while preserving the list's sort order: It's sorted, used once, and thrown away. When we implement events for 
+             * ComicPropertyViews, this behavior will become relevant again. I have left this comment as a note, so that it exists in the repo
+             * before I delete this part of the code, so that it serves as a guide when we decide to reimplement this feature. 
+             * 
+             * I will also note here that this is why navigating into a nav view item, editing something, then navigating out only preserves 
+             * navigation location for the first 100 shown nav view items. */
+            if (preserveSort && this.ModifyingPropertyComicsMayChangeSortOrder) {
+                var comics = this.accessor[property];
+                this.RemoveProperty(property);
+                comics.Add(comic);
+                this.AddProperty(property, comics);
+            } else {
+                this.accessor[property].Add(comic);
+            }
+        }
+
+        /// <summary>
+        /// Just like the function above, calling this function from outside of <see cref="RemoveComic"/> will result in 
+        /// incorrect application state if you pass specific parameters that do so.
+        /// 
+        /// Specifically, constraints such at an item must exist, and the list must ensure it is currently sorted,
+        /// are only checked in RemoveComic.
+        /// </summary>
+        private void RemoveComicFromProperty(string property, Comic comic) {
+            var comics = this.accessor[property];
+
+            if (this.ModifyingPropertyComicsMayChangeSortOrder) {
+                this.RemoveProperty(property);
+                _ = comics.Remove(comic);
+                if (comics.Count > 0) {
+                    this.AddProperty(property, comics);
+                }
+            } else {
+                _ = comics.Remove(comic);
+                if (comics.Count == 0) {
+                    this.RemoveProperty(property);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Do not call this method. See <see cref="AddComicToProperty"/> for why.
+        /// </summary>
+        private void AddProperty(string name, List<Comic> comics, bool preserveSort = true) {
             if (this.ContainsProperty(name)) {
                 throw new ProgrammerError("comic already exists in this collection");
             }
 
             var property = new ComicProperty(name, comics);
 
-            int index;
-
-            if (this.sortSelector == ComicPropertySortSelector.Random) {
-                index = General.Randomizer.Next(this.Count + 1);
+            if (!preserveSort) {
+                this.sortedComicProperties.Add(property);
             } else {
-                index = this.sortedComicProperties.BinarySearch(property, ComicPropertyComparers.Make(this.sortSelector));
-                if (index <= 0) {
-                    index = ~index;
+                int index;
+
+                if (this.sortSelector == ComicPropertySortSelector.Random) {
+                    index = General.Randomizer.Next(this.Count + 1);
+                } else {
+                    index = this.sortedComicProperties.BinarySearch(property, ComicPropertyComparers.Make(this.sortSelector));
+                    if (index <= 0) {
+                        index = ~index;
+                    }
                 }
+
+                this.sortedComicProperties.Insert(index, property);
             }
 
-            this.sortedComicProperties.Insert(index, property);
             this.accessor[property.Name] = comics;
         }
-
+        
+        /// <summary>
+        /// Do not call this method. See <see cref="RemoveComicFromProperty"/> for why.
+        /// </summary>
         private void RemoveProperty(string name) {
             if (this.sortSelector == ComicPropertySortSelector.Random) {
                 var index = this.sortedComicProperties.FindIndex(cp => cp.Name == name);
@@ -124,50 +238,12 @@ namespace ComicsLibrary.Collections {
             _ = this.accessor.Remove(name);
         }
 
-        private int GetIndexOfExistingPropertyNotRandomSortOrder(string name) {
-            var property = this[name];
-            var index = this.sortedComicProperties.BinarySearch(property, ComicPropertyComparers.Make(this.sortSelector));
-
-            if (index < 0) {
-                throw new ProgrammerError("actually this is impossible...");
-            }
-
-            while (this.sortedComicProperties[index].Name != name) {
-                index += 1;
-            }
-
-            return index;
-        }
-
-        private void AddComic(Comic comic) {
-            // ToHashSet isn't a thing in .net standard 2.0...
-            var properties = new HashSet<string>(this.getProperties(comic));
-
-            foreach (var property in properties) {
-                if (this.ContainsProperty(property)) {
-                    this.accessor[property].Add(comic);
-                    /* note: if the sortSelector is ItemCount, adding or removing an item will actually change an item's sort order! 
-                     * we pretend it doesn't happen, but in the future we can choose to reload the item. */
-                } else {
-                    this.AddProperty(property, new List<Comic> { comic });
-                }
-            }
-
-            this.savedProperties[comic.UniqueIdentifier] = properties;
-        }
-
-        private void RemoveComic(Comic comic) {
-            foreach (var property in this.savedProperties[comic.UniqueIdentifier]) {
-                var comics = this.accessor[property];
-                _ = comics.Remove(comic);
-
-                if (comics.Count == 0) {
-                    this.RemoveProperty(property);
-                }
-            }
-
-            _ = this.savedProperties.Remove(comic.UniqueIdentifier);
-        }
+        private bool ModifyingPropertyComicsMayChangeSortOrder => this.sortSelector switch {
+            ComicPropertySortSelector.Name => false,
+            ComicPropertySortSelector.ItemCount => true,
+            ComicPropertySortSelector.Random => false,
+            _ => throw new ProgrammerError("unhandled switch case")
+        };
 
         private void Parent_ViewChanged(ComicView sender, ComicView.ViewChangedEventArgs e) {
             switch (e.Type) {
