@@ -50,7 +50,7 @@ namespace ComicsLibrary.Collections {
             this.RemoveComics(comics);
             this.AddComics(comics);
 
-            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: comics));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: removed));
         }
 
         public void Refresh(IEnumerable<Comic> comics) {
