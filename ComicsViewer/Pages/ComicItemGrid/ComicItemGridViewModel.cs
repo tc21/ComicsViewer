@@ -85,7 +85,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly SortedComicView comics;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
-        private readonly string navigationTag;
+        private readonly NavigationTag navigationTag;
         // To preserve random sort order when filtering the underlying list of comics, we will need to manually keep
         // track of that order here
         //private Dictionary<string, int>? randomSortSelectors;
@@ -116,7 +116,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {
-            if (appViewModel.ActiveNavigationTag == MainViewModel.SecondLevelNavigationTag) {
+            if (appViewModel.ActiveNavigationTag == NavigationTag.Detail) {
                 throw new ProgrammerError($"ForTopLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
@@ -124,7 +124,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
-            if (appViewModel.ActiveNavigationTag != MainViewModel.SecondLevelNavigationTag) {
+            if (appViewModel.ActiveNavigationTag != NavigationTag.Detail) {
                 throw new ProgrammerError($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
@@ -133,8 +133,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Filtering and grouping
 
-        private static bool IsWorkItemNavigationTag(string navigationTag) {
-            return (navigationTag == MainViewModel.DefaultNavigationTag || navigationTag == MainViewModel.SecondLevelNavigationTag);
+        private static bool IsWorkItemNavigationTag(NavigationTag navigationTag) {
+            return (navigationTag == NavigationTag.Comics || navigationTag == NavigationTag.Detail);
         }
 
         /* although these method calls can take a while, the program isn't in a useable state between the user choosing 
@@ -165,9 +165,9 @@ namespace ComicsViewer.ViewModels.Pages {
         private void SortAndSetComicNavigationItems(ComicPropertySortSelector sortSelector) {
             var view = comics.SortedProperties(
                 this.navigationTag switch {
-                    "authors" => comic => new[] { comic.DisplayAuthor },
-                    "categories" => comic => new[] { comic.DisplayCategory },
-                    "tags" => comic => comic.Tags,
+                    NavigationTag.Author => comic => new[] { comic.DisplayAuthor },
+                    NavigationTag.Category => comic => new[] { comic.DisplayCategory },
+                    NavigationTag.Tags => comic => comic.Tags,
                     _ => throw new ProgrammerError("unhandled switch case")
                 },
                 sortSelector
@@ -194,7 +194,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
                         _ = this.ComicItems.Remove(sender);
 
-                        if (this.ComicItems.Count == 0 && this.navigationTag == MainViewModel.SecondLevelNavigationTag) {
+                        if (this.ComicItems.Count == 0 && this.navigationTag == NavigationTag.Detail) {
                             this.MainViewModel.NavigateOut();
                         }
 
@@ -369,7 +369,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     /* Generate thumbnails for added items */
                     /* There may be many view models active at any given moment. The if statement ensures that only
                      * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
-                    if (this.navigationTag != MainViewModel.SecondLevelNavigationTag) {
+                    if (this.navigationTag != NavigationTag.Detail) {
                         this.RequestGenerateThumbnails(addedItems);
                     }
 

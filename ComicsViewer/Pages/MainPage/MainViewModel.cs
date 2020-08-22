@@ -131,14 +131,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Navigation
 
-        internal const string DefaultNavigationTag = "comics";
-        internal const string SecondLevelNavigationTag = "default";
-
-        private string selectedTopLevelNavigationTag = "";
+        private NavigationTag selectedTopLevelNavigationTag;
         public int NavigationLevel { get; set; }
-        public string ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : SecondLevelNavigationTag;
+        public NavigationTag ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : NavigationTag.Detail;
 
-        public void Navigate(string navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {
+        public void Navigate(NavigationTag navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {
             var navigationType = (ignoreCache || navigationTag != this.ActiveNavigationTag) 
                 ? NavigationType.New : NavigationType.Scroll;
 
@@ -175,7 +172,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.NavigationLevel = 1;
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
                 PageType = typeof(ComicItemGridSecondLevelContainer),
-                Tag = SecondLevelNavigationTag,
+                Tag = NavigationTag.Detail,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
                 Comics = item.TrackingChangesFrom
@@ -503,7 +500,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
     public class NavigationRequestedEventArgs {
         public Type? PageType { get; set; }
-        public string? Tag { get; set; }
+        public NavigationTag? Tag { get; set; }
         public ComicView? Comics { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();

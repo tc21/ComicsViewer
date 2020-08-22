@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary.Sorting;
+using ComicsViewer.Support;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -198,11 +199,11 @@ namespace ComicsViewer.Features {
         private static readonly Dictionary<string, object> defaultSettings = new Dictionary<string, object> {
             ["LastProfile"] = "",
             ["SortSelections"] = new Dictionary<string, int>() {
-                ["comics"] = (int)ComicSortSelector.Author,
-                ["authors"] = (int)ComicPropertySortSelector.Name,
-                ["tags"] = (int)ComicPropertySortSelector.Name,
-                ["categories"] = (int)ComicPropertySortSelector.Name,
-                ["default"] =(int)ComicSortSelector.Author
+                [NavigationTag.Comics.ToTagName()] = (int)ComicSortSelector.Author,
+                [NavigationTag.Author.ToTagName()] = (int)ComicPropertySortSelector.Name,
+                [NavigationTag.Tags.ToTagName()] = (int)ComicPropertySortSelector.Name,
+                [NavigationTag.Category.ToTagName()] = (int)ComicPropertySortSelector.Name,
+                [NavigationTag.Detail.ToTagName()] =(int)ComicSortSelector.Author
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...
             ["SavedSearches"] = "",
@@ -216,14 +217,14 @@ namespace ComicsViewer.Features {
                 set => defaultSettingsAccessor.Set("LastProfile", value);
             }
 
-            public static int DefaultSortSelection(string pageType)
-                => defaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", pageType);
+            public static int DefaultSortSelection(NavigationTag tag)
+                => defaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", tag.ToTagName());
 
-            public static int GetLastSortSelection(string pageType)
-                => defaultSettingsAccessor.GetCollectionItem<int>("SortSelections", pageType);
+            public static int GetLastSortSelection(NavigationTag tag)
+                => defaultSettingsAccessor.GetCollectionItem<int>("SortSelections", tag.ToTagName());
 
-            public static void SetLastSortSelection(string pageType, int value)
-                => defaultSettingsAccessor.SetCollectionItem("SortSelections", pageType, value);
+            public static void SetLastSortSelection(NavigationTag tag, int value)
+                => defaultSettingsAccessor.SetCollectionItem("SortSelections", tag.ToTagName(), value);
 
             public static IList<string> SavedSearches {
                 get => defaultSettingsAccessor.Get<string>("SavedSearches").Split('|').ToList();

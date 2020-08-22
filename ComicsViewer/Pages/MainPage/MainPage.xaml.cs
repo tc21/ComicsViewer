@@ -14,6 +14,7 @@ using Windows.UI.ViewManagement;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using MUXC = Microsoft.UI.Xaml.Controls;
+using ComicsViewer.Support;
 
 #nullable enable
 
@@ -93,13 +94,13 @@ namespace ComicsViewer {
 
             // This will fire ViewModel.NavigationRequested. 
             // ignoreCache: true bypasses the default behavior of scrolling up to the top when "reloading"
-            this.ViewModel.Navigate(MainViewModel.DefaultNavigationTag, ignoreCache: true);
+            this.ViewModel.Navigate(NavigationTag.Comics, ignoreCache: true);
         }
 
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
             switch (e.NavigationType) {
                 case NavigationType.Back:
-                    if (e.Tag == null) {
+                    if (!(e.Tag is NavigationTag tag)) {
                         throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target tag type");
                     }
 
@@ -109,7 +110,7 @@ namespace ComicsViewer {
                         // Note: most likely it's because two separate viewModels are calling NavigateOut twice. It works because
                         // There's enough pages in the buffer and caching is enabled. The question is: why is a top level
                         // view modle able to call NavigateOut?
-                        this.ViewModel.Navigate(e.Tag!);
+                        this.ViewModel.Navigate(tag);
                         return;
                     }
 
@@ -120,13 +121,13 @@ namespace ComicsViewer {
                     this.activeContent?.ScrollToTop();
                     break;
                 case NavigationType.New:
-                    if (e.PageType == null || (e.Tag == MainViewModel.SecondLevelNavigationTag && e.Comics == null)) {
+                    if (e.PageType == null || (e.Tag == NavigationTag.Detail && e.Comics == null)) {
                         throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target PageType and Comic list");
                     }
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
                         ViewModel = e.Tag switch {
-                            MainViewModel.SecondLevelNavigationTag => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!),
+                            NavigationTag.Detail => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!),
                             _ => ComicItemGridViewModel.ForTopLevelNavigationTag(sender)
                         },
                         OnNavigatedTo = (grid, e) => this.activeContent = grid
@@ -172,7 +173,7 @@ namespace ComicsViewer {
                 return;
             }
 
-            var tag = args.InvokedItemContainer.Tag.ToString();
+            var tag = NavigationTags.FromTagName(args.InvokedItemContainer.Tag.ToString());
             this.ViewModel.Navigate(tag, args.RecommendedNavigationTransitionInfo);
         }
 

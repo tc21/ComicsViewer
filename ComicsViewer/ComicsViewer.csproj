@@ -163,6 +163,7 @@
     <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogContent.xaml.cs">
       <DependentUpon>MoveFilesDialogContent.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Support\NavigationTag.cs" />
     <Compile Include="XamlHelpers\Bindings.cs" />
     <Compile Include="ViewModels\CheckBoxItem.cs" />
     <Compile Include="ClassExtensions\String_PathComparisons.cs" />
