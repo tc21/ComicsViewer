@@ -68,6 +68,8 @@ namespace ComicsLibrary.SQL {
                     var copy = comic;
                     copy.Metadata = m;
                     result.Add(copy);
+                } else {
+                    result.Add(comic);
                 }
             }
 
