@@ -15,6 +15,10 @@ using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using MUXC = Microsoft.UI.Xaml.Controls;
 using ComicsViewer.Support;
+using ComicsViewer.Support.Interop;
+using System.Threading.Tasks;
+using System.IO;
+using Windows.Storage;
 
 #nullable enable
 
@@ -74,13 +78,17 @@ namespace ComicsViewer {
                 return;
             }
 
+            // Verify that we have access to the file system
+            // we don't have to await this. the user will know when we show a message dialog
+            _ = this.VerifyPermissionForPaths(e.NewProile.RootPaths.Select(p => p.Path));
+
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
-             * It is a dropdown. The root element is the name of the current profile. Clicking on this element navigates
-             * to the "All Items" (named "comics" internally) page of the currently loaded profile. The dropdown 
-             * elements are the names of the other profiles that are loaded but not active. Clicking on one of those 
-             * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
-             * page */
+                * It is a dropdown. The root element is the name of the current profile. Clicking on this element navigates
+                * to the "All Items" (named "comics" internally) page of the currently loaded profile. The dropdown 
+                * elements are the names of the other profiles that are loaded but not active. Clicking on one of those 
+                * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
+                * page */
             this.SearchBox.Text = "";
             this.ProfileNavigationViewItem.Content = e.NewProile.Name;
             this.ProfileNavigationViewItem.MenuItems.Clear();
@@ -95,6 +103,18 @@ namespace ComicsViewer {
             // This will fire ViewModel.NavigationRequested. 
             // ignoreCache: true bypasses the default behavior of scrolling up to the top when "reloading"
             this.ViewModel.Navigate(NavigationTag.Comics, ignoreCache: true);
+        }
+
+        private async Task VerifyPermissionForPaths(IEnumerable<string> paths) {
+            try {
+                foreach (var path in paths) {
+                    _ = await StorageFolder.GetFolderFromPathAsync(path);
+                } 
+            } catch (FileNotFoundException) {
+                // we allow that
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync(cancelled: false);
+            }
         }
 
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {

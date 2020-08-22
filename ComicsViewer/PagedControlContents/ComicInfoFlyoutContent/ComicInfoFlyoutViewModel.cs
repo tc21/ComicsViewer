@@ -109,6 +109,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.TitleComic.Path);
             } catch (FileNotFoundException) {
                 return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
             }
 
             var descriptionAdded = false;

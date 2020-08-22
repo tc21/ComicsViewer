@@ -23,7 +23,12 @@ namespace ComicsViewer.Support {
         }
 
         public static Task UnauthorizedFileSystemAccessAsync(bool cancelled = true) {
-            return IntendedBehaviorAsync("Please enable file system access in settings to open comics.", "Access denied");
+            return IntendedBehaviorAsync(
+                "Comics could not access files that it needs to correctly work. " +
+                    "Please enable file system access in settings to open comics.", 
+                "Access denied", 
+                cancelled
+            );
         }
 
         public static async Task IntendedBehaviorAsync(string message, string title = "An operation was unsuccessful", bool cancelled = true) {
