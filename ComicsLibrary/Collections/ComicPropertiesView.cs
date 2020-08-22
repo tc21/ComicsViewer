@@ -33,7 +33,7 @@ namespace ComicsLibrary.Collections {
     /// 
     /// </para>
     /// </summary>
-    public class OneTimeComicPropertiesVIew : IEnumerable<ComicProperty>, IReadOnlyCollection<ComicProperty> {
+    public class OneTimeComicPropertiesView : IEnumerable<ComicProperty>, IReadOnlyCollection<ComicProperty> {
         /* optimization notes:
          * - we can simplify some calls by allowing a variant of a Func<Comic, string> getProperties
          * - we can make our children more efficent with a custom ComicPropertyView : ComicView subclass instead of filtering from parent;
@@ -46,7 +46,7 @@ namespace ComicsLibrary.Collections {
 
         private readonly Func<Comic, IEnumerable<string>> getProperties;
 
-        public OneTimeComicPropertiesVIew(ComicView parent, Func<Comic, IEnumerable<string>> getProperties, ComicPropertySortSelector sortSelector) {
+        public OneTimeComicPropertiesView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties, ComicPropertySortSelector sortSelector) {
             this.parent = parent;
             this.getProperties = getProperties;
 

@@ -1,5 +1,4 @@
-﻿using ComicsLibrary;
-using ComicsViewer.ClassExtensions;
+﻿using ComicsViewer.ClassExtensions;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
@@ -9,12 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Devices.Input;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
@@ -37,7 +33,6 @@ namespace ComicsViewer.Pages {
 
         public ComicItemGrid() {
             this.InitializeComponent();
-            this.ContextMenuCommands = new ComicItemGridCommands(this);
 
             Debug.WriteLine($"{debug_this_count} created");
 
@@ -49,6 +44,8 @@ namespace ComicsViewer.Pages {
         ~ComicItemGrid() {
             Debug.WriteLine($"{debug_this_count} destroyed");
         }
+
+        #region Clicking, double clicking, right clicking
 
         // This function determines if the user used their non-left-mouse-button to click, and prevents the Tapped
         // evenet from firing if that is the case.
@@ -98,8 +95,8 @@ namespace ComicsViewer.Pages {
 
             this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
             this.ComicInfoFlyout.NavigateAndShowAt(
-                typeof(ComicInfoFlyoutContent), 
-                new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem, 
+                typeof(ComicInfoFlyoutContent),
+                new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem,
                         async () => await this.ShowEditComicInfoDialogAsync(comicItem)),
                 tappedElement);
         }
@@ -126,31 +123,6 @@ namespace ComicsViewer.Pages {
             await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
         }
 
-        public async Task ShowEditComicInfoDialogAsync(ComicItem item) {
-            // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
-            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
-                typeof(EditComicInfoDialogContent), 
-                new EditComicInfoDialogNavigationArguments(this.ViewModel!, item)
-            );
-        }
-
-        public async Task ShowEditNavigationItemDialogAsync(ComicItem item) {
-            _ = await new PagedContentDialog { Title = "Rename tag" }.NavigateAndShowAsync(
-                typeof(EditNavigationItemDialogContent),
-                new EditNavigationItemDialogNavigationArguments(this.ViewModel!, this.ViewModel!.NavigationTag, item.Title)
-            );
-        }
-
-        public async Task ShowMoveFilesDialogAsync(IEnumerable<ComicItem> items) {
-            /* Currently, the application is not able to handle moving files while changing its author or title. So the
-             * only thing we can actually change is category. We are thus limiting the ability to move files to moving
-             * between the already-defined categories. */
-            _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
-                typeof(MoveFilesDialogContent),
-                new MoveFilesDialogNavigationArguments(this.ViewModel!, items.SelectMany(item => item.Comics).ToList())
-            );
-        }
-
         // Prepares the grid before the right click context menu is shown
         private void VisibleComicsGrid_RightTapped(object sender, RightTappedRoutedEventArgs e) {
             if (!(sender is GridView grid)) {
@@ -175,6 +147,37 @@ namespace ComicsViewer.Pages {
                 Position = e.GetPosition(tappedElement)
             });
         }
+
+        #endregion
+
+        #region Popups
+
+        public async Task ShowEditComicInfoDialogAsync(ComicItem item) {
+            // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
+            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
+                typeof(EditComicInfoDialogContent),
+                new EditComicInfoDialogNavigationArguments(this.ViewModel!, item)
+            );
+        }
+
+        public async Task ShowEditNavigationItemDialogAsync(ComicItem item) {
+            _ = await new PagedContentDialog { Title = "Rename tag" }.NavigateAndShowAsync(
+                typeof(EditNavigationItemDialogContent),
+                new EditNavigationItemDialogNavigationArguments(this.ViewModel!, this.ViewModel!.NavigationTag, item.Title)
+            );
+        }
+
+        public async Task ShowMoveFilesDialogAsync(IEnumerable<ComicItem> items) {
+            /* Currently, the application is not able to handle moving files while changing its author or title. So the
+             * only thing we can actually change is category. We are thus limiting the ability to move files to moving
+             * between the already-defined categories. */
+            _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
+                typeof(MoveFilesDialogContent),
+                new MoveFilesDialogNavigationArguments(this.ViewModel!, items.SelectMany(item => item.Comics).ToList())
+            );
+        }
+
+        #endregion
 
         #region Controlling from MainPage
 
@@ -250,7 +253,7 @@ namespace ComicsViewer.Pages {
 
         #region Redefining thumbnails
 
-        private async Task RedefineThumbnailAsync(ComicItem item) {
+        public async Task RedefineThumbnailAsync(ComicItem item) {
             if (!(await item.TitleComic.GetFolderAndNotifyErrorsAsync() is StorageFolder folder)) {
                 return;
             }
@@ -261,139 +264,6 @@ namespace ComicsViewer.Pages {
                 typeof(RedefineThumbnailDialogContent),
                 new RedefineThumbnailDialogNavigationArguments(images, item, this.ViewModel!)
             );
-        }
-
-        #endregion
-
-        #region Context menu commands
-
-        public ComicItemGridCommands ContextMenuCommands { get; }
-
-        /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 
-         * command is available. This translates to shortcuts only working then the command's CanExecute evaluated to 
-         * true the last time the context menu flyout was shown. Since we can't get commands to consistently execute 
-         * without rewriting the system, they are disabled for now. */
-
-        public class ComicItemGridCommands {
-            /* Since a StandardUICommand has an icon, but XamlUICommand doesn't, this is a good way to see which of 
-             * our commands already have an icon and which ones need one defined in XAML */
-            public StandardUICommand OpenItemsCommand { get; }
-            public XamlUICommand SearchSelectedCommand { get; }
-            public StandardUICommand RemoveItemCommand { get; }
-            public XamlUICommand ShowInExplorerCommand { get; }
-            public XamlUICommand GenerateThumbnailCommand { get; }
-            public XamlUICommand EditInfoCommand { get; }
-            public XamlUICommand RedefineThumbnailCommand { get; }
-            public XamlUICommand LoveComicsCommand { get; }
-            public XamlUICommand DislikeComicsCommand { get; }
-            public XamlUICommand MoveFilesCommand { get; }
-            public XamlUICommand SearchAuthorCommand { get; }
-            public XamlUICommand EditNavigationItemCommand { get; }
-
-            private readonly ComicItemGrid parent;
-            private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
-            private IEnumerable<ComicItem> SelectedItems => parent.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
-            // 1. assuming all of the same type; 2. if count = 0 then it doesn't matter
-            private ComicItemType SelectedItemType => this.SelectedItems.Count() == 0 ? ComicItemType.Work : this.SelectedItems.First().ItemType;
-
-            internal ComicItemGridCommands(ComicItemGrid parent) {
-                this.parent = parent;
-
-                // Opens selected comics or navigates into the selected navigation item
-                this.OpenItemsCommand = new StandardUICommand(StandardUICommandKind.Open);
-                this.OpenItemsCommand.ExecuteRequested += async (sender, args) => await parent.ViewModel!.OpenItemsAsync(this.SelectedItems);
-                this.OpenItemsCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work || this.SelectedItemCount == 1);
-
-                // Generates and executes a search limiting visible items to those selected
-                this.SearchSelectedCommand = new XamlUICommand();
-                this.SearchSelectedCommand.ExecuteRequested += (sender, args) => parent.MainViewModel!.FilterToSelected(this.SelectedItems);
-                this.SearchSelectedCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Navigation || this.SelectedItemCount > 1);
-
-                // Removes comics by asking the view model to do it for us
-                this.RemoveItemCommand = new StandardUICommand(StandardUICommandKind.Delete);
-                this.RemoveItemCommand.ExecuteRequested += async (sender, args) => {
-                    if ((await parent.ConfirmRemoveItemDialog.ShowAsync()) == ContentDialogResult.Primary) {
-                        var comics = this.SelectedItems.SelectMany(item => item.Comics).ToList();
-                        await parent.MainViewModel!.RemoveComicsAsync(comics);
-                    }
-                };
-
-                // Opens the containing folder in Windows Explorer
-                this.ShowInExplorerCommand = new XamlUICommand();
-                this.ShowInExplorerCommand.ExecuteRequested += (sender, args) => {
-                    foreach (var item in this.SelectedItems) {
-                        _ = Startup.OpenContainingFolderAsync(item.TitleComic);
-                    }
-                };
-                this.ShowInExplorerCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work);
-
-                // Opens the containing folder in Windows Explorer
-                this.GenerateThumbnailCommand = new XamlUICommand();
-                this.GenerateThumbnailCommand.ExecuteRequested += (sender, args)
-                    => parent.ViewModel!.RequestGenerateThumbnails(this.SelectedItems, replace: true);
-                this.GenerateThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work);
-
-                // Opens the comic info flyout to the "Edit Info" page
-                this.EditInfoCommand = new XamlUICommand();
-                this.EditInfoCommand.ExecuteRequested += async (sender, args)
-                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ShowEditComicInfoDialogAsync(this.SelectedItems.First());
-                this.EditInfoCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
-
-                // Renames a tag, etc.
-                this.EditNavigationItemCommand = new XamlUICommand();
-                this.EditNavigationItemCommand.ExecuteRequested += async (sender, args)
-                    => await parent.ShowEditNavigationItemDialogAsync(this.SelectedItems.First());
-                this.EditNavigationItemCommand.CanExecuteRequested += this.CanExecuteHandler(() => 
-                    this.SelectedItemType == ComicItemType.Navigation && this.SelectedItemCount == 1 
-                       && parent.ViewModel!.NavigationTag == Support.NavigationTag.Tags
-                );
-
-                // Opens the comic info flyout to the "Edit Info" page
-                this.RedefineThumbnailCommand = new XamlUICommand();
-                this.RedefineThumbnailCommand.ExecuteRequested += async (sender, args)
-                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.RedefineThumbnailAsync(this.SelectedItems.First());
-                this.RedefineThumbnailCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
-
-                // Loves, or unloves comics
-                this.LoveComicsCommand = new XamlUICommand();
-                this.LoveComicsCommand.ExecuteRequested += async (sender, args)
-                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ViewModel!.ToggleLovedStatusForComicsAsync(this.SelectedItems);
-                this.LoveComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work);
-
-                // Loves, or unloves comics
-                this.DislikeComicsCommand = new XamlUICommand();
-                this.DislikeComicsCommand.ExecuteRequested += async (sender, args)
-                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ViewModel!.ToggleDislikedStatusForComicsAsync(this.SelectedItems);
-                this.DislikeComicsCommand.CanExecuteRequested += this.CanExecuteHandler(()
-                    => this.SelectedItemType == ComicItemType.Work);
-
-                // Opens a flyout to move items between categories
-                this.MoveFilesCommand = new XamlUICommand();
-                this.MoveFilesCommand.ExecuteRequested += async (sender, args)
-                    // We don't know the actual grid item element, so we just show the flyout at the center of the screen
-                    => await parent.ShowMoveFilesDialogAsync(this.SelectedItems);
-
-                this.SearchAuthorCommand = new XamlUICommand();
-                this.SearchAuthorCommand.ExecuteRequested += (sender, args)
-                    => parent.MainViewModel!.FilterToAuthor(this.SelectedItems.First().TitleComic.DisplayAuthor);
-                this.SearchAuthorCommand.CanExecuteRequested += 
-                    this.CanExecuteHandler(() => this.SelectedItemType == ComicItemType.Work && this.SelectedItemCount == 1);
-            }
-
-            private TypedEventHandler<XamlUICommand, CanExecuteRequestedEventArgs> CanExecuteHandler(Func<bool> predicate) {
-                return (sender, args) => args.CanExecute = predicate();
-            }
         }
 
         #endregion

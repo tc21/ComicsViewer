@@ -134,6 +134,9 @@
     </Compile>
     <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogViewModel.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicItemGridCommands.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicNavigationItemGridViewModel.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicWorkItemGridViewModel.cs" />
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\DesignData.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
