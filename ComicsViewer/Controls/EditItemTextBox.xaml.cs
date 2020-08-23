@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsViewer.Support;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -46,13 +47,13 @@ namespace ComicsViewer.Controls {
             this.IsEnabled = true;
         }
 
-        public void RegisterHandlers(Func<string> get, Action<string> save, Func<string, string?>? validate = null) {
+        public void RegisterHandlers(Func<string> get, Action<string> save, Func<string, ValidateResult>? validate = null) {
             this.GetItemValue = get;
             this.SaveItemValue = save;
             this.ValidateWithReason = validate;
         }
 
-        public void RegisterHandlers(Func<string> get, Func<string, Task> saveAsync, Func<string, string?>? validate = null) {
+        public void RegisterHandlers(Func<string> get, Func<string, Task> saveAsync, Func<string, ValidateResult>? validate = null) {
             this.GetItemValue = get;
             this.SaveItemValueAsync = saveAsync;
             this.ValidateWithReason = validate;
@@ -130,13 +131,13 @@ namespace ComicsViewer.Controls {
             DependencyProperty.Register(nameof(WarningText), typeof(string), typeof(EditItemTextBox), new PropertyMetadata(null));
 
 
-        public Func<string, string?>? ValidateWithReason {
-            get => this.GetValue(ValidateWithReasonProperty) as Func<string, string?>;
+        public Func<string, ValidateResult>? ValidateWithReason {
+            get => this.GetValue(ValidateWithReasonProperty) as Func<string, ValidateResult>;
             set => this.SetValue(ValidateWithReasonProperty, value);
         }
 
         public static readonly DependencyProperty ValidateWithReasonProperty =
-            DependencyProperty.Register(nameof(ValidateWithReason), typeof(Func<string, string?>), typeof(EditItemTextBox), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(ValidateWithReason), typeof(Func<string, ValidateResult>), typeof(EditItemTextBox), new PropertyMetadata(null));
 
         public Func<string>? GetItemValue {
             get => this.GetValue(GetItemValueProperty) as Func<string>;
@@ -250,9 +251,9 @@ namespace ComicsViewer.Controls {
 
         private void TextBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                if (this.ValidateWithReason?.Invoke(sender.Text) is string reason) {
-                    this.IsContentValid = false;
-                    this.ErrorText = reason;
+                if (this.ValidateWithReason?.Invoke(sender.Text) is ValidateResult result) {
+                    this.IsContentValid = result;
+                    this.ErrorText = result.Comment;
                 } else {
                     this.IsContentValid = true;
                     this.ErrorText = null;

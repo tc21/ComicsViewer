@@ -49,7 +49,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 new SettingsItemViewModel(this, "File extensions", 
                     getValue: () => StringConversions.CommaDelimitedList.ConvertToString(this.profile.FileExtensions),
                     setValue: value => this.profile.FileExtensions = StringConversions.CommaDelimitedList.Convert(value).ToList(),
-                    validateValue: StringConversions.CommaDelimitedList.WhyCannotConvert
+                    validateValue: StringConversions.CommaDelimitedList.CanConvert
                 )
             };
 
@@ -59,16 +59,16 @@ namespace ComicsViewer.ViewModels.Pages {
             this.OnPropertyChanged(nameof(this.ProfileSettings));
             this.OnPropertyChanged(nameof(this.ProfileName));
 
-            static string? IsValidImageDimension(string str) {
+            static ValidateResult IsValidImageDimension(string str) {
                 if (!int.TryParse(str, out var i)) {
-                    return "Please enter a valid integer";
+                    return ValidateResult.Err("Please enter a valid integer");
                 }
 
                 if (i < 40) {
-                    return "Please enter a number no less than 40";
+                    return ValidateResult.Err("Please enter a number no less than 40");
                 }
 
-                return null;
+                return ValidateResult.Ok();
             }
         }
 
@@ -115,11 +115,11 @@ namespace ComicsViewer.ViewModels.Pages {
         public string Name { get; }
         public readonly Func<string> GetValue;
         public readonly Func<string, Task>? SetValueAsync;
-        public readonly Func<string, string?>? ValidateValue;
+        public readonly Func<string, ValidateResult>? ValidateValue;
 
         public SettingsItemViewModel(
             SettingsPageViewModel parentViewModel,
-            string name, Func<string> getValue, Action<string>? setValue = null, Func<string, string?>? validateValue = null
+            string name, Func<string> getValue, Action<string>? setValue = null, Func<string, ValidateResult>? validateValue = null
         ) {
             this.Name = name;
 

@@ -25,7 +25,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         // returns null if title is valid.
-        public string? GetItemTitleInvalidReason(string title) {
+        public ValidateResult GetItemTitleInvalidReason(string title) {
             switch (this.NavigationTag) {
                 case NavigationTag.Tags:
                     if (title.Contains(",")) {
@@ -46,7 +46,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return "Tag name cannot be empty.";
             }
 
-            return null;
+            return ValidateResult.Ok();
         }
     }
 }

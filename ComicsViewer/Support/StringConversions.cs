@@ -47,18 +47,14 @@ namespace ComicsViewer.Support {
                 }
             }
 
-            public override string? WhyCannotConvert(string str) {
-                return null;
-            }
+            public override ValidateResult CanConvert(string str) => true;
         }
     }
 
     public abstract class StringConvertible<T> {
         public abstract string ConvertToString(T value);
         public abstract T Convert(string str);
-        public abstract string? WhyCannotConvert(string str);
-
-        public virtual bool CanConvert(string str) => WhyCannotConvert(str) == null;
+        public abstract ValidateResult CanConvert(string str);
 
     }
 }
