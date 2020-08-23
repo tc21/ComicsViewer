@@ -28,7 +28,8 @@ namespace ComicsViewer.Controls {
         public void Reset() {
             this.IsEditing = false;
             this.IsContentModified = false;
-            this.OnPropertyChanged(nameof(this.Text));
+            this.TextBox.Text = this.GetText();
+            this.UneditedTextBox.Text = this.GetText();
         }
 
         public async Task Save() {
@@ -38,8 +39,6 @@ namespace ComicsViewer.Controls {
                 this.SaveItemValue(this.TextBox.Text);
             } else if (this.SaveItemValueAsync != null) {
                 await this.SaveItemValueAsync(this.TextBox.Text);
-            } else {
-                throw new InvalidOperationException($"{nameof(EditItemTextBox)} called {nameof(Save)} without a handler");
             }
 
             this.IsEnabled = true;
@@ -151,7 +150,9 @@ namespace ComicsViewer.Controls {
                 if (this.SaveItemValueAsync != null) {
                     throw new ArgumentException($"cannot set {nameof(this.SaveItemValue)} when {nameof(this.SaveItemValueAsync)} is not null");
                 }
+
                 this.SetValue(SaveItemValueProperty, value);
+                this.OnPropertyChanged("");
             }
         }
 
@@ -166,6 +167,7 @@ namespace ComicsViewer.Controls {
                 }
 
                 this.SetValue(SaveItemValueAsyncProperty, value);
+                this.OnPropertyChanged("");
             }
         }
 
@@ -183,9 +185,7 @@ namespace ComicsViewer.Controls {
             set {
                 this._isEditing = value;
 
-                this.OnPropertyChanged();
-                this.OnPropertyChanged(nameof(this.IsEditTextBoxVisible));
-                this.OnPropertyChanged(nameof(this.IsUneditedTextBlockVisible));
+                this.OnPropertyChanged("");
             }
         }
 
@@ -222,9 +222,8 @@ namespace ComicsViewer.Controls {
 
         private static readonly IconElement RefreshIcon = new SymbolIcon(Symbol.Refresh);
 
-        public string Text => this.GetText();
-
-        private bool IsEditTextBoxVisible => !this.RequiresInteraction || this.IsEditing;
+        private bool IsEditable => this.SaveItemValue != null || this.SaveItemValueAsync != null;
+        private bool IsEditTextBoxVisible => this.IsEditable && (!this.RequiresInteraction || this.IsEditing);
         private bool IsUneditedTextBlockVisible => !this.IsEditTextBoxVisible;
         private bool IsHeaderVisible => this.Header != null;
         private bool IsErrorIndicatorVisible => this.IsContentModified && this.ErrorText != null;
@@ -269,6 +268,7 @@ namespace ComicsViewer.Controls {
             // Make sure its set, since there's no runtime check. If you make this an exception then XAML previews will fail.
             Debug.WriteLine($"Warning: {nameof(EditItemTextBox)} was loaded without setting the property {nameof(this.GetItemValue)}");
             
+            this.Reset();
             this.UpdateSaveButtonState();
         }
 
