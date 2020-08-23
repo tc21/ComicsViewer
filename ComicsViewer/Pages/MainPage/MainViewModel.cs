@@ -27,6 +27,8 @@ namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         internal readonly MainComicList Comics = new MainComicList();
         public ComicView ComicView => Comics.Filtered();
+        public Dictionary<string, string> AuthorAliases = new Dictionary<string, string>();
+        public Dictionary<string, string> CategoryAliases = new Dictionary<string, string>();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -103,6 +105,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
             this.Comics.Refresh(await manager.GetAllComicsAsync());
+            this.AuthorAliases = await manager.GetAuthorAliasesAsync();
+            this.CategoryAliases = await manager.GetCategoryAliasesAsync();
 
             this.Comics.Filter.Clear();
         }

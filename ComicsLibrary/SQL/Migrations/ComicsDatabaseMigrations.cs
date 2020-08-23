@@ -14,6 +14,8 @@ namespace ComicsLibrary.SQL.Migrations {
             new Migration_Stub(4),
             // We also verify that the migration system works with an otherwise useless migration
             new Migration_5(),
+            // Creates the alias tables that will allow for DisplayAuthor and DisplayCategory
+            new Migration_6_DisplayAuthor(),
             // Insert new migrations here
         };
     }

@@ -16,6 +16,8 @@ namespace ComicsLibrary.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
+        private const string table_author_aliases = "author_aliases";
+        private const string table_category_aliases = "category_aliases";
 
         private const string key_path = "folder";
         private const string key_unique_id = "unique_name";
@@ -33,6 +35,9 @@ namespace ComicsLibrary.SQL {
         private const string key_xref_comic_id = "comicid";
         private const string key_xref_tag_id = "tagid";
 
+        private const string key_alias_original = "name";
+        private const string key_alias_display = "alias";
+
         private readonly SqliteDatabaseConnection connection;
 
         public ComicsDatabaseConnection(SqliteDatabaseConnection connection) {
@@ -45,7 +50,7 @@ namespace ComicsLibrary.SQL {
         public async Task OpenAsync() => await this.connection.Connection.OpenAsync();
         public void Close() => this.connection.Connection.Close();
 
-        public async Task<IEnumerable<Comic>> GetActiveComicsAsync() {
+        public async Task<List<Comic>> GetActiveComicsAsync() {
             using var reader = await this.GetComicReaderWithContraintAsync(key_active, 1);
 
             var comics = new List<Comic>();
@@ -325,6 +330,30 @@ namespace ComicsLibrary.SQL {
             if (rowsModified != 1) {
                 throw new ArgumentException("The rename was unsuccessful. Either the name already exists, or you are renaming something to itself.");
             }
+        }
+
+        private async Task<Dictionary<string, string>> GetAliasesAsync(string table) {
+            // Should we limit retrieved aliases to ones that are active?
+            var reader = await this.connection.ExecuteReaderAsync(
+                $"SELECT {key_alias_original}, {key_alias_display} FROM {table}",
+                new[] { key_alias_original, key_alias_display }
+            );
+
+            var result = new Dictionary<string, string>();
+
+            while (await reader.ReadAsync()) {
+                result[reader.GetString(key_alias_original)] = reader.GetString(key_alias_display);
+            }
+
+            return result;
+        }
+
+        public Task<Dictionary<string, string>> GetAuthorAliasesAsync() {
+            return this.GetAliasesAsync(table_author_aliases);
+        }
+
+        public Task<Dictionary<string, string>> GetCategoryAliasesAsync() {
+            return this.GetAliasesAsync(table_category_aliases);
         }
     }
 }
