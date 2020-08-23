@@ -147,7 +147,7 @@ namespace ComicsViewer.Pages {
 
             // Opens the containing folder in Windows Explorer
             this.GenerateThumbnailCommand = new ComicWorkItemGridCommand(parent,
-                execute: args => args.ViewModel.RequestGenerateThumbnails(args.Items, replace: true));
+                execute: args => args.ViewModel.StartRequestGenerateThumbnailsTask(args.Items, replace: true));
 
             // Opens the comic info flyout to the "Edit Info" page
             this.EditInfoCommand = new ComicWorkItemGridCommand(parent,

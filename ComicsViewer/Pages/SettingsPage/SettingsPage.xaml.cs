@@ -97,7 +97,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.MainViewModel!.RequestReloadAllComicsAsync();
+            await this.MainViewModel!.StartReloadAllComicsTaskAsync();
         }
 
         private async void ReloadCategoryButton_Click(object sender, RoutedEventArgs e) {
@@ -111,7 +111,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError();
             }
 
-            await this.MainViewModel!.RequestReloadCategoryAsync(namedPath);
+            await this.MainViewModel!.StartReloadCategoryTaskAsync(namedPath);
         }
     }
 }

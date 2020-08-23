@@ -79,7 +79,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         /* There may be many view models active at any given moment. The if statement ensures that only
                          * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
                         if (this.NavigationTag != NavigationTag.Detail) {
-                            this.RequestGenerateThumbnails(addedItems);
+                            this.StartRequestGenerateThumbnailsTask(addedItems);
                         }
                     }
 
@@ -101,7 +101,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Commands - work items
 
-        public void RequestGenerateThumbnails(IEnumerable<ComicItem> comicItems, bool replace = false) {
+        public void StartRequestGenerateThumbnailsTask(IEnumerable<ComicItem> comicItems, bool replace = false) {
             var copy = comicItems.ToList();
             _ = this.MainViewModel.StartUniqueTaskAsync(
                 "thumbnail", $"Generating thumbnails for {copy.Count} items...",

@@ -273,7 +273,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
         #endregion
 
-        #region Adding, removing, reloading comics
+        #region Tasks
 
         /* The purpose of this section is to allow for ComicItemGrids to be notified of changes to the master list of
          * comics, so we don't have to reload the entire list of comics each time something is changed. */
@@ -368,7 +368,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task RequestReloadAllComicsAsync() {
+        public async Task StartReloadAllComicsTaskAsync() {
             await this.StartUniqueTaskAsync("reload", "Reloading all comics...", 
                 (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p),
                 async result => {
@@ -384,7 +384,7 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        public async Task RequestReloadCategoryAsync(NamedPath category) {
+        public async Task StartReloadCategoryTaskAsync(NamedPath category) {
             await this.StartUniqueTaskAsync("reload", $"Reloading category '{category.Name}'...",
                 (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p),
                 async result => {
@@ -402,7 +402,7 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        public async Task RequestLoadComicsFromFoldersAsync(IEnumerable<StorageFolder> folders) {
+        public async Task StartLoadComicsFromFoldersTaskAsync(IEnumerable<StorageFolder> folders) {
             await this.StartUniqueTaskAsync("reload", $"Adding comics from {folders.Count()} folders...",
                 (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p),
                 async result => {
@@ -417,6 +417,10 @@ namespace ComicsViewer.ViewModels.Pages {
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
+
+        #endregion
+
+        #region Add, remove, modify comics
 
         /// <summary>
         /// returns the list of comics that were not added, because they already exist. 

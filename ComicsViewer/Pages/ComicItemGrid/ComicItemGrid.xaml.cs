@@ -421,7 +421,7 @@ namespace ComicsViewer.Pages {
             var folders = items.Where(item => item.IsOfType(StorageItemTypes.Folder))
                                .Cast<StorageFolder>();
 
-            await this.MainViewModel!.RequestLoadComicsFromFoldersAsync(folders);
+            await this.MainViewModel!.StartLoadComicsFromFoldersTaskAsync(folders);
         }
 
         #endregion
