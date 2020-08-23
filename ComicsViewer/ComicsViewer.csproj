@@ -127,6 +127,9 @@
     <Compile Include="ClassExtensions\Comic_OpenFolder.cs" />
     <Compile Include="ClassExtensions\IEnumerable_FirstOrNull.cs" />
     <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
+    <Compile Include="Controls\EditItemTextBox.xaml.cs">
+      <DependentUpon>EditItemTextBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Features\ExternalDescriptions.cs" />
     <Compile Include="Features\Filter.cs" />
     <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogContent.xaml.cs">
@@ -281,6 +284,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\EditItemTextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

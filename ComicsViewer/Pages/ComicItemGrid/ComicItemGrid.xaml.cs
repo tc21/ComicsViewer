@@ -1,6 +1,7 @@
 ﻿using ComicsViewer.ClassExtensions;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
@@ -165,7 +166,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError($"{nameof(ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
             }
 
-            _ = await new PagedContentDialog { Title = "Rename tag" }.NavigateAndShowAsync(
+            _ = await new PagedContentDialog { Title = $"{vm.NavigationTag.Describe(capitalized: true)}: {item.Title}" }.NavigateAndShowAsync(
                 typeof(EditNavigationItemDialogContent),
                 new EditNavigationItemDialogNavigationArguments(vm, item.Title)
             );

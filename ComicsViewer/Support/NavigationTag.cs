@@ -35,6 +35,17 @@ namespace ComicsViewer.Support {
             };
         }
 
+        public static string Describe(this NavigationTag tag, bool capitalized = false) {
+            return tag switch {
+                NavigationTag.Comics => capitalized ? "Item" : "item",
+                NavigationTag.Author => capitalized ? "Author": "author",
+                NavigationTag.Category => capitalized ? "Category" : "category",
+                NavigationTag.Tags => capitalized ? "Tag" : "tag",
+                NavigationTag.Detail => capitalized ? "Item" : "item",
+                _ => throw new ProgrammerError("unhandled switch case")
+            };
+        }
+
         public static bool IsWorkItemNavigationTag(this NavigationTag tag) {
             return (tag == NavigationTag.Comics || tag == NavigationTag.Detail);
         }

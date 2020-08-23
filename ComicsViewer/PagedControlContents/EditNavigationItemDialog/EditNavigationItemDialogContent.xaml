@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:Custom="using:Microsoft.Toolkit.Uwp.UI.Converters"
+    xmlns:uc="using:ComicsViewer.Controls"
     x:Class="ComicsViewer.Pages.EditNavigationItemDialogContent"
     mc:Ignorable="d"
     d:RequestedTheme="Dark"
@@ -18,20 +19,11 @@
         <ThemeResource ResourceKey="ApplicationPageBackgroundThemeBrush"/>
     </Page.Background>
     <StackPanel>
-        <TextBlock Text="{x:Bind ViewModel.ItemTitle, 
-                                 Converter={StaticResource StringFormatConverter}, 
-                                 ConverterParameter='You are renaming \\&quot;{0}\\&quot;.'}" />
-
-        <TextBlock Margin="0 12 0 0" 
-                   Text="{x:Bind ViewModel.InputInvalidReason, Mode=OneWay}"
-                   Visibility="{x:Bind ViewModel.InputIsNotValid, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                   TextWrapping="Wrap"
-                   Foreground="{ThemeResource SystemErrorTextColor}"/>
+        <uc:EditItemTextBox x:Name="EditItemTitleTextBox" 
+                            Margin="0 12 0 0"
+                            Header="Name"
+                            SaveButton="{x:Bind SaveChangesButton}" />
         
-        <TextBox Margin="0 12 0 0" 
-                 PlaceholderText="New name"
-                 TextChanged="SearchTextBox_TextChanged"/>
-
         <Grid Margin="0 12 0 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
@@ -40,9 +32,8 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="1" 
-                    Content="Save Changes" 
-                    Click="SaveChangesButton_Click"
-                    IsEnabled="{x:Bind ViewModel.InputIsValid, Mode=OneWay}" />
+                    x:Name="SaveChangesButton"
+                    Content="Save Changes" />
             <Button Grid.Column="2" Margin="12 0 0 0" 
                     Content="Discard Changes" 
                     Click="DiscardChangesButton_Click" />

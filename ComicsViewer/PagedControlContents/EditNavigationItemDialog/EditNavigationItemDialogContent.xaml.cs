@@ -21,7 +21,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ComicsViewer.Pages {
     public sealed partial class EditNavigationItemDialogContent : Page, IPagedControlContent {
-        /* Note: this class is currently only used to rename tags. It wll be expanded in the future. */
+        /* Note: this class is currently only used to rename tags. It will be expanded in the future. */
         public EditNavigationItemDialogContent() {
             this.InitializeComponent();
         }
@@ -35,19 +35,15 @@ namespace ComicsViewer.Pages {
             this.PagedControlAccessor = controller;
 
             this.ViewModel = new EditNavigationItemDialogViewModel(args.ParentViewModel, args.PropertyName);
-        }
 
-        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            if (!(sender is TextBox textBox)) {
-                throw ProgrammerError.Auto();
-            }
-
-            this.ViewModel!.TrySetNewItemTitle(textBox.Text);
-        }
-
-        private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.Save();
-            this.PagedControlAccessor!.CloseContainer();
+            this.EditItemTitleTextBox.RegisterHandlers(
+                get: () => this.ViewModel.ItemTitle,
+                saveAsync: async value => {
+                    await this.ViewModel.Save(value);
+                    this.PagedControlAccessor.CloseContainer();
+                },
+                validate: value => this.ViewModel.GetItemTitleInvalidReason(value)
+            );
         }
 
         private void DiscardChangesButton_Click(object sender, RoutedEventArgs e) {
