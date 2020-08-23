@@ -45,6 +45,11 @@ namespace ComicsViewer.ViewModels.Pages {
                 new SettingsItemViewModel(this, "Image width", () => this.profile.ImageWidth.ToString(),
                     str => this.profile.ImageWidth = int.Parse(str),
                     IsValidImageDimension
+                ),
+                new SettingsItemViewModel(this, "File extensions", 
+                    getValue: () => StringConversions.CommaDelimitedList.ConvertToString(this.profile.FileExtensions),
+                    setValue: value => this.profile.FileExtensions = StringConversions.CommaDelimitedList.Convert(value).ToList(),
+                    validateValue: StringConversions.CommaDelimitedList.WhyCannotConvert
                 )
             };
 
