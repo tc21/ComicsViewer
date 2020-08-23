@@ -28,6 +28,8 @@ namespace ComicsViewer.Controls {
         public void Reset() {
             this.IsEditing = false;
             this.IsContentModified = false;
+            this.IsContentValid = true;
+            this.ErrorText = null;
             this.TextBox.Text = this.GetText();
             this.UneditedTextBox.Text = this.GetText();
         }
@@ -220,19 +222,27 @@ namespace ComicsViewer.Controls {
             }
         }
 
-        private static readonly IconElement RefreshIcon = new SymbolIcon(Symbol.Refresh);
+        private readonly IconElement refreshIcon = new SymbolIcon(Symbol.Refresh);
 
         private bool IsEditable => this.SaveItemValue != null || this.SaveItemValueAsync != null;
         private bool IsEditTextBoxVisible => this.IsEditable && (!this.RequiresInteraction || this.IsEditing);
         private bool IsUneditedTextBlockVisible => !this.IsEditTextBoxVisible;
         private bool IsHeaderVisible => this.Header != null;
         private bool IsErrorIndicatorVisible => this.IsContentModified && this.ErrorText != null;
-        private IconElement? TextBoxQueryIcon => this.IsContentModified ? RefreshIcon : null;
+        private IconElement? TextBoxQueryIcon => (this.IsContentModified || this.RequiresInteraction) ? this.refreshIcon : null;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string propertyName = "") {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public int MinTextBoxWidth {
+            get => (int)this.GetValue(MinTextBoxWidthProperty);
+            set => this.SetValue(MinTextBoxWidthProperty, value);
+        }
+
+        public static readonly DependencyProperty MinTextBoxWidthProperty =
+            DependencyProperty.Register(nameof(MinTextBoxWidth), typeof(int), typeof(EditItemTextBox), new PropertyMetadata(0));
 
         #endregion
 
@@ -245,6 +255,7 @@ namespace ComicsViewer.Controls {
                     this.ErrorText = reason;
                 } else {
                     this.IsContentValid = true;
+                    this.ErrorText = null;
                 }
 
                 this.IsContentModified = true;

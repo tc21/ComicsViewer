@@ -19,23 +19,26 @@
         </StackPanel>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" MinWidth="{x:Bind MinTextBoxWidth}" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Row="1" VerticalAlignment="Center" 
                         Orientation="Horizontal"
                         Visibility="{x:Bind IsUneditedTextBlockVisible, Mode=OneWay}" >
-                <TextBlock x:Name="UneditedTextBox" 
-                           Margin="11 0" 
+                <!-- UneditedTextBox.Margin matches the default values of the autosuggestbox so the text and surrounding elements appear in the same place-->
+                <TextBlock x:Name="UneditedTextBox"
+                           Margin="11 7 12 6" 
                            d:Text="Original Value"/>
                 <HyperlinkButton Padding="0" 
                                  HorizontalAlignment="Center"
                                  IsEnabled="{x:Bind IsEnabled}"
+                                 Visibility="{x:Bind IsEditable, Mode=OneWay}"
                                  Tapped="StartEditButton_Tapped">
                     <SymbolIcon Symbol="Edit"/>
                 </HyperlinkButton>
             </StackPanel>
+            <!-- Note: we hijack the AutoSuggestBox's QuerySubmitted to act as a reset button -->
             <AutoSuggestBox x:Name="TextBox" 
                             Grid.Row="1" VerticalAlignment="Center"
                             d:Text="Original Value (Placeholder)"
@@ -47,6 +50,7 @@
             <Button x:Name="InlineSaveButton"
                     Grid.Row="1" Grid.Column="1" Margin="10 0 0 0"
                     Content="Save"
+                    d:Visibility="Collapsed"
                     IsEnabled="{x:Bind IsEnabled}"
                     Tapped="SaveButton_Tapped"
                     />
@@ -56,6 +60,6 @@
                    Foreground="{ThemeResource SystemErrorTextColor}"
                    TextWrapping="Wrap"
                    Visibility="{x:Bind IsErrorIndicatorVisible, Mode=OneWay}"
-                   Text="{x:Bind ErrorText}" d:Text="Warning: Editing this value will cause consequences. Do so at your caution..." />
+                   Text="{x:Bind ErrorText, Mode=OneWay}" d:Text="Warning: Editing this value will cause consequences. Do so at your own risk..." />
     </StackPanel>
 </UserControl>

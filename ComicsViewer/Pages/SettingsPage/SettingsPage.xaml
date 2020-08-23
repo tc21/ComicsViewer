@@ -7,6 +7,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="using:ComicsViewer.Controls"
     mc:Ignorable="d"
     RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -16,46 +17,19 @@
         <ItemsControl Margin="12" ItemsSource="{x:Bind ViewModel.ProfileSettings}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="local:SettingsItemViewModel">
-                    <Grid Height="32">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="160"/>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="160"/>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Text="{x:Bind Name}" VerticalAlignment="Center"/>
-                        <HyperlinkButton Grid.Column="1" 
-                                         Padding="0"
-                                         HorizontalAlignment="Center"
-                                         Visibility="{x:Bind IsEditable}"
-                                         Tapped="{x:Bind HyperlinkButton_Tapped}">
-                            <SymbolIcon Symbol="Edit"/>
-                        </HyperlinkButton>
-                        <TextBlock Grid.Column="2" 
-                                   VerticalAlignment="Center"
-                                   Visibility="{x:Bind IsUneditingTextBlockVisible, Mode=OneWay}"
-                                   Text="{x:Bind Value, Mode=OneWay}" 
-                                   Foreground="{ThemeResource SystemBaseMediumColor}" />
-                        <TextBox Grid.Column="2" 
-                                 Text="{x:Bind Value, Mode=TwoWay}" 
-                                 Background="{ThemeResource SystemColorBackgroundBrush}"
-                                 IsEnabled="{x:Bind IsEditing, Mode=OneWay}" 
-                                 Visibility="{x:Bind IsEditing, Mode=OneWay}"
-                                 TextChanged="{x:Bind TextBox_TextChanged}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
-                        <Button Grid.Column="3" 
-                                Margin="12 0 0 0" 
-                                Content="Save" 
-                                IsEnabled="{x:Bind IsInputValid, Mode=OneWay}" 
-                                Visibility="{x:Bind IsEditing, Mode=OneWay}"
-                                Tapped="{x:Bind SaveButton_Tapped}"/>
-                        <Button Grid.Column="4" 
-                                Margin="12 0 0 0" 
-                                Content="Revert" 
-                                IsEnabled="{x:Bind IsEditing, Mode=OneWay}" 
-                                Visibility="{x:Bind IsEditing, Mode=OneWay}"
-                                Tapped="{x:Bind RevertButton_Tapped}"/>
+                        <uc:EditItemTextBox Grid.Column="1"
+                                            GetItemValue="{x:Bind GetValue}"
+                                            SaveItemValueAsync="{x:Bind SetValueAsync}"
+                                            ValidateWithReason="{x:Bind ValidateValue}"
+                                            MinTextBoxWidth="100"
+                                            RequiresInteraction="True"/>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
