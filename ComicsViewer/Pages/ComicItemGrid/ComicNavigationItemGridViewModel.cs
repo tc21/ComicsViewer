@@ -48,19 +48,8 @@ namespace ComicsViewer.ViewModels.Pages {
             this.SetComicItems(items);
         }
 
-        public override Task OpenItemsAsync(IEnumerable<ComicItem> items) {
-            if (items.Any(item => !this.ComicItems.Contains(item))) {
-                throw new ProgrammerError($"received items that are not part of this.ComicItems");
-            }
-
-            if (items.Count() != 1) {
-                throw new ProgrammerError("Should not allow the user to open multiple navigation " +
-                                          "items at once (use the search into feature instead)");
-            }
-
-            this.MainViewModel.NavigateInto((ComicNavigationItem)items.First());
-
-            return Task.CompletedTask;
+        public void NavigateIntoItem(ComicNavigationItem item) {
+            this.MainViewModel.NavigateInto(item);
         }
 
         private OneTimeComicPropertiesView GetOneTimeSortedProperties() {

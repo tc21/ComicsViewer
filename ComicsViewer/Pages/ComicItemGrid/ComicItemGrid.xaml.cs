@@ -64,7 +64,7 @@ namespace ComicsViewer.Pages {
 
         private bool isLastTapValid = true;
 
-        private async void VisibleComicsGrid_Tapped(object sender, TappedRoutedEventArgs e) {
+        private void VisibleComicsGrid_Tapped(object sender, TappedRoutedEventArgs e) {
             if (!this.isLastTapValid) {
                 return;
             }
@@ -83,32 +83,37 @@ namespace ComicsViewer.Pages {
             }
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
-            if (!(tappedElement.DataContext is ComicItem comicItem)) {
+            if (!(tappedElement.DataContext is ComicItem item)) {
                 // The click happened on an empty space
                 this.VisibleComicsGrid.SelectedItems.Clear();
                 return;
             }
 
-            switch (comicItem) {  // switch ComicItem
-                case ComicNavigationItem item:
-                    await this.ViewModel!.OpenItemsAsync(new[] { item });
-                    return;
-
-                case ComicWorkItem item:
+            switch (this.ViewModel) {  // switch ComicItemGridViewModel
+                case ComicWorkItemGridViewModel vm:
+                    var workItem = (ComicWorkItem)item;
                     this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
                     this.ComicInfoFlyout.NavigateAndShowAt(
                         typeof(ComicInfoFlyoutContent),
-                        new ComicInfoFlyoutNavigationArguments(this.ViewModel!, item,
-                                async () => await this.ShowEditComicInfoDialogAsync(item)),
+                        new ComicInfoFlyoutNavigationArguments(this.ViewModel!, workItem,
+                                async () => await this.ShowEditComicInfoDialogAsync(workItem)),
                         tappedElement);
+                    return;
+
+                case ComicNavigationItemGridViewModel vm:
+                    vm.NavigateIntoItem((ComicNavigationItem)item);
                     return;
 
                 default:
                     throw new ProgrammerError("unhandled switch case");
-            }
+            } 
         }
 
         private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e) {
+            if (!(this.ViewModel is ComicWorkItemGridViewModel vm)) {
+                return;
+            }
+
             var controlKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
             var shiftKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
 
@@ -120,14 +125,14 @@ namespace ComicsViewer.Pages {
             }
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
-            if (!(tappedElement.DataContext is ComicItem comicItem)) {
+            if (!(tappedElement.DataContext is ComicWorkItem item)) {
                 // The click happened on an empty space
                 this.VisibleComicsGrid.SelectedItems.Clear();
                 return;
             }
 
             this.ComicInfoFlyout.Hide();
-            await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
+            await vm.OpenItemsAsync(new[] { item });
         }
 
         // Prepares the grid before the right click context menu is shown
@@ -275,63 +280,6 @@ namespace ComicsViewer.Pages {
                 typeof(RedefineThumbnailDialogContent),
                 new RedefineThumbnailDialogNavigationArguments(images, item, this.ViewModel!)
             );
-        }
-
-        #endregion
-
-        #region Dynamic context menu items
-
-        private void ComicItemGridContextFlyout_Opening(object sender, object e) {
-            if (!(sender is MenuFlyout)) {
-                throw new ProgrammerError("Only MenuFlyout should be allowed to call this handler");
-            }
-
-            // you can right click on empty space, but we don't want anything to happen
-            if (this.VisibleComicsGrid.SelectedItems.Count == 0) {
-                return;
-            }
-
-            // Update dynamic text when opening flyout
-            UpdateFlyoutItemsText(this.ComicItemGridContextFlyout.Items);
-
-            void UpdateFlyoutItemsText(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
-                foreach (var item in flyoutItems) {
-                    if (item is MenuFlyoutSubItem subitem) {
-                        UpdateFlyoutItemsText(subitem.Items);
-                        continue;
-                    }
-
-                    if (item.Tag != null && item is MenuFlyoutItem flyoutItem) {
-                        flyoutItem.Text = this.GetDynamicFlyoutText(item.Tag.ToString());
-                    }
-                }
-            }
-        }
-
-        private string GetDynamicFlyoutText(string tag) {
-            var isWork = this.ViewModel is ComicWorkItemGridViewModel;
-            var count = this.VisibleComicsGrid.SelectedItems.Count;
-            IEnumerable<ComicItem> ComicItems() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
-            int ComicsCount() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.ContainedComics()).Count();
-
-            return tag switch {
-                "open" => (isWork ? "Open" : "Navigate into") + (count > 1 ? $" {count} items" : ""),
-                "search" => "Search selected",
-                "move" => ComicsCount() == 1 ? "Move comic" : $"Move {ComicsCount().PluralString("comic")}",
-                // why exactly can't we use blocks in a switch expression?
-                "remove" => (isWork && count == 1) ? "Remove" : 
-                            $"Remove {ComicsCount().PluralString("comic")}",
-                "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
-                "generateThumbnail" => count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {count} items",
-                "love" => (ComicItems().All(item => item.IsLoved) ? "No longer love" : "Love") +
-                          (count == 1 ? "" : " " + count.PluralString("comic")),
-                "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
-                             (count == 1 ? "" : " " + count.PluralString("comic")),
-                "searchAuthor" => $"Show all items by {((ComicWorkItem) ComicItems().First()).Comic.DisplayAuthor}",
-                // TODO: this should change in the future.
-                "editNavItem" => $"Rename tag",
-                _ => throw new ProgrammerError($"Unhandled tag name for flyout item: '{tag}'")
-            };
         }
 
         #endregion

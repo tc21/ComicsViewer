@@ -136,12 +136,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #endregion
 
-        #region Commands - all items
-
-        public abstract Task OpenItemsAsync(IEnumerable<ComicItem> items);
-
-        #endregion
-
         #region Thumbnails 
 
         private protected async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(

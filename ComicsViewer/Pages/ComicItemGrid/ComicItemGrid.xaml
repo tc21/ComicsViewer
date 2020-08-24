@@ -80,30 +80,24 @@
             <MenuFlyout x:Name="ComicItemGridContextFlyout" 
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
-                <uc:ComicsMenuFlyoutItem Tag="open"
-                                         SymbolIcon="OpenFile"
+                <uc:ComicsMenuFlyoutItem SymbolIcon="OpenFile"
                                          Command="{x:Bind ContextMenuCommands.OpenItemsCommand}"/>
-                <uc:ComicsMenuFlyoutItem Text="Edit info"
-                                         SymbolIcon="Edit"
+                <uc:ComicsMenuFlyoutItem SymbolIcon="OpenPane"
+                                         Command="{x:Bind ContextMenuCommands.NavigateIntoCommand}"/>
+                <uc:ComicsMenuFlyoutItem SymbolIcon="Edit"
                                          Command="{x:Bind ContextMenuCommands.EditInfoCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="editNavItem" 
-                                         SymbolIcon="Edit"
+                <uc:ComicsMenuFlyoutItem SymbolIcon="Edit"
                                          Command="{x:Bind ContextMenuCommands.EditNavigationItemCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="love" 
-                                         FontIcon="&#xEB51;"
+                <uc:ComicsMenuFlyoutItem FontIcon="&#xEB51;"
                                          Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="dislike" 
-                                         FontIcon="&#xEA92;"
+                <uc:ComicsMenuFlyoutItem FontIcon="&#xEA92;"
                                          Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"/>
                 <MenuFlyoutSeparator/>
-                <uc:ComicsMenuFlyoutItem Text="Search selected" 
-                                         FontIcon="&#xE721;"
+                <uc:ComicsMenuFlyoutItem FontIcon="&#xE721;"
                                          Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="searchAuthor"
-                                         FontIcon="&#xE77B;"
+                <uc:ComicsMenuFlyoutItem FontIcon="&#xE77B;"
                                          Command="{x:Bind ContextMenuCommands.SearchAuthorCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="showInExplorer"
-                                         FontIcon="&#xEC50;"
+                <uc:ComicsMenuFlyoutItem FontIcon="&#xEC50;"
                                          Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"/>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutSubItem Text="Thumbnails">
@@ -111,18 +105,14 @@
                         <FontIcon Glyph="&#xE91B;"/>
                     </MenuFlyoutSubItem.Icon>
 
-                    <uc:ComicsMenuFlyoutItem Tag="generateThumbnail" 
-                                             FontIcon="&#xE91B;"
+                    <uc:ComicsMenuFlyoutItem FontIcon="&#xE91B;"
                                              Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"/>
-                    <uc:ComicsMenuFlyoutItem Text="Redefine thumbnail" 
-                                             FontIcon="&#xE7C5;"
+                    <uc:ComicsMenuFlyoutItem FontIcon="&#xE7C5;"
                                              Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"/>
                 </MenuFlyoutSubItem>
-                <uc:ComicsMenuFlyoutItem Tag="move"
-                                         SymbolIcon="MoveToFolder"
+                <uc:ComicsMenuFlyoutItem SymbolIcon="MoveToFolder"
                                          Command="{x:Bind ContextMenuCommands.MoveFilesCommand}"/>
-                <uc:ComicsMenuFlyoutItem Tag="remove" 
-                                         SymbolIcon="Delete"
+                <uc:ComicsMenuFlyoutItem SymbolIcon="Delete"
                                          Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"/>
             </MenuFlyout>
 

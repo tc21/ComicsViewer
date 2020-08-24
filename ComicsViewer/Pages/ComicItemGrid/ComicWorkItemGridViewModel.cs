@@ -52,7 +52,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public override async Task OpenItemsAsync(IEnumerable<ComicItem> _items) {
+        public async Task OpenItemsAsync(IEnumerable<ComicItem> _items) {
             if (_items.Any(item => !this.ComicItems.Contains(item))) {
                 throw new ProgrammerError($"received items that are not part of this.ComicItems");
             }
