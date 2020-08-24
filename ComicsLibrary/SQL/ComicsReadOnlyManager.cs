@@ -14,9 +14,12 @@ namespace ComicsLibrary.SQL {
             this.Connection = new ComicsDatabaseConnection(databaseConnection);
         }
 
-        public Task<List<Comic>> GetAllComicsAsync() => this.Connection.GetActiveComicsAsync();
-        public Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) => this.Connection.TryGetComicMetadataAsync(comic);
-        public Task<Dictionary<string, string>> GetAuthorAliasesAsync() => this.Connection.GetAuthorAliasesAsync();
-        public Task<Dictionary<string, string>> GetCategoryAliasesAsync() => this.Connection.GetCategoryAliasesAsync();
+        public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
+            return await this.Connection.GetActiveComicsAsync();
+        }
+
+        public Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
+            return this.Connection.TryGetComicMetadataAsync(comic);
+        }
     }
 }
