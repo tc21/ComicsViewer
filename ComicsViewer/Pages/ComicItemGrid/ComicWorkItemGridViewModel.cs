@@ -41,21 +41,35 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RefreshComicItems() {
-            this.SetComicItems(this.comics.Select(comic => 
-                ComicItem.WorkItem(comic, trackChangesFrom: this.comics)));
+            this.SetComicItems(this.MakeComicItems(this.comics));
         }
 
-        public override async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
+        private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
+            foreach (var comic in comics) {
+                var item = new ComicWorkItem(this.MainViewModel, comic, trackChangesFrom: this.comics);
+                item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
+                yield return item;
+            }
+        }
+
+        public override async Task OpenItemsAsync(IEnumerable<ComicItem> _items) {
+            if (_items.Any(item => !this.ComicItems.Contains(item))) {
+                throw new ProgrammerError($"received items that are not part of this.ComicItems");
+            }
+
+            var items = _items.Cast<ComicWorkItem>();
+
             // Although we don't have to await these, we will need to do so for it to throw an 
             // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
             try {
-                var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.TitleComic.Path, this.MainViewModel.Profile));
+
+                var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.Comic.Path, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
             } catch (FileNotFoundException e) {
                 if (items.Count() == 1) {
-                    await ExpectedExceptions.ComicNotFoundAsync(items.First().TitleComic);
+                    await ExpectedExceptions.ComicNotFoundAsync(items.First().Comic);
                 } else {
                     await ExpectedExceptions.FileNotFoundAsync(e.FileName, "The folder for an item could not be found.", cancelled: false);
                 }
@@ -68,8 +82,7 @@ namespace ComicsViewer.ViewModels.Pages {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                     if (e.Added.Count() > 0) {
-                        var addedItems = e.Added.Select(comic =>
-                            ComicItem.WorkItem(comic, trackChangesFrom: this.comics));
+                        var addedItems = this.MakeComicItems(e.Added);
 
                         foreach (var item in addedItems) {
                             this.ComicItems.Insert(0, item);
@@ -99,9 +112,35 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
+
+        /* The ComicItem.RequestingRefresh event is used for items to request themselves be reloaded or removed. 
+         * This will most likely be moved to ...WorkItemViewModel when the new ComicPropertiesView events are implemented */
+        private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
+            if (this.ComicItems.Contains(sender)) {
+                switch (type) {
+                    case ComicWorkItem.RequestingRefreshType.Reload:
+                        var index = this.ComicItems.IndexOf(sender);
+                        this.ComicItems.RemoveAt(index);
+                        this.ComicItems.Insert(index, sender);
+                        break;
+                    case ComicWorkItem.RequestingRefreshType.Remove:
+                        sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
+                        _ = this.ComicItems.Remove(sender);
+
+                        if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
+                            this.MainViewModel.NavigateOut();
+                        }
+
+                        break;
+                    default:
+                        throw new ProgrammerError("Unhandled switch case");
+                }
+            }
+        }
+
         #region Commands - work items
 
-        public void StartRequestGenerateThumbnailsTask(IEnumerable<ComicItem> comicItems, bool replace = false) {
+        public void StartRequestGenerateThumbnailsTask(IEnumerable<ComicWorkItem> comicItems, bool replace = false) {
             var copy = comicItems.ToList();
             _ = this.MainViewModel.StartUniqueTaskAsync(
                 "thumbnail", $"Generating thumbnails for {copy.Count} items...",
@@ -110,11 +149,11 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        public async Task ToggleDislikedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
-            var comics = selectedItems.Select(item => item.TitleComic).ToList();
+        public async Task ToggleDislikedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
+            var comics = selectedItems.Select(item => item.Comic).ToList();
             var newStatus = !comics.All(item => item.Disliked);
 
-            var changes = selectedItems.Select(item => item.TitleComic.WithUpdatedMetadata(metadata => {
+            var changes = selectedItems.Select(item => item.Comic.WithUpdatedMetadata(metadata => {
                 metadata.Disliked = newStatus;
                 return metadata;
             }));
@@ -122,11 +161,11 @@ namespace ComicsViewer.ViewModels.Pages {
             await this.MainViewModel.UpdateComicAsync(changes);
         }
 
-        public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicItem> selectedItems) {
-            var comics = selectedItems.Select(item => item.TitleComic).ToList();
+        public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
+            var comics = selectedItems.Select(item => item.Comic).ToList();
             var newStatus = !comics.All(item => item.Loved);
 
-            var changes = selectedItems.Select(item => item.TitleComic.WithUpdatedMetadata(metadata => {
+            var changes = selectedItems.Select(item => item.Comic.WithUpdatedMetadata(metadata => {
                 metadata.Loved = newStatus;
                 return metadata;
             }));

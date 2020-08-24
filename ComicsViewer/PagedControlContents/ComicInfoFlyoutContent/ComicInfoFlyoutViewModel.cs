@@ -20,14 +20,10 @@ using Windows.UI.Xaml.Documents;
 namespace ComicsViewer.ViewModels.Pages {
     public class ComicInfoFlyoutViewModel : ViewModelBase {
         internal readonly ComicItemGridViewModel ParentViewModel;
-        internal readonly ComicItem Item;
+        internal readonly ComicWorkItem Item;
         private MainViewModel MainViewModel => ParentViewModel.MainViewModel;
 
-        public ComicInfoFlyoutViewModel(ComicItemGridViewModel parentViewModel, ComicItem item) {
-            if (item.ItemType != ComicItemType.Work) {
-                throw new ProgrammerError("ComicInfoFlyoutViewModel can only be created for work item");
-            }
-
+        public ComicInfoFlyoutViewModel(ComicItemGridViewModel parentViewModel, ComicWorkItem item) {
             this.ParentViewModel = parentViewModel;
             this.Item = item;
         }
@@ -35,13 +31,13 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task InitializeAsync() {
             try {
-                foreach (var item in await this.GetSubitemsAsync(this.Item.TitleComic)) {
+                foreach (var item in await this.GetSubitemsAsync(this.Item.Comic)) {
                     this.ComicSubitems.Add(item);
                 }
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
             } catch (FileNotFoundException) {
-                await ExpectedExceptions.ComicNotFoundAsync(this.Item.TitleComic);
+                await ExpectedExceptions.ComicNotFoundAsync(this.Item.Comic);
             }
 
             this.IsLoadingSubItems = false;
@@ -100,13 +96,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /// <returns>true if the comic has descriptions, false if it doesn't</returns>
         public async Task<bool> LoadDescriptionsAsync(TextBlock infoPivotText) {
-            if (this.Item.ItemType != ComicItemType.Work) {
-                return false;
-            }
-
             StorageFolder comicFolder;
             try {
-                comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.TitleComic.Path);
+                comicFolder = await StorageFolder.GetFolderFromPathAsync(this.Item.Comic.Path);
             } catch (FileNotFoundException) {
                 return false;
             } catch (UnauthorizedAccessException) {

@@ -6,9 +6,9 @@ using ComicsViewer.ViewModels.Pages;
 namespace ComicsViewer.Pages {
     public class EditComicInfoDialogNavigationArguments {
         public ComicItemGridViewModel ParentViewModel { get; }
-        public ComicItem ComicItem { get; }
+        public ComicWorkItem ComicItem { get; }
 
-        public EditComicInfoDialogNavigationArguments(ComicItemGridViewModel parentViewModel, ComicItem comicItem) {
+        public EditComicInfoDialogNavigationArguments(ComicItemGridViewModel parentViewModel, ComicWorkItem comicItem) {
             this.ParentViewModel = parentViewModel;
             this.ComicItem = comicItem;
         }

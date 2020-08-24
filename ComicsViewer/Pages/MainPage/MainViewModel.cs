@@ -170,21 +170,21 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         // note: we have already validateed that item is a nav item
-        public void NavigateInto(ComicItem item, NavigationTransitionInfo? transitionInfo = null) {
+        public void NavigateInto(ComicNavigationItem item, NavigationTransitionInfo? transitionInfo = null) {
             this.NavigationLevel = 1;
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
                 PageType = typeof(ComicItemGridSecondLevelContainer),
                 Tag = NavigationTag.Detail,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                Comics = item.TrackingChangesFrom
+                Comics = item.Comics
             });
 
             this.PageName = item.Title;
         }
 
         public void FilterToSelected(IEnumerable<ComicItem> items) {
-            this.FilterToComics(items.SelectMany(item => item.Comics));
+            this.FilterToComics(items.SelectMany(item => item.ContainedComics()));
         }
 
         public void FilterToAuthor(string displayName) {

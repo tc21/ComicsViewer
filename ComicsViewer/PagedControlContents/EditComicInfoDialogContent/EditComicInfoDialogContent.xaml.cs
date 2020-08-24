@@ -39,10 +39,6 @@ namespace ComicsViewer.Pages {
                 PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = controller;
 
-            if (args.ComicItem.ItemType != ComicItemType.Work) {
-                throw new ProgrammerError("EditComicInfoDialog can only be created for work item");
-            }
-
             this.ViewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
         }
 

@@ -30,7 +30,7 @@ namespace ComicsViewer.Pages {
     public sealed partial class RedefineThumbnailDialogContent : Page, IPagedControlContent {
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
         public ComicItemGridViewModel? ParentViewModel { get; private set; }
-        public ComicItem? Item { get; private set; }
+        public ComicWorkItem? Item { get; private set; }
 
         public RedefineThumbnailDialogContent() {
             this.InitializeComponent();
@@ -88,10 +88,10 @@ namespace ComicsViewer.Pages {
 
     public class RedefineThumbnailDialogNavigationArguments {
         public IEnumerable<StorageFile> Files { get; }
-        public ComicItem Item { get; }
+        public ComicWorkItem Item { get; }
         public ComicItemGridViewModel ParentViewModel { get; }
 
-        public RedefineThumbnailDialogNavigationArguments(IEnumerable<StorageFile> files, ComicItem item, ComicItemGridViewModel parentViewModel) {
+        public RedefineThumbnailDialogNavigationArguments(IEnumerable<StorageFile> files, ComicWorkItem item, ComicItemGridViewModel parentViewModel) {
             this.Files = files;
             this.Item = item;
             this.ParentViewModel = parentViewModel;

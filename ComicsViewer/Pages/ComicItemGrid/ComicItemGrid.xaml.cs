@@ -89,17 +89,23 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            if (comicItem.ItemType == ComicItemType.Navigation) {
-                await this.ViewModel!.OpenItemsAsync(new[] { comicItem });
-                return;
-            }
+            switch (comicItem) {  // switch ComicItem
+                case ComicNavigationItem item:
+                    await this.ViewModel!.OpenItemsAsync(new[] { item });
+                    return;
 
-            this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-            this.ComicInfoFlyout.NavigateAndShowAt(
-                typeof(ComicInfoFlyoutContent),
-                new ComicInfoFlyoutNavigationArguments(this.ViewModel!, comicItem,
-                        async () => await this.ShowEditComicInfoDialogAsync(comicItem)),
-                tappedElement);
+                case ComicWorkItem item:
+                    this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
+                    this.ComicInfoFlyout.NavigateAndShowAt(
+                        typeof(ComicInfoFlyoutContent),
+                        new ComicInfoFlyoutNavigationArguments(this.ViewModel!, item,
+                                async () => await this.ShowEditComicInfoDialogAsync(item)),
+                        tappedElement);
+                    return;
+
+                default:
+                    throw new ProgrammerError("unhandled switch case");
+            }
         }
 
         private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e) {
@@ -153,7 +159,7 @@ namespace ComicsViewer.Pages {
 
         #region Popups
 
-        public async Task ShowEditComicInfoDialogAsync(ComicItem item) {
+        public async Task ShowEditComicInfoDialogAsync(ComicWorkItem item) {
             // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
             _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
                 typeof(EditComicInfoDialogContent),
@@ -161,7 +167,7 @@ namespace ComicsViewer.Pages {
             );
         }
 
-        public async Task ShowEditNavigationItemDialogAsync(ComicItem item) {
+        public async Task ShowEditNavigationItemDialogAsync(ComicNavigationItem item) {
             if (!(this.ViewModel is ComicNavigationItemGridViewModel vm)) {
                 throw new ProgrammerError($"{nameof(ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
             }
@@ -178,7 +184,7 @@ namespace ComicsViewer.Pages {
              * between the already-defined categories. */
             _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
                 typeof(MoveFilesDialogContent),
-                new MoveFilesDialogNavigationArguments(this.ViewModel!, items.SelectMany(item => item.Comics).ToList())
+                new MoveFilesDialogNavigationArguments(this.ViewModel!, items.SelectMany(item => item.ContainedComics()).ToList())
             );
         }
 
@@ -258,8 +264,8 @@ namespace ComicsViewer.Pages {
 
         #region Redefining thumbnails
 
-        public async Task RedefineThumbnailAsync(ComicItem item) {
-            if (!(await item.TitleComic.GetFolderAndNotifyErrorsAsync() is StorageFolder folder)) {
+        public async Task RedefineThumbnailAsync(ComicWorkItem item) {
+            if (!(await item.Comic.GetFolderAndNotifyErrorsAsync() is StorageFolder folder)) {
                 return;
             }
 
@@ -303,17 +309,17 @@ namespace ComicsViewer.Pages {
         }
 
         private string GetDynamicFlyoutText(string tag) {
-            var type = ((ComicItem)this.VisibleComicsGrid.SelectedItems[0]).ItemType;
+            var isWork = this.ViewModel is ComicWorkItemGridViewModel;
             var count = this.VisibleComicsGrid.SelectedItems.Count;
             IEnumerable<ComicItem> ComicItems() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
-            int ComicsCount() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.Comics).Count();
+            int ComicsCount() => this.VisibleComicsGrid.SelectedItems.Cast<ComicItem>().SelectMany(i => i.ContainedComics()).Count();
 
             return tag switch {
-                "open" => (type == ComicItemType.Work ? "Open" : "Navigate into") + (count > 1 ? $" {count} items" : ""),
+                "open" => (isWork ? "Open" : "Navigate into") + (count > 1 ? $" {count} items" : ""),
                 "search" => "Search selected",
                 "move" => ComicsCount() == 1 ? "Move comic" : $"Move {ComicsCount().PluralString("comic")}",
                 // why exactly can't we use blocks in a switch expression?
-                "remove" => (type == ComicItemType.Work && count == 1) ? "Remove" : 
+                "remove" => (isWork && count == 1) ? "Remove" : 
                             $"Remove {ComicsCount().PluralString("comic")}",
                 "showInExplorer" => count == 1 ? "Show in Explorer" : $"Show {count} items in Explorer",
                 "generateThumbnail" => count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {count} items",
@@ -321,7 +327,7 @@ namespace ComicsViewer.Pages {
                           (count == 1 ? "" : " " + count.PluralString("comic")),
                 "dislike" => (ComicItems().All(item => item.IsDisliked) ? "No longer dislike" : "Dislike") +
                              (count == 1 ? "" : " " + count.PluralString("comic")),
-                "searchAuthor" => $"Show all items by {ComicItems().First().TitleComic.DisplayAuthor}",
+                "searchAuthor" => $"Show all items by {((ComicWorkItem) ComicItems().First()).Comic.DisplayAuthor}",
                 // TODO: this should change in the future.
                 "editNavItem" => $"Rename tag",
                 _ => throw new ProgrammerError($"Unhandled tag name for flyout item: '{tag}'")
@@ -386,7 +392,7 @@ namespace ComicsViewer.Pages {
                 var deferral = request.GetDeferral();
 
                 foreach (var comicItem in comicItems) {
-                    foreach (var comic in comicItem.Comics) {
+                    foreach (var comic in comicItem.ContainedComics()) {
                         items.Add(await StorageFolder.GetFolderFromPathAsync(comic.Path));
                     }
                 }

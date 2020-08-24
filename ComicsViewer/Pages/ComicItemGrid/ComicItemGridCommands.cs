@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Features;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
@@ -11,12 +12,13 @@ using Windows.Foundation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
-using ComicItemGridCommand = ComicsViewer.Pages.ComicItemGridCommand<ComicsViewer.ViewModels.Pages.ComicItemGridViewModel>;
-using ComicWorkItemGridCommand = ComicsViewer.Pages.ComicItemGridCommand<ComicsViewer.ViewModels.Pages.ComicWorkItemGridViewModel>;
 
 #nullable enable
 
 namespace ComicsViewer.Pages {
+    using ComicItemGridCommand = ComicItemGridCommand<ComicItemGridViewModel, ComicItem>;
+    using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
+    using ComicNavigtionItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
 
     public partial class ComicItemGrid {
         /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 
@@ -35,18 +37,18 @@ namespace ComicsViewer.Pages {
             => this.ConfirmRemoveItemDialog.ShowAsync();
 
         // This class defined within ComicItemGrid to have access to VisibleComicsGrid
-        public class CommandArgs<T> where T : ComicItemGridViewModel {
+        public class CommandArgs<T, X> where T : ComicItemGridViewModel where X : ComicItem {
             public ComicItemGrid Grid { get; }
             public T ViewModel => (T)this.Grid.ViewModel!;
             public MainViewModel MainViewModel => this.Grid.MainViewModel!;
             public int Count => this.Grid.VisibleComicsGrid.SelectedItems.Count;
-            public IEnumerable<ComicItem> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<ComicItem>();
+            public IEnumerable<X> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<X>();
             public virtual bool IsWorkItems => this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
             public virtual bool IsNavItems => !this.IsWorkItems;
 
             public CommandArgs(ComicItemGrid grid) {
                 if (!(grid.ViewModel is T)) {
-                    throw new ProgrammerError($"A wrong {nameof(CommandArgs<T>)} was created: incorrect view model type");
+                    throw new ProgrammerError($"A wrong {nameof(CommandArgs<T, X>)} was created: incorrect view model type");
                 }
 
                 this.Grid = grid;
@@ -54,11 +56,11 @@ namespace ComicsViewer.Pages {
         }
     }
 
-    public class ComicItemGridCommand<T> : XamlUICommand where T : ComicItemGridViewModel {
+    public class ComicItemGridCommand<T, X> : XamlUICommand where T : ComicItemGridViewModel where X : ComicItem {
         public ComicItemGridCommand(
             ComicItemGrid grid, 
-            Action<ComicItemGrid.CommandArgs<T>> execute, 
-            Func<ComicItemGrid.CommandArgs<T>, bool>? canExecute = null
+            Action<ComicItemGrid.CommandArgs<T, X>> execute, 
+            Func<ComicItemGrid.CommandArgs<T, X>, bool>? canExecute = null
         ) {
             this.CanExecuteRequested += (sender, args) => { 
                 if (!(grid.ViewModel is T)) {
@@ -66,7 +68,7 @@ namespace ComicsViewer.Pages {
                     return;
                 }
 
-                var ourArgs = new ComicItemGrid.CommandArgs<T>(grid);
+                var ourArgs = new ComicItemGrid.CommandArgs<T, X>(grid);
                 if (ourArgs.Count == 0) {
                     args.CanExecute = false;
                     return;
@@ -75,11 +77,11 @@ namespace ComicsViewer.Pages {
                 if (canExecute == null) {
                     args.CanExecute = true;
                 } else {
-                    args.CanExecute = canExecute(new ComicItemGrid.CommandArgs<T>(grid));
+                    args.CanExecute = canExecute(new ComicItemGrid.CommandArgs<T, X>(grid));
                 }
             };
 
-            this.ExecuteRequested += (sender, args) => execute(new ComicItemGrid.CommandArgs<T>(grid));
+            this.ExecuteRequested += (sender, args) => execute(new ComicItemGrid.CommandArgs<T, X>(grid));
         }
     }
 
@@ -99,8 +101,7 @@ namespace ComicsViewer.Pages {
         public ComicWorkItemGridCommand DislikeComicsCommand { get; }
         public ComicWorkItemGridCommand SearchAuthorCommand { get; }
 
-        // note: we don't have a NavItemGridCommand yet because NavItemViewModel doesn't provide any unique behavior
-        public ComicItemGridCommand EditNavigationItemCommand { get; }
+        public ComicNavigtionItemGridCommand EditNavigationItemCommand { get; }
 
         //private readonly ComicItemGrid parent;
         //private int SelectedItemCount => parent.VisibleComicsGrid.SelectedItems.Count;
@@ -125,7 +126,7 @@ namespace ComicsViewer.Pages {
             this.RemoveItemCommand = new ComicItemGridCommand(parent,
                 execute: async args => {
                     if ((await args.Grid.ShowConfirmRemoveItemDialogAsync()) == ContentDialogResult.Primary) {
-                        var comics = args.Items.SelectMany(item => item.Comics).ToList();
+                        var comics = args.Items.SelectMany(item => item.ContainedComics()).ToList();
                         await args.MainViewModel.RemoveComicsAsync(comics);
                     }
                 }
@@ -140,7 +141,7 @@ namespace ComicsViewer.Pages {
             this.ShowInExplorerCommand = new ComicWorkItemGridCommand(parent,
                 execute: args => {
                     foreach (var item in args.Items) {
-                        _ = Startup.OpenContainingFolderAsync(item.TitleComic);
+                        _ = Startup.OpenContainingFolderAsync(item.Comic);
                     }
                 }
             );
@@ -169,13 +170,13 @@ namespace ComicsViewer.Pages {
                 execute: async args => await args.ViewModel.ToggleDislikedStatusForComicsAsync(args.Items));
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent, 
-                execute: args => args.MainViewModel.FilterToAuthor(args.Items.First().TitleComic.DisplayAuthor),
+                execute: args => args.MainViewModel.FilterToAuthor(args.Items.First().Comic.DisplayAuthor),
                 canExecute: args => args.Count == 1
             );
 
 
             // Renames a tag, etc.
-            this.EditNavigationItemCommand = new ComicItemGridCommand(parent,
+            this.EditNavigationItemCommand = new ComicNavigtionItemGridCommand(parent,
                 execute: async args => await args.Grid.ShowEditNavigationItemDialogAsync(args.Items.First()),
                 // TODO implement editing for authors and categories as well
                 canExecute: args => args.ViewModel.NavigationTag == NavigationTag.Tags && args.Count == 1

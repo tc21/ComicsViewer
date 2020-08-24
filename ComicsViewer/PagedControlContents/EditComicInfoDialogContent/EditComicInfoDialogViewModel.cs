@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.ClassExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +10,16 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class EditComicInfoDialogViewModel : ViewModelBase {
-        public readonly ComicItem Item;
+        public readonly ComicWorkItem Item;
         public readonly ComicItemGridViewModel ParentViewModel;
         private MainViewModel MainViewModel => ParentViewModel.MainViewModel;
 
-        public EditComicInfoDialogViewModel(ComicItemGridViewModel parentViewModel, ComicItem item) {
+        public EditComicInfoDialogViewModel(ComicItemGridViewModel parentViewModel, ComicWorkItem item) {
             this.ParentViewModel = parentViewModel;
             this.Item = item;
         }
 
-        private Comic Comic => this.Item.TitleComic;
+        private Comic Comic => this.Item.Comic;
 
         public string ComicTitle => this.Comic.DisplayTitle;
         public string ComicAuthor => this.Comic.DisplayAuthor;

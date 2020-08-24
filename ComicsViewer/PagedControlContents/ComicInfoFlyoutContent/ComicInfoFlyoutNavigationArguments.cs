@@ -7,11 +7,11 @@ using System;
 namespace ComicsViewer.Pages {
     public class ComicInfoFlyoutNavigationArguments {
         public ComicItemGridViewModel ParentViewModel { get; }
-        public ComicItem ComicItem { get; }
+        public ComicWorkItem ComicItem { get; }
         public Action EditInfoCallback { get; }
 
         public ComicInfoFlyoutNavigationArguments(
-                ComicItemGridViewModel parentViewModel, ComicItem comicItem, Action editInfoCallback) {
+                ComicItemGridViewModel parentViewModel, ComicWorkItem comicItem, Action editInfoCallback) {
             this.ParentViewModel = parentViewModel;
             this.ComicItem = comicItem;
             this.EditInfoCallback = editInfoCallback;

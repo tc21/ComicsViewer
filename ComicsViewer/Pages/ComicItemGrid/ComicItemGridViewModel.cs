@@ -60,7 +60,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
             for (var i = 0; i < 100; i++) {
                 if (this.comicItemSource.MoveNext()) {
-                    this.comicItemSource.Current.RequestingRefresh += this.ComicItem_RequestingRefresh;
                     this.ComicItems.Add(this.comicItemSource.Current);
                 } else {
                     this.comicItemSource = null;
@@ -115,13 +114,13 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             if (appViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(appViewModel, appViewModel.ComicView);
+                return new ComicWorkItemGridViewModel(appViewModel, appViewModel.Comics);
             } else {
-                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.ComicView);
+                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.Comics);
             }
         }
 
-        public static ComicItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
+        public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
             if (appViewModel.ActiveNavigationTag != NavigationTag.Detail) {
                 throw new ProgrammerError($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
@@ -135,31 +134,6 @@ namespace ComicsViewer.ViewModels.Pages {
          * a new sort selector and the sort finishing anyway */
         private protected abstract void SortOrderChanged();
 
-        /* The ComicItem.RequestingRefresh event is used for items to request themselves be reloaded or removed. 
-         * This will most likely be moved to ...WorkItemViewModel when the new ComicPropertiesView events are implemented */
-        private void ComicItem_RequestingRefresh(ComicItem sender, ComicItem.RequestingRefreshType type) {
-            if (this.ComicItems.Contains(sender)) {
-                switch (type) {
-                    case ComicItem.RequestingRefreshType.Reload:
-                        var index = this.ComicItems.IndexOf(sender);
-                        this.ComicItems.RemoveAt(index);
-                        this.ComicItems.Insert(index, sender);
-                        break;
-                    case ComicItem.RequestingRefreshType.Remove:
-                        sender.RequestingRefresh -= this.ComicItem_RequestingRefresh;
-                        _ = this.ComicItems.Remove(sender);
-
-                        if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
-                            this.MainViewModel.NavigateOut();
-                        }
-
-                        break;
-                    default:
-                        throw new ProgrammerError("Unhandled switch case");
-                }
-            }
-        }
-
         #endregion
 
         #region Commands - all items
@@ -171,14 +145,14 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Thumbnails 
 
         private protected async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(
-                IEnumerable<ComicItem> comicItems, bool replace, CancellationToken cc, IProgress<int> progress) {
+                IEnumerable<ComicWorkItem> comicItems, bool replace, CancellationToken cc, IProgress<int> progress) {
             var i = 0;
             foreach (var item in comicItems) {
-                var success = await Thumbnail.GenerateThumbnailAsync(item.TitleComic, this.MainViewModel.Profile, replace);
+                var success = await Thumbnail.GenerateThumbnailAsync(item.Comic, this.MainViewModel.Profile, replace);
                 if (success) {
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                         Windows.UI.Core.CoreDispatcherPriority.Normal,
-                        () => this.MainViewModel.NotifyThumbnailChanged(item.TitleComic)
+                        () => this.MainViewModel.NotifyThumbnailChanged(item.Comic)
                     );
                 }
 
@@ -190,13 +164,9 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task TryRedefineThumbnailAsync(ComicItem comicItem, StorageFile file) {
-            if (comicItem.ItemType != ComicItemType.Work) {
-                throw new ProgrammerError("Custom thumbnails for grouped items is not supported.");
-            }
-
-            var comic = comicItem.TitleComic.WithUpdatedMetadata(metadata => {
-                metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.TitleComic.Path);
+        public async Task TryRedefineThumbnailAsync(ComicWorkItem comicItem, StorageFile file) {
+            var comic = comicItem.Comic.WithUpdatedMetadata(metadata => {
+                metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.Comic.Path);
                 return metadata;
             });
 
@@ -207,11 +177,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task TryRedefineThumbnailFromFilePickerAsync(ComicItem comicItem) {
-            if (comicItem.ItemType != ComicItemType.Work) {
-                throw new ProgrammerError("Custom thumbnails for grouped items is not supported.");
-            }
-
+        public async Task TryRedefineThumbnailFromFilePickerAsync(ComicWorkItem comicItem) {
             var picker = new FileOpenPicker {
                 ViewMode = PickerViewMode.Thumbnail
             };
@@ -231,7 +197,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #endregion
 
-
         private void ComicItemGridViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
@@ -241,6 +206,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
             }
         }
+
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             this.OnPropertyChanged(nameof(this.ImageHeight));
             this.OnPropertyChanged(nameof(this.ImageWidth));
@@ -252,7 +218,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
 
             foreach (var item in this.ComicItems) {
-                item.RequestingRefresh -= this.ComicItem_RequestingRefresh;
+                item.Dispose();
             }
 
             this.ComicItems.Clear();

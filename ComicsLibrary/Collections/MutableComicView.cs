@@ -46,7 +46,7 @@ namespace ComicsLibrary.Collections {
                     throw new ProgrammerError($"{nameof(MutableComicView)}.{nameof(ParentComicView_ViewChanged)}: unhandled switch case");
             }
 
-            this.OnComicChanged( e);
+            this.OnComicChanged(e);
         }
     }
 }

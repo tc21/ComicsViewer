@@ -37,6 +37,7 @@ namespace ComicsLibrary {
                 if (this.Metadata.ThumbnailSource == null) {
                     return null;
                 }
+
                 if (System.IO.Path.IsPathRooted(this.Metadata.ThumbnailSource)) {
                     return this.Metadata.ThumbnailSource;
                 }
