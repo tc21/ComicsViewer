@@ -1,4 +1,6 @@
-﻿using ComicsViewer.Support;
+﻿using ComicsLibrary;
+using ComicsViewer.Support;
+using ComicsViewer.Support.Interop;
 using System;
 using System.Collections.Generic;
 using System.IO;

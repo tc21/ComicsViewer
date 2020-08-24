@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Windows.Storage;
+using ComicsViewer.Support.Interop;
 
 #nullable enable
 
@@ -70,6 +71,41 @@ namespace ComicsViewer.Support {
             var result = new List<Comic>();
             await FinishFromRootPathAsync(result, profile, category, cc, progress);
             return result;
+        }
+
+        /* Used to automatically remove comics that no longer exist. The most basic form of this function should return
+         * a bool, but since this is a time-consuming task, we will do it all at once. */
+        /* A proposed change is to allow choosing between checking for folder existing vs. checking for files existing */
+        public static Task<List<Comic>> FindInvalidComicsAsync(
+            IEnumerable<Comic> comics, CancellationToken cc, IProgress<int>? progress = null
+        ) {
+            return Task.Run(() => {
+                var invalidComics = new List<Comic>();
+                var i = 0;
+
+                // Make a copy in case the user decides to modify the underlying list
+                comics = comics.ToList();
+
+                foreach (var comic in comics) {
+                    try {
+                        var comicExists = FileApiInterop.FileOrDirectoryExists(comic.Path);
+
+                        if (!comicExists) {
+                            invalidComics.Add(comic);
+                        }
+                    } catch (NativeException e) when (e.ErrorCode == 3) {
+                        invalidComics.Add(comic);
+                    }
+
+                    i += 1;
+                    progress?.Report(i);
+                    if (cc.IsCancellationRequested) {
+                        return invalidComics;
+                    }
+                }
+
+                return invalidComics;
+            });
         }
 
         private static async Task FinishFromImportedFolderAsync(

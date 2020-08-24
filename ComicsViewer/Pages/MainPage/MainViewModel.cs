@@ -105,6 +105,8 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Comics.Refresh(await manager.GetAllComicsAsync());
 
             this.Comics.Filter.Clear();
+
+            await this.RequestValidateAndRemoveComicsAsync();
         }
 
         /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
@@ -395,7 +397,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     var notAdded = await this.AddComicsWithoutReplacingAsync(result);
                     if (notAdded.Count > 0) {
-                        await this.NotifyComicsNotAdded(notAdded);
+                        await this.NotifyComicsNotAddedAsync(notAdded);
                     }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -411,7 +413,20 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     var notAdded = await this.AddComicsWithoutReplacingAsync(result);
                     if (notAdded.Count > 0) {
-                        await this.NotifyComicsNotAdded(notAdded);
+                        await this.NotifyComicsNotAddedAsync(notAdded);
+                    }
+                },
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
+            );
+        }
+
+        private async Task RequestValidateAndRemoveComicsAsync() {
+            await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count()} comics...",
+                (cc, p) => ComicsLoader.FindInvalidComicsAsync(this.Comics, cc, p),
+                async result => {
+                    if (result.Count() > 0) {
+                        await this.RemoveComicsAsync(result);
+                        await this.NotifyComicsRemovedAsync(result);
                     }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -448,7 +463,7 @@ namespace ComicsViewer.ViewModels.Pages {
             return duplicates;
         }
 
-        private async Task NotifyComicsNotAdded(IEnumerable<Comic> comics) {
+        private async Task NotifyComicsNotAddedAsync(IEnumerable<Comic> comics) {
             var message = "The following items were not added because they already exist:\n";
 
             foreach (var comic in comics) {
@@ -456,6 +471,16 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             _ = await new MessageDialog(message, "Warning: items not added").ShowAsync();
+        }
+
+        private async Task NotifyComicsRemovedAsync(IEnumerable<Comic> comics) {
+            var message = "The following items were not found on disk, and automatically removed:\n";
+
+            foreach (var comic in comics) {
+                message += $"\n{comic.UniqueIdentifier}";
+            }
+
+            _ = await new MessageDialog(message, "Warning: items removed").ShowAsync();
         }
 
         public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
@@ -473,12 +498,6 @@ namespace ComicsViewer.ViewModels.Pages {
             await manager.RemoveComicsAsync(removed);
         }
 
-        ///// <summary>
-        ///// Sends a list of comic metadata to MainComicList. After MainComicList updates its comics, it will
-        ///// invoke the appropriate commands notifying of the change.
-        ///// </summary>
-        ///// <param name="comics"></param>
-        ///// <returns></returns>
         public async Task UpdateComicAsync(IEnumerable<Comic> comics) {
             this.Comics.Modify(comics);
 

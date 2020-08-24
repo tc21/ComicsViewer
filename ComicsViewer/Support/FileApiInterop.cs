@@ -8,11 +8,40 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using DWORD = System.UInt32;
+using WORD = System.UInt16;
+using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
+
+#nullable enable
+
 namespace ComicsViewer.Support.Interop {
-    using DWORD = UInt32;
-    using WORD = UInt16;
-    using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
-    using FileAttributes = System.IO.FileAttributes;
+
+    public class NativeException : Exception {
+        public int ErrorCode { get; }
+
+        public NativeException() { }
+        public NativeException(int errorCode, string? message = null, string? additionalInfo = null) : base(MakeMessage(errorCode, message, additionalInfo)) {
+            this.ErrorCode = errorCode;
+        }
+
+        public override string ToString() {
+            return base.ToString();
+        }
+
+        private static string MakeMessage(int errorCode, string? message, string? additionalInfo) {
+            var result = $"{errorCode}";
+
+            if (message is string m) {
+                result += $": {m}";
+            }
+
+            if (additionalInfo is string s) {
+                result += $"({s})";
+            }
+
+            return result;
+        }
+    }
 
     public static class FileApiInterop {
         private enum FormatMessageFlags : DWORD {
@@ -35,11 +64,7 @@ namespace ComicsViewer.Support.Interop {
             IntPtr Arguments
         );
 
-        private static void ThrowLastError(
-            [CallerMemberName] string callerMethodName = "", 
-            [CallerLineNumber] int callerLineNumber = 0, 
-            [CallerFilePath] string callerFilePath = ""
-        ) {
+        private static NativeException ThrowLastError(string? additionalInfo = null) {
             var error = GetLastError();
             if (error == 0) {
                 throw new Exception("ThrowLastError called when there is no error");
@@ -60,8 +85,7 @@ namespace ComicsViewer.Support.Interop {
                     $"When calling ThrowLastError: FormatMessage indicated an error with error code {GetLastError()}");
             }
 
-            throw new Exception($"{Path.GetFileName(callerFilePath)} Line {callerLineNumber}: " +
-                                $"{callerMethodName} indicated an error with error code {error}: {message}");
+            return new NativeException((int)error, message, additionalInfo);
         }
 
         #region FindFirstFileEx
@@ -204,7 +228,7 @@ namespace ComicsViewer.Support.Interop {
 
             if (path[0] == newName[0]) {
                 if (!MoveFileFromApp(path, newName)) {
-                    ThrowLastError("MoveFileFromApp");
+                    throw ThrowLastError(path);
                 }
 
                 return;
@@ -226,7 +250,7 @@ namespace ComicsViewer.Support.Interop {
                 }
 
                 if (!CopyFileFromApp(item.Path, Path.Combine(newName, item.Name), true)) {
-                    ThrowLastError("CopyFileFromApp");
+                    throw ThrowLastError(item.Path);
                 }
             }
         }
@@ -239,7 +263,7 @@ namespace ComicsViewer.Support.Interop {
                 }
 
                 if (!DeleteFileFromApp(item.Path)) {
-                    ThrowLastError("DeleteFileFromApp");
+                    throw ThrowLastError(item.Path);
                 }
             }
 
@@ -254,7 +278,7 @@ namespace ComicsViewer.Support.Interop {
             if (hFindFile == Win32ReturnValues.InvalidHandleValue) {
                 var error = GetLastError();
                 if (!(error == 2 || error == 3)) {
-                    ThrowLastError("FindFirstFileExFromApp");
+                    throw ThrowLastError(path);
                 }
 
                 return false;
@@ -275,19 +299,19 @@ namespace ComicsViewer.Support.Interop {
             }
 
             if (!CreateDirectoryFromApp(path)) {
-                ThrowLastError("CreateDirectoryFromApp");
+                throw ThrowLastError(path);
             }
         }
 
         public static void CreateDirectory(string path) {
             if (!CreateDirectoryFromApp(path)) {
-                ThrowLastError("CreateDirectoryFromApp");
+                throw ThrowLastError(path);
             }
         }
 
         public static void RemoveDirectory(string path) {
             if (!RemoveDirectoryFromApp(path)) {
-                ThrowLastError("RemoveDirectoryFromApp");
+                throw ThrowLastError(path);
             }
         }
 
@@ -297,7 +321,7 @@ namespace ComicsViewer.Support.Interop {
                 FINDEX_SEARCH_OPS.FindExSearchNameMatch, IntPtr.Zero, 0);
 
             if (hFindFile == Win32ReturnValues.InvalidHandleValue) {
-                ThrowLastError("FindFirstFileExFromApp");
+                throw ThrowLastError(rootPath);
             }
 
             do {
@@ -309,7 +333,7 @@ namespace ComicsViewer.Support.Interop {
                 var path = Path.Combine(rootPath, findFileData.cFileName);
 
                 if (!GetFileAttributesExFromApp(path, GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var fileInformation)) {
-                    ThrowLastError("GetFileAttributesExFromApp");
+                    throw ThrowLastError(path);
                 }
 
                 var fileType = ((FileAttributes)fileInformation.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory
@@ -318,7 +342,7 @@ namespace ComicsViewer.Support.Interop {
                 yield return new FileOrDirectoryInfo(path, findFileData.cFileName, fileType);
             } while (FindNextFile(hFindFile, out findFileData));
 
-            FindClose(hFindFile);
+            _ = FindClose(hFindFile);
         }
 
         public struct FileOrDirectoryInfo {
