@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Features;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
@@ -30,9 +31,7 @@ namespace ComicsViewer.ViewModels {
             this.Title = name;
             this.Comics = comics;
 
-            if (comics.First().ThumbnailSource is string path) {
-                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(path) };
-            }
+            this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(comics.First())) };
         }
 
         /* TODO:
