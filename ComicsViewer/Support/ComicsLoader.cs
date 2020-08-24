@@ -93,7 +93,7 @@ namespace ComicsViewer.Support {
                         if (!comicExists) {
                             invalidComics.Add(comic);
                         }
-                    } catch (NativeException e) when (e.ErrorCode == 3) {
+                    } catch (FileNotFoundException) {
                         invalidComics.Add(comic);
                     }
 

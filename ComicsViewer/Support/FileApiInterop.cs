@@ -64,7 +64,7 @@ namespace ComicsViewer.Support.Interop {
             IntPtr Arguments
         );
 
-        private static NativeException ThrowLastError(string? additionalInfo = null) {
+        private static Exception ThrowLastError(string? additionalInfo = null, bool makeCsharpExceptions = true) {
             var error = GetLastError();
             if (error == 0) {
                 throw new Exception("ThrowLastError called when there is no error");
@@ -83,6 +83,21 @@ namespace ComicsViewer.Support.Interop {
             if (output_length == 0) {
                 throw new ProgrammerError(
                     $"When calling ThrowLastError: FormatMessage indicated an error with error code {GetLastError()}");
+            }
+
+            message = message.Trim();
+
+            if (makeCsharpExceptions) {
+                Exception? cserr = error switch {
+                    var e when (e == 2 || e == 3)
+                        => (additionalInfo == null) ? new FileNotFoundException(message) : new FileNotFoundException(message, additionalInfo),
+                    5 => new UnauthorizedAccessException(message),
+                    _ => null
+                };
+
+                if (cserr != null) {
+                    return cserr;
+                }
             }
 
             return new NativeException((int)error, message, additionalInfo);
