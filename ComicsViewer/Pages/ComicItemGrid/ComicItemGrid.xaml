@@ -81,24 +81,43 @@
                         x:Key="ComicItemGridContextFlyout"
                         Opening="ComicItemGridContextFlyout_Opening">
                 <uc:ComicsMenuFlyoutItem SymbolIcon="OpenFile"
-                                         Command="{x:Bind ContextMenuCommands.OpenItemsCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.OpenItemsCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="O" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem SymbolIcon="OpenPane"
-                                         Command="{x:Bind ContextMenuCommands.NavigateIntoCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.NavigateIntoCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Enter" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem SymbolIcon="Edit"
-                                         Command="{x:Bind ContextMenuCommands.EditInfoCommand}"/>
-                <uc:ComicsMenuFlyoutItem SymbolIcon="Edit"
-                                         Command="{x:Bind ContextMenuCommands.EditNavigationItemCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.EditItemCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="I" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xEB51;"
                                          Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xEA92;"
                                          Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"/>
                 <MenuFlyoutSeparator/>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xE721;"
-                                         Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+
+                        <KeyboardAccelerator Key="Back" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xE77B;"
                                          Command="{x:Bind ContextMenuCommands.SearchAuthorCommand}"/>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xEC50;"
-                                         Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.ShowInExplorerCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="E" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutSubItem Text="Thumbnails">
                     <MenuFlyoutSubItem.Icon>
@@ -108,12 +127,24 @@
                     <uc:ComicsMenuFlyoutItem FontIcon="&#xE91B;"
                                              Command="{x:Bind ContextMenuCommands.GenerateThumbnailCommand}"/>
                     <uc:ComicsMenuFlyoutItem FontIcon="&#xE7C5;"
-                                             Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}"/>
+                                             Command="{x:Bind ContextMenuCommands.RedefineThumbnailCommand}">
+                        <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Control,Shift" Key="R" />
+                        </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                    </uc:ComicsMenuFlyoutItem>
                 </MenuFlyoutSubItem>
                 <uc:ComicsMenuFlyoutItem SymbolIcon="MoveToFolder"
-                                         Command="{x:Bind ContextMenuCommands.MoveFilesCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.MoveFilesCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="M" />
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem SymbolIcon="Delete"
-                                         Command="{x:Bind ContextMenuCommands.RemoveItemCommand}"/>
+                                         Command="{x:Bind ContextMenuCommands.RemoveItemCommand}">
+                    <uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="Delete"/>
+                    </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
+                </uc:ComicsMenuFlyoutItem>
             </MenuFlyout>
 
             <uc:PagedFlyout x:Name="ComicInfoFlyout"

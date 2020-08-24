@@ -20,7 +20,10 @@
         <uc:PagedFlyout x:Name="FilterFlyout" ShouldConstrainToRootBounds="False"/>
     </Page.Resources>
 
-    <Grid x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" 
+          PointerPressed="MainGrid_PointerPressed"
+          KeyDown="MainGrid_KeyDown"
+          >
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>

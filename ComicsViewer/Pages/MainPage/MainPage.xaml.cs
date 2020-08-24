@@ -280,5 +280,27 @@ namespace ComicsViewer {
             // We just allow the context flyout to be shown with a left click
             this.TaskProgressButton.ContextFlyout.ShowAt(this.TaskProgressButton);
         }
+
+        // TODO this is spaghetti
+        private void MainGrid_PointerPressed(object sender, PointerRoutedEventArgs e) {
+            if (e.Pointer.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse) {
+                var properties = e.GetCurrentPoint(this.MainGrid).Properties;
+                if (properties.IsXButton1Pressed) {
+                    if (this.ContentFrame.CanGoBack) {
+                        this.ContentFrame.GoBack();
+                        this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
+                    }
+                }
+            }
+        }
+
+        private void MainGrid_KeyDown(object sender, KeyRoutedEventArgs e) {
+            if (e.Key == Windows.System.VirtualKey.Escape || e.Key == Windows.System.VirtualKey.Back) {
+                if (this.ContentFrame.CanGoBack) {
+                    this.ContentFrame.GoBack();
+                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
+                }
+            }
+        }
     }
 }

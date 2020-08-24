@@ -135,8 +135,11 @@ namespace ComicsViewer.Pages {
                 return canExecute?.Invoke(args) ?? true;
             };
 
-            //this.CanExecuteRequested += (sender, args) => args.CanExecute = this.CanExecute();
-            this.ExecuteRequested += (sender, args) => execute(new ComicItemGrid.CommandArgs<T, X>(grid));
+            this.ExecuteRequested += (sender, args) => {
+                if (this.CanExecute()) {
+                    execute(new ComicItemGrid.CommandArgs<T, X>(grid));
+                }
+            };
         }
 
         public ComicItemGridCommand(
@@ -153,18 +156,17 @@ namespace ComicsViewer.Pages {
         public ComicItemGridCommand SearchSelectedCommand { get; }
         public ComicItemGridCommand RemoveItemCommand { get; }
         public ComicItemGridCommand MoveFilesCommand { get; }
+        public ComicItemGridCommand EditItemCommand { get; }
 
         public ComicWorkItemGridCommand OpenItemsCommand { get; }
         public ComicWorkItemGridCommand ShowInExplorerCommand { get; }
         public ComicWorkItemGridCommand GenerateThumbnailCommand { get; }
-        public ComicWorkItemGridCommand EditInfoCommand { get; }
         public ComicWorkItemGridCommand RedefineThumbnailCommand { get; }
         public ComicWorkItemGridCommand LoveComicsCommand { get; }
         public ComicWorkItemGridCommand DislikeComicsCommand { get; }
         public ComicWorkItemGridCommand SearchAuthorCommand { get; }
 
         public ComicNavigtionItemGridCommand NavigateIntoCommand { get; }
-        public ComicNavigtionItemGridCommand EditNavigationItemCommand { get; }
 
         private static string DescribeItem(string action, int count)
             => count == 1 ? action : $"{action} {count} items";
@@ -199,6 +201,23 @@ namespace ComicsViewer.Pages {
                 getName: e => DescribeItem("Move", e.ComicCount),
                 execute: async e => await e.Grid.ShowMoveFilesDialogAsync(e.Items));
 
+            // For work items: opens the comic info flyout to the "Edit Info" page
+            // For nav items: Renames a tag, etc.
+            // Really, this should be two commands, but we can't use the same keyboard shortuct for multiple comands unless
+            // we write some custom logic during ComicItemGrid creation...
+            // Actually, on second thought, it's probably pretty easy. Just do it in ContextMenuCommands { get; }.
+            // TODO (and remember to look at the shortcuts for Open/NavigateInto)
+            this.EditItemCommand = new ComicItemGridCommand(parent,
+                getName: e => e.IsWorkItems ? "Edit info" : "Rename tag",
+                execute: async e => {
+                    if (e.IsWorkItems) {
+                        await e.Grid.ShowEditComicInfoDialogAsync((ComicWorkItem)e.Items.First());
+                    } else {
+                        await e.Grid.ShowEditNavigationItemDialogAsync((ComicNavigationItem)e.Items.First());
+                    }
+                },
+                canExecute: e => e.Count == 1
+            );
 
             // Opens the containing folder in Windows Explorer
             this.ShowInExplorerCommand = new ComicWorkItemGridCommand(parent,
@@ -214,13 +233,6 @@ namespace ComicsViewer.Pages {
             this.GenerateThumbnailCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => e.Count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {e.Count} items",
                 execute: e => e.ViewModel.StartRequestGenerateThumbnailsTask(e.Items, replace: true));
-
-            // Opens the comic info flyout to the "Edit Info" page
-            this.EditInfoCommand = new ComicWorkItemGridCommand(parent,
-                name: "Edit info",
-                execute: async e => await e.Grid.ShowEditComicInfoDialogAsync(e.Items.First()),
-                canExecute: e => e.Count == 1
-            );
 
             // Opens the comic info flyout to the "Edit Info" page
             this.RedefineThumbnailCommand = new ComicWorkItemGridCommand(parent,
@@ -250,14 +262,6 @@ namespace ComicsViewer.Pages {
                 name: "Navigate into",
                 execute: e => e.ViewModel.NavigateIntoItem(e.Items.First()),
                 canExecute: e => e.Count == 1
-            );
-
-            // Renames a tag, etc.
-            this.EditNavigationItemCommand = new ComicNavigtionItemGridCommand(parent,
-                name: "Rename tag",
-                execute: async e => await e.Grid.ShowEditNavigationItemDialogAsync(e.Items.First()),
-                // TODO implement editing for authors and categories as well
-                canExecute: e => e.ViewModel.NavigationTag == NavigationTag.Tags && e.Count == 1
             );
         }
     }
