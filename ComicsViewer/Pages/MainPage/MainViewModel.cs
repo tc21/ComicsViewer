@@ -245,7 +245,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public FilterFlyoutNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
-            var info = this.GetAuxiliaryInfo(this.Comics.Filter);
+            var info = this.GetAuxiliaryInfo();
 
             return new FilterFlyoutNavigationArguments {
                 Filter = this.Comics.Filter,
@@ -254,16 +254,12 @@ namespace ComicsViewer.ViewModels.Pages {
             };
         }
 
-        private FilterViewAuxiliaryInfo GetAuxiliaryInfo(Filter? filter) {
+        private FilterViewAuxiliaryInfo GetAuxiliaryInfo() {
             var categories = new DefaultDictionary<string, int>();
             var authors = new DefaultDictionary<string, int>();
             var tags = new DefaultDictionary<string, int>();
 
-            foreach (var comic in this.Comics) {
-                if (filter != null && !filter.ShouldBeVisible(comic)) {
-                    continue;
-                }
-
+            foreach (var comic in this.ComicView) {
                 categories[comic.DisplayCategory] += 1;
                 authors[comic.DisplayAuthor] += 1;
                 foreach (var tag in comic.Tags) {

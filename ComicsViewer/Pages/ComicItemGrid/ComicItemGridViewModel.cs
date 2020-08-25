@@ -114,9 +114,9 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             if (appViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(appViewModel, appViewModel.Comics);
+                return new ComicWorkItemGridViewModel(appViewModel, appViewModel.ComicView);
             } else {
-                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.Comics);
+                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.ComicView);
             }
         }
 
