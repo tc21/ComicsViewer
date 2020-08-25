@@ -31,11 +31,13 @@
                          Text="{x:Bind ViewModel.ComicTitle, Mode=OneWay}"/>
                 <TextBox x:Name="ComicAuthorTextBox" 
                          Margin="0 12 0 0" Header="Author" 
-                         IsEnabled="False"
+                         IsReadOnly="True"
+                         BorderThickness="0"
                          Text="{x:Bind ViewModel.ComicAuthor, Mode=OneWay}"/>
                 <TextBox x:Name="ComicCategoryTextBox" 
                          Margin="0 12 0 0" Header="Category"
-                         IsEnabled="False"
+                         IsReadOnly="True"
+                         BorderThickness="0"
                          Text="{x:Bind ViewModel.ComicCategory, Mode=OneWay}"/>
             </StackPanel>
         </Grid>
