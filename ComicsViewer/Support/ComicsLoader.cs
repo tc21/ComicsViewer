@@ -112,36 +112,40 @@ namespace ComicsViewer.Support {
             List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 
             // If in a category folder: assume it's properly laid out
-            foreach (var pair in profile.RootPaths) {
-                if (folder.Path.IsChildOfDirectory(pair.Path)) {
-                    var categoryName = pair.Name;
-                    var relativePath = folder.Path.GetPathRelativeTo(pair.Path);
+            var matchingPaths = profile.RootPaths
+                .Where(pair => folder.Path.IsChildOfDirectory(pair.Path));
 
-                    // 1. Importing a category
-                    if (relativePath == "") {
-                        await FinishFromRootPathAsync(comics, profile, pair, cc, progress);
-                        return;
-                    }
+            if (matchingPaths.Any()) {
+                var bestMatch = matchingPaths.OrderBy(pair => folder.Path.GetPathRelativeTo(pair.Path).Length).First();
+         
+                // If in a category folder: assume it's properly laid out
+                var categoryName = bestMatch.Name;
+                var relativePath = folder.Path.GetPathRelativeTo(bestMatch.Path);
 
-                    var names = relativePath.Split(Path.DirectorySeparatorChar);
-                    var authorName = names[0];
-
-                    // 2. Importing an author
-                    if (names.Length == 1) {
-                        await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
-                        return;
-                    }
-
-                    // 3. Importing a work
-                    if (names.Length == 2) {
-                        var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
-                        comics.Add(comic);
-                        progress?.Report(comics.Count);
-                        return;
-                    }
-
-                    // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
+                // 1. Importing a category
+                if (relativePath == "") {
+                    await FinishFromRootPathAsync(comics, profile, bestMatch, cc, progress);
+                    return;
                 }
+
+                var names = relativePath.Split(Path.DirectorySeparatorChar);
+                var authorName = names[0];
+
+                // 2. Importing an author
+                if (names.Length == 1) {
+                    await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
+                    return;
+                }
+
+                // 3. Importing a work
+                if (names.Length == 2) {
+                    var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
+                    comics.Add(comic);
+                    progress?.Report(comics.Count);
+                    return;
+                }
+
+                // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
             }
 
             // Assume we received a comic folder
