@@ -1,6 +1,7 @@
 ﻿using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,11 @@ namespace ComicsViewer.ViewModels.Pages {
                 return Task.CompletedTask;
             }
 
-            return this.parent.MainViewModel.UpdateTagName(this.ItemTitle, newItemTitle);
+            return this.NavigationTag switch {
+                NavigationTag.Tags => this.parent.MainViewModel.UpdateTagNameAsync(this.ItemTitle, newItemTitle),
+                NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
+                _ => throw new ProgrammerError("unhandled switch case"),
+            };
         }
 
         // returns null if title is valid.
@@ -34,23 +39,30 @@ namespace ComicsViewer.ViewModels.Pages {
                 return ValidateResult.Ok();
             }
 
-            switch (this.NavigationTag) {
+            if (title.Trim() == "") {
+                return $"{this.NavigationTag.Describe(capitalized: true)} name cannot be empty.";
+            }
+
+            switch (this.NavigationTag) {  // switch NavigationTag
                 case NavigationTag.Tags:
                     if (title.Contains(",")) {
                         return "Tag name cannot contain commas.";
                     }
 
-                    break;
+                    return ValidateResult.Ok($"Warning: if the tag '{title}' already exists, the two tags will be merged. This cannot be undone.");
+
+                case NavigationTag.Author:
+                    if (Path.GetInvalidFileNameChars().Any(c => title.Contains(c))) {
+                        return $"Author names cannot contain characters that are not valid in file names. ({string.Join("", Path.GetInvalidFileNameChars())})";
+                    }
+
+                    return ValidateResult.Ok("Warning: renaming authors will change move the files representing the comic to a new folder. " +
+                        "If the author already exists, the two authors will be merged. This cannot be undone.");
 
                 default:
                     throw new ProgrammerError("Editing properties other than tags not yet supported");
             }
 
-            if (title.Trim() == "") {
-                return "Tag name cannot be empty.";
-            }
-
-            return ValidateResult.Ok($"Warning: if the tag '{title}' already exists, the two tags will be merged. This cannot be undone.");
         }
     }
 }

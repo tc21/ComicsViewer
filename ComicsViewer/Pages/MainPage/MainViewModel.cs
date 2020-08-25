@@ -1,15 +1,18 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.SQL;
+using ComicsViewer.ClassExtensions;
 using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.Support;
+using ComicsViewer.Support.Interop;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -106,7 +109,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             this.Comics.Filter.Clear();
 
-            await this.RequestValidateAndRemoveComicsAsync();
+            await this.StartValidateAndRemoveComicsTaskAsync();
         }
 
         /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
@@ -416,7 +419,7 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        private async Task RequestValidateAndRemoveComicsAsync() {
+        private async Task StartValidateAndRemoveComicsTaskAsync() {
             await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count()} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComicsAsync(this.Comics, cc, p),
                 async result => {
@@ -427,6 +430,108 @@ namespace ComicsViewer.ViewModels.Pages {
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
+        }
+
+        public Task StartRenameAuthorTaskAsync(string oldName, string newName) {
+            var comics = this.Comics.Where(c => c.Author == oldName);
+
+            // Note: if we make another function where we need to move files around, we should move this to a new class.
+            return this.StartUniqueTaskAsync("moveFiles", $"Moving {comics.Count().PluralString("item")} belonging to author {oldName}...",
+                async (cc, p) => {
+                    // Step 1. Validation
+                    if (newName.Any(c => Path.GetInvalidFileNameChars().Contains(c))) {
+                        throw new IntendedBehaviorException("new author name contains invalid filename characters");
+                    }
+
+                    EnsureEmpty(
+                        comics.Where(c => !FileApiInterop.FileOrDirectoryExists(c.Path)),
+                        "The following items could not be found"
+                    );
+
+                    EnsureEmpty(
+                        comics.Where(c => this.Profile.RootPaths.Find(p => p.Name == c.Category) == default),
+                        "Could not determine the category for the following items"
+                    );
+
+                    var existingComicsUnderNewName = this.Comics.Where(c => c.Author == newName);
+                    if (existingComicsUnderNewName.Any()) {
+                        var existingTitles = existingComicsUnderNewName.Select(c => c.Title).ToHashSet();
+                        EnsureEmpty(
+                            comics.Where(c => existingTitles.Contains(c.Title)),
+                            $"The following items cannot be moved, because an item with the same title already exists undner author {newName}"
+                        );
+                    }
+
+                    var count = 0;
+
+                    var oldDirectories = new HashSet<string>();
+
+                    // Step 2. Rename
+                    // Note: we call this.Add/RemoveComics, and comics is selected from this.Comics, so we must call ToList() on comics
+                    foreach (var comic in comics.ToList()) {
+                        if (cc.IsCancellationRequested) {
+                            return;
+                        }
+
+                        var category = this.Profile.RootPaths.Find(p => p.Name == comic.Category);
+                        _ = oldDirectories.Add(Path.Combine(category.Path, oldName));
+                        var oldPath = Path.Combine(category.Path, oldName, comic.Title);
+                        var newPath = Path.Combine(category.Path, newName, comic.Title);
+
+                        // some checks just in case
+                        if (!FileApiInterop.FileOrDirectoryExists(oldPath)) {
+                            throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic not found at {oldPath}");
+                        }
+
+                        if (FileApiInterop.FileOrDirectoryExists(newPath)) {
+                            throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic already exists at {newPath}");
+                        }
+
+                        var newComic = new Comic(newPath, comic.Title, newName, comic.Category, comic.Metadata);
+
+                        FileApiInterop.MoveDirectory(oldPath, newPath);
+
+                        if (FileApiInterop.FileOrDirectoryExists(Thumbnail.ThumbnailPath(newComic))) {
+                            FileApiInterop.RemoveFile(Thumbnail.ThumbnailPath(newComic));
+                        }
+
+                        FileApiInterop.MoveFile(Thumbnail.ThumbnailPath(comic), Thumbnail.ThumbnailPath(newComic));
+
+                        // Step 2.1. Update viewmodel
+                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                            Windows.UI.Core.CoreDispatcherPriority.Normal,
+                            async () => {
+                                /* note: we directly remove the comic, instead of changing the comic's columns to reuse code.
+                                 * it would probably be better if we directly edited database columns. */
+                                await this.RemoveComicsAsync(new[] { comic });
+                                var notAdded = await this.AddComicsWithoutReplacingAsync(new[] { newComic });
+                                if (notAdded.Any()) {
+                                    throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic not added: {newComic.UniqueIdentifier}");
+                                }
+                            }
+                        );
+
+                        p.Report(++count);
+                    }
+
+                    // step 3.
+                    foreach (var old in oldDirectories) {
+                        if (FileApiInterop.GetDirectoryContents(old).Any()) {
+                            throw new ProgrammerError("Not every file under directory {} was moved " +
+                                "(the function should've terminated before reaching this point.)");
+                        }
+
+                        FileApiInterop.RemoveDirectory(old);
+                    }
+                },
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
+            );
+
+            static void EnsureEmpty(IEnumerable<Comic> set, string errorMessage, string? title = null) {
+                if (set.Any()) {
+                    throw new IntendedBehaviorException($"{errorMessage}\n" + string.Join("\n", set.Select(c => c.UniqueIdentifier)), title);
+                }
+            }
         }
 
         #endregion
@@ -509,7 +614,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Providing features
 
-        public Task UpdateTagName(string oldName, string newName) {
+        public Task UpdateTagNameAsync(string oldName, string newName) {
             var updatedComics = this.Comics.Where(c => c.Tags.Contains(oldName)).Select(c => c.WithUpdatedMetadata(metadata => {
                 metadata.Tags = new HashSet<string>(metadata.Tags);
                 _ = metadata.Tags.Remove(oldName);

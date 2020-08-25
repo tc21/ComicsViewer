@@ -242,15 +242,33 @@ namespace ComicsViewer.Support.Interop {
             }
 
             if (path[0] == newName[0]) {
-                if (!MoveFileFromApp(path, newName)) {
-                    throw ThrowLastError(path);
-                }
-
+                MoveFile(path, newName);
                 return;
             }
 
             RecursivelyCopyDirectory(path, newName);
             RecursivelyDeleteDirectory(path);
+        }
+
+        /// <summary>
+        /// this method will not create intermediate directories.
+        /// </summary>
+        public static void MoveFile(string path, string newName) {
+            if (!MoveFileFromApp(path, newName)) {
+                throw ThrowLastError(path);
+            }
+        }
+
+        public static void RemoveFile(string path) {
+            if (!DeleteFileFromApp(path)) {
+                throw ThrowLastError(path);
+            }
+        }
+
+        public static void CopyFile(string path, string NewName, bool failIfExists = true) {
+            if (!CopyFileFromApp(path, NewName, failIfExists)) {
+                throw ThrowLastError(path);
+            }
         }
 
         private static void RecursivelyCopyDirectory(string path, string newName) {
@@ -264,9 +282,7 @@ namespace ComicsViewer.Support.Interop {
                     continue;
                 }
 
-                if (!CopyFileFromApp(item.Path, Path.Combine(newName, item.Name), true)) {
-                    throw ThrowLastError(item.Path);
-                }
+                CopyFile(item.Path, Path.Combine(newName, item.Name));
             }
         }
 
@@ -277,9 +293,7 @@ namespace ComicsViewer.Support.Interop {
                     continue;
                 }
 
-                if (!DeleteFileFromApp(item.Path)) {
-                    throw ThrowLastError(item.Path);
-                }
+                RemoveFile(item.Path);
             }
 
             RemoveDirectory(path);

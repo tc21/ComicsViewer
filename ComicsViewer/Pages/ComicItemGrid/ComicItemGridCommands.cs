@@ -208,7 +208,7 @@ namespace ComicsViewer.Pages {
             // Actually, on second thought, it's probably pretty easy. Just do it in ContextMenuCommands { get; }.
             // TODO (and remember to look at the shortcuts for Open/NavigateInto)
             this.EditItemCommand = new ComicItemGridCommand(parent,
-                getName: e => e.IsWorkItems ? "Edit info" : "Rename tag",
+                getName: e => e.IsWorkItems ? "Edit info" : $"Rename {e.ViewModel.NavigationTag.Describe()}",
                 execute: async e => {
                     if (e.IsWorkItems) {
                         await e.Grid.ShowEditComicInfoDialogAsync((ComicWorkItem)e.Items.First());
@@ -216,7 +216,7 @@ namespace ComicsViewer.Pages {
                         await e.Grid.ShowEditNavigationItemDialogAsync((ComicNavigationItem)e.Items.First());
                     }
                 },
-                canExecute: e => e.Count == 1
+                canExecute: e => e.Count == 1 && (e.ViewModel.NavigationTag != NavigationTag.Category)
             );
 
             // Opens the containing folder in Windows Explorer
