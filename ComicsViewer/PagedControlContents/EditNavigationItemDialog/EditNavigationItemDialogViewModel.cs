@@ -21,19 +21,23 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public Task Save(string newItemTitle) {
-            return this.parent.MainViewModel.RenameTagAsync(this.ItemTitle, newItemTitle);
+            if (newItemTitle == this.ItemTitle) {
+                return Task.CompletedTask;
+            }
+
+            return this.parent.MainViewModel.UpdateTagName(this.ItemTitle, newItemTitle);
         }
 
         // returns null if title is valid.
         public ValidateResult GetItemTitleInvalidReason(string title) {
+            if (title == this.ItemTitle) {
+                return ValidateResult.Ok();
+            }
+
             switch (this.NavigationTag) {
                 case NavigationTag.Tags:
                     if (title.Contains(",")) {
                         return "Tag name cannot contain commas.";
-                    }
-
-                    if (this.parent.ComicProperties.ContainsProperty(title)) {
-                        return "A tag with the same name already exists. (In the future, we will support merging tags.)";
                     }
 
                     break;
@@ -46,7 +50,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return "Tag name cannot be empty.";
             }
 
-            return ValidateResult.Ok();
+            return ValidateResult.Ok($"Warning: if the tag '{title}' already exists, the two tags will be merged. This cannot be undone.");
         }
     }
 }
