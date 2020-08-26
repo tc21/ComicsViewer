@@ -46,7 +46,7 @@
                 <controls:DataGridTemplateColumn>
                     <controls:DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <HyperlinkButton DataContext="{Binding}" DataContextChanged="HyperlinkButton_DataContextChanged" Click="ReloadCategoryButton_Click">
+                            <HyperlinkButton DataContext="{Binding}" Click="ReloadCategoryButton_Click">
                                 <SymbolIcon Symbol="Refresh"/>
                             </HyperlinkButton>
                         </DataTemplate>
