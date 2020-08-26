@@ -216,7 +216,7 @@ namespace ComicsViewer.Pages {
                         await e.Grid.ShowEditNavigationItemDialogAsync((ComicNavigationItem)e.Items.First());
                     }
                 },
-                canExecute: e => e.Count == 1 && (e.ViewModel.NavigationTag != NavigationTag.Category)
+                canExecute: e => e.Count == 1
             );
 
             // Opens the containing folder in Windows Explorer

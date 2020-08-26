@@ -29,6 +29,7 @@ namespace ComicsViewer.ViewModels.Pages {
             return this.NavigationTag switch {
                 NavigationTag.Tags => this.parent.MainViewModel.UpdateTagNameAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
+                NavigationTag.Category => this.parent.MainViewModel.RenameCategoryAsync(this.ItemTitle, newItemTitle),
                 _ => throw new ProgrammerError("unhandled switch case"),
             };
         }
@@ -58,6 +59,14 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     return ValidateResult.Ok("Warning: renaming authors will change move the files representing the comic to a new folder. " +
                         "If the author already exists, the two authors will be merged. This cannot be undone.");
+
+                case NavigationTag.Category:
+                    if (this.parent.MainViewModel.Profile.RootPaths.Any(p => p.Name == title)) {
+                        return $"The category '{title}' already exists. You cannot rename a category to one that already exists. " +
+                            $"To merge categories, right click a category and select 'Move'.";
+                    }
+
+                    return ValidateResult.Ok();
 
                 default:
                     throw new ProgrammerError("Editing properties other than tags not yet supported");

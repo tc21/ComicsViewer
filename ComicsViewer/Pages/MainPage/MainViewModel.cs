@@ -645,6 +645,28 @@ namespace ComicsViewer.ViewModels.Pages {
             return this.UpdateComicAsync(updatedComics);
         }
 
+        public async Task RenameCategoryAsync(string oldName, string newName) {
+            var _oldCategory = this.Profile.RootPaths.Where(p => p.Name == oldName);
+            if (!_oldCategory.Any()) {
+                throw new ProgrammerError($"category {oldName} does not exist");
+            }
+            var oldCategory = _oldCategory.First();
+
+            if (this.Profile.RootPaths.Any(p => p.Name == newName)) {
+                throw new ProgrammerError($"category {newName} already exists");
+            }
+
+            var updatedComics = this.Comics
+                .Where(c => c.Category == oldName)
+                .Select(c => c.With(category: newName))
+                .ToList();
+
+            oldCategory.Name = newName;
+
+            await this.UpdateComicAsync(updatedComics);
+            await ProfileManager.SaveProfileAsync(this.Profile);
+        }
+
         #endregion
     }
 
