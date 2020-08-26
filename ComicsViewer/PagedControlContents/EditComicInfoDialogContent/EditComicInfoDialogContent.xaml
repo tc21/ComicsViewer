@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    RequestedTheme="Dark"
+    d:RequestedTheme="Dark"
     Width="480"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <!-- This Width=480 is a workaround to to the ContentDialogMaxWidth mentioned in ComicItemGrid.xaml -->

@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
     mc:Ignorable="d"
-    RequestedTheme="Dark"
+    d:RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <StackPanel Margin="24">
         <TextBlock Text="Profile Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>

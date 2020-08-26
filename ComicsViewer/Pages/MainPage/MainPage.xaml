@@ -9,7 +9,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
-    RequestedTheme="Dark"
+    d:RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
         <AcrylicBrush x:Key="NavigationViewTopPaneBackground" 

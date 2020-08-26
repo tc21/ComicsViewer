@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     x:Name="ThisPage"
-    RequestedTheme="Dark">
+    d:RequestedTheme="Dark">
     <Page.Resources>
         <DataTemplate x:Key="FilterItemListTemplate" x:DataType="support:CountedString">
             <Grid>
