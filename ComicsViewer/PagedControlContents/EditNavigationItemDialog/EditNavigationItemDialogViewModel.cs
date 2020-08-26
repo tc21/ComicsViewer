@@ -21,7 +21,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.ItemTitle = propertyName;
         }
 
-        public Task Save(string newItemTitle) {
+        public Task SaveAsync(string newItemTitle) {
             if (newItemTitle == this.ItemTitle) {
                 return Task.CompletedTask;
             }

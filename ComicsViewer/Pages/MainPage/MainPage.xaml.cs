@@ -80,7 +80,7 @@ namespace ComicsViewer {
 
             // Verify that we have access to the file system
             // we don't have to await this. the user will know when we show a message dialog
-            _ = this.VerifyPermissionForPaths(e.NewProile.RootPaths.Select(p => p.Path));
+            _ = this.VerifyPermissionForPathsAsync(e.NewProile.RootPaths.Select(p => p.Path));
 
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
@@ -105,7 +105,7 @@ namespace ComicsViewer {
             this.ViewModel.Navigate(NavigationTag.Comics, ignoreCache: true);
         }
 
-        private async Task VerifyPermissionForPaths(IEnumerable<string> paths) {
+        private async Task VerifyPermissionForPathsAsync(IEnumerable<string> paths) {
             try {
                 foreach (var path in paths) {
                     _ = await StorageFolder.GetFolderFromPathAsync(path);

@@ -39,7 +39,7 @@ namespace ComicsViewer.Pages {
             this.EditItemTitleTextBox.RegisterHandlers(
                 get: () => this.ViewModel.ItemTitle,
                 saveAsync: async value => {
-                    await this.ViewModel.Save(value);
+                    await this.ViewModel.SaveAsync(value);
                     this.PagedControlAccessor.CloseContainer();
                 },
                 validate: value => this.ViewModel.GetItemTitleInvalidReason(value)

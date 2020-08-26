@@ -22,7 +22,7 @@ namespace ComicsViewer.Features {
                 if (Regex.IsMatch(file.Name, this.FileNamePattern)) {
                     var content = this.FileType switch {
                         ExternalFileType.FileName => file.Name,
-                        ExternalFileType.Content => await ReadFileToEnd(file),
+                        ExternalFileType.Content => await ReadFileToEndAsync(file),
                         _ => throw new ProgrammerError("Unhandled switch case")
                     };
 
@@ -42,7 +42,7 @@ namespace ComicsViewer.Features {
             return null;
         }
 
-        private static async Task<string> ReadFileToEnd(StorageFile file) {
+        private static async Task<string> ReadFileToEndAsync(StorageFile file) {
             using var stream = await file.OpenReadAsync();
             return await stream.ReadTextAsync(Encoding.UTF8);
         }

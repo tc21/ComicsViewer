@@ -75,15 +75,5 @@ namespace ComicsLibrary.SQL {
 
             return result;
         }
-
-        public async Task RenameTagAsync(string tag, string newName) {
-            // do we really need a transaction for a single query?
-            using var transaction = this.Connection.BeginTransaction();
-
-            // do we really need to call the exact same function signature three times?
-            await this.Connection.RenameTagAsync(tag, newName);
-
-            transaction.Commit();
-        }
     }
 }

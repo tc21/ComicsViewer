@@ -313,18 +313,5 @@ namespace ComicsLibrary.SQL {
 
             return this.connection.ExecuteReaderAsync(query, getComicQueryColumnNames, parameters);
         }
-
-        // Additional utilities not related to adding and removing comics
-
-        public async Task RenameTagAsync(string name, string newName) {
-            var rowsModified = await this.connection.ExecuteNonQueryAsync(
-                $"UPDATE {table_tags} SET {key_tag_name} = @new_name WHERE {key_tag_name} = @old_name",
-                new Dictionary<string, object> { ["@new_name"] = newName, ["@old_name"] = name }
-            );
-
-            if (rowsModified != 1) {
-                throw new ArgumentException("The rename was unsuccessful. Either the name already exists, or you are renaming something to itself.");
-            }
-        }
     }
 }
