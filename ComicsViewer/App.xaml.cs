@@ -27,7 +27,6 @@ namespace ComicsViewer
 
         /*
          * Bugs:
-         *   1. App crashes if you press a category's reload button twice.
          *
          * TODOS:
          *   4. Supporting opening stuff properly, rathor than telling Windows to open the first file
