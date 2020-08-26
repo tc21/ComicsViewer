@@ -109,7 +109,26 @@ namespace ComicsViewer.ViewModels.Pages {
 
             this.Comics.Filter.Clear();
 
-            await this.StartValidateAndRemoveComicsTaskAsync();
+
+            // Verify that we have access to the file system
+            if (await this.VerifyPermissionForPathsAsync(e.NewProile.RootPaths.Select(p => p.Path))) {
+                await this.StartValidateAndRemoveComicsTaskAsync();
+            }
+        }
+
+        private async Task<bool> VerifyPermissionForPathsAsync(IEnumerable<string> paths) {
+            try {
+                foreach (var path in paths) {
+                    _ = await StorageFolder.GetFolderFromPathAsync(path);
+                }
+            } catch (FileNotFoundException) {
+                // we allow that
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync(cancelled: false);
+                return false;
+            }
+
+            return true;
         }
 
         /* We aren't disposing of the connection on our own, since I havent figured out how to without writing a new class */
@@ -424,8 +443,9 @@ namespace ComicsViewer.ViewModels.Pages {
                 (cc, p) => ComicsLoader.FindInvalidComicsAsync(this.Comics, cc, p),
                 async result => {
                     if (result.Count() > 0) {
-                        await this.RemoveComicsAsync(result);
-                        await this.NotifyComicsRemovedAsync(result);
+                        if (await this.PromptRemoveComicsAsync(result)) {
+                            await this.RemoveComicsAsync(result);
+                        }
                     }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
@@ -574,14 +594,21 @@ namespace ComicsViewer.ViewModels.Pages {
             _ = await new MessageDialog(message, "Warning: items not added").ShowAsync();
         }
 
-        private async Task NotifyComicsRemovedAsync(IEnumerable<Comic> comics) {
-            var message = "The following items were not found on disk, and automatically removed:\n";
+        private async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
+            var message = "The following items were not found on disk. Do you want them to be automatically removed from this library?\n";
 
             foreach (var comic in comics) {
                 message += $"\n{comic.UniqueIdentifier}";
             }
 
-            _ = await new MessageDialog(message, "Warning: items removed").ShowAsync();
+            var result = await new ContentDialog {
+                Title = "Warning: items not found",
+                Content = message,
+                PrimaryButtonText = "Remove",
+                CloseButtonText = "Do not remove"
+            }.ShowAsync();
+
+            return result == ContentDialogResult.Primary;
         }
 
         public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {

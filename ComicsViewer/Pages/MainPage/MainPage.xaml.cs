@@ -78,10 +78,6 @@ namespace ComicsViewer {
                 return;
             }
 
-            // Verify that we have access to the file system
-            // we don't have to await this. the user will know when we show a message dialog
-            _ = this.VerifyPermissionForPathsAsync(e.NewProile.RootPaths.Select(p => p.Path));
-
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
                 * It is a dropdown. The root element is the name of the current profile. Clicking on this element navigates
@@ -103,18 +99,6 @@ namespace ComicsViewer {
             // This will fire ViewModel.NavigationRequested. 
             // ignoreCache: true bypasses the default behavior of scrolling up to the top when "reloading"
             this.ViewModel.Navigate(NavigationTag.Comics, ignoreCache: true);
-        }
-
-        private async Task VerifyPermissionForPathsAsync(IEnumerable<string> paths) {
-            try {
-                foreach (var path in paths) {
-                    _ = await StorageFolder.GetFolderFromPathAsync(path);
-                } 
-            } catch (FileNotFoundException) {
-                // we allow that
-            } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync(cancelled: false);
-            }
         }
 
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
