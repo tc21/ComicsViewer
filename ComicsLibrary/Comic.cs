@@ -20,15 +20,13 @@ namespace ComicsLibrary {
             this.Metadata = metadata ?? new ComicMetadata();
         }
 
-        private const string OldestDate = "1970-01-01 12:00:00";
-
         public string DisplayTitle => this.Metadata.DisplayTitle ?? this.Title;
         public string DisplayAuthor => this.Author;
         public string DisplayCategory => this.Category;
         public IReadOnlyCollection<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;
-        public string DateAdded => this.Metadata.DateAdded ?? OldestDate;
+        public string DateAdded => this.Metadata.DateAdded.Substring(0, "1970-01-01".Length);
         public string? ThumbnailSource {
             get {
                 if (this.Metadata.ThumbnailSource == null) {
