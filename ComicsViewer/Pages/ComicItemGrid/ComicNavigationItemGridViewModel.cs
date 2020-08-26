@@ -55,8 +55,8 @@ namespace ComicsViewer.ViewModels.Pages {
         private OneTimeComicPropertiesView GetOneTimeSortedProperties() {
             return comics.SortedProperties(
                 this.NavigationTag switch {
-                    NavigationTag.Author => comic => new[] { comic.DisplayAuthor },
-                    NavigationTag.Category => comic => new[] { comic.DisplayCategory },
+                    NavigationTag.Author => comic => new[] { comic.Author },
+                    NavigationTag.Category => comic => new[] { comic.Category },
                     NavigationTag.Tags => comic => comic.Tags,
                     _ => throw new ProgrammerError("unhandled switch case")
                 },

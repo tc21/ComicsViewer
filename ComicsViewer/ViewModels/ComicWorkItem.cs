@@ -17,7 +17,7 @@ namespace ComicsViewer.ViewModels {
         private readonly MainViewModel vm;
 
         public override string Title => this.Comic.DisplayTitle;
-        public override string Subtitle => this.Comic.DisplayAuthor;
+        public override string Subtitle => this.Comic.Author;
         public override bool IsLoved => this.Comic.Loved;
         public override bool IsDisliked => this.Comic.Disliked;
 

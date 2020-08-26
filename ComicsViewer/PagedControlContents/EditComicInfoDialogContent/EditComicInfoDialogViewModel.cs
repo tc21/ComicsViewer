@@ -23,13 +23,13 @@ namespace ComicsViewer.ViewModels.Pages {
         private Comic Comic => this.Item.Comic;
 
         public string ComicTitle => this.Comic.DisplayTitle;
-        public string ComicAuthor => this.Comic.DisplayAuthor;
+        public string ComicAuthor => this.Comic.Author;
         public string ComicTags => string.Join(", ", this.Comic.Tags);
         public bool ComicLoved => this.Comic.Loved;
         public bool ComicDisliked => this.Comic.Disliked;
 
         /* Category editing is currently disabled */
-        public string ComicCategory => this.Comic.DisplayCategory;
+        public string ComicCategory => this.Comic.Category;
 
         public async Task SaveComicInfoAsync(string title, string tags, bool loved, bool disliked) {
             var assignTags = (tags == this.ComicTags) ? null : StringConversions.CommaDelimitedList.Convert(tags);

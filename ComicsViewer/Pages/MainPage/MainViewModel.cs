@@ -191,7 +191,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void FilterToAuthor(string displayName) {
-            this.FilterToComics(this.Comics.Where(comic => comic.DisplayAuthor == displayName));
+            this.FilterToComics(this.Comics.Where(comic => comic.Author == displayName));
         }
 
         private void FilterToComics(IEnumerable<Comic> comics) {
@@ -263,8 +263,8 @@ namespace ComicsViewer.ViewModels.Pages {
             var tags = new DefaultDictionary<string, int>();
 
             foreach (var comic in this.ComicView) {
-                categories[comic.DisplayCategory] += 1;
-                authors[comic.DisplayAuthor] += 1;
+                categories[comic.Category] += 1;
+                authors[comic.Author] += 1;
                 foreach (var tag in comic.Tags) {
                     tags[tag] += 1;
                 }

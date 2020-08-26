@@ -13,6 +13,19 @@ namespace ComicsLibrary {
         private ComicMetadata Metadata { get; }
 
         public Comic(string path, string title, string author, string category, ComicMetadata? metadata = null) {
+            var names = path.Split(System.IO.Path.DirectorySeparatorChar);
+            if (names.Length < 2) {
+                throw new ArgumentException("Invalid path: must have at least two levels");
+            }
+
+            if (names[names.Length - 1] != title) {
+                throw new ArgumentException("Invalid title: must be the name of the item's folder.");
+            }
+
+            if (names[names.Length - 2] != author) {
+                throw new ArgumentException("Invalid author: must be the name of the items's parent folder.");
+            }
+
             this.Path = path;
             this.Title = title;
             this.Author = author;
@@ -21,8 +34,6 @@ namespace ComicsLibrary {
         }
 
         public string DisplayTitle => this.Metadata.DisplayTitle ?? this.Title;
-        public string DisplayAuthor => this.Author;
-        public string DisplayCategory => this.Category;
         public IReadOnlyCollection<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;

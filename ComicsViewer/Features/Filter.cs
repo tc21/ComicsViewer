@@ -130,11 +130,11 @@ namespace ComicsViewer.Features {
         public event FilterChangedEventHandler FilterChanged = delegate { };
 
         public bool ShouldBeVisible(Comic comic) {
-            if (this.selectedAuthors.Count != 0 && !this.selectedAuthors.Contains(comic.DisplayAuthor)) {
+            if (this.selectedAuthors.Count != 0 && !this.selectedAuthors.Contains(comic.Author)) {
                 return false;
             }
 
-            if (this.selectedCategories.Count != 0 && !this.selectedCategories.Contains(comic.DisplayCategory)) {
+            if (this.selectedCategories.Count != 0 && !this.selectedCategories.Contains(comic.Category)) {
                 return false;
             }
 

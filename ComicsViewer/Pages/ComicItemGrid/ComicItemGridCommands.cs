@@ -251,8 +251,8 @@ namespace ComicsViewer.Pages {
                 execute: async e => await e.ViewModel.ToggleDislikedStatusForComicsAsync(e.Items));
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent,
-                getName: e => $"Show all items by {e.Items.First().Comic.DisplayAuthor}",
-                execute: e => e.MainViewModel.FilterToAuthor(e.Items.First().Comic.DisplayAuthor),
+                getName: e => $"Show all items by {e.Items.First().Comic.Author}",
+                execute: e => e.MainViewModel.FilterToAuthor(e.Items.First().Comic.Author),
                 canExecute: e => e.Count == 1
             );
 

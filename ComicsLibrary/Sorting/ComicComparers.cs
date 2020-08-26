@@ -22,7 +22,7 @@ namespace ComicsLibrary.Sorting {
 
         private class AuthorComparer : IComparer<Comic> {
             public static int CompareComic(Comic x, Comic y) {
-                var result = x.DisplayAuthor.ToLowerInvariant().CompareTo(y.DisplayAuthor.ToLowerInvariant());
+                var result = x.Author.ToLowerInvariant().CompareTo(y.Author.ToLowerInvariant());
                 if (result != 0) {
                     return result;
                 }
