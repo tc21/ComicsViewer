@@ -59,9 +59,9 @@ namespace ComicsViewer.Features {
             return comic => requiredSearches.All(search => search(comic));
         }
 
-        public static IEnumerable<string> GetSearchSuggestions(string incompleteSearchTerm) {
+        public static IEnumerable<string> GetSearchSuggestions(string incompleteSearchTerm, string profileName) {
             if (incompleteSearchTerm.Trim() == "") {
-                return Defaults.SettingsAccessor.SavedSearches;
+                return Defaults.SettingsAccessor.GetSavedSearches(profileName);
             }
 
             /* We have 3 types of search suggestions. Only one type runs at a time, in this priority:

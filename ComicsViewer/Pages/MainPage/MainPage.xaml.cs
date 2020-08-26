@@ -204,7 +204,7 @@ namespace ComicsViewer {
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                var suggestions = Search.GetSearchSuggestions(sender.Text).ToList();
+                var suggestions = Search.GetSearchSuggestions(sender.Text, this.ViewModel.Profile.Name).ToList();
                 while (suggestions.Count > 4) {
                     suggestions.RemoveAt(4);
                 }
@@ -228,7 +228,7 @@ namespace ComicsViewer {
 
 
         private void AutoSuggestBox_GotFocus(object sender, RoutedEventArgs e) {
-            var suggestions = Search.GetSearchSuggestions(this.SearchBox.Text).ToList();
+            var suggestions = Search.GetSearchSuggestions(this.SearchBox.Text, this.ViewModel.Profile.Name).ToList();
             while (suggestions.Count > 4) {
                 suggestions.RemoveAt(4);
             }

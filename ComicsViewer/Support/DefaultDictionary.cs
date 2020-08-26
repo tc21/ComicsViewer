@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ComicsViewer.Support {
-    class DefaultDictionary<TKey, TValue> : IDictionary<TKey, TValue> {
+    class DefaultDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue> {
         private readonly Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
         private readonly Func<TValue> makeDefault;
 
@@ -27,24 +27,32 @@ namespace ComicsViewer.Support {
             set => this.dictionary[key] = value; 
         }
 
-        #region Auto-generated IDictionary implementation 
+        public bool IsReadOnly => false;
+        public bool Contains(KeyValuePair<TKey, TValue> item) => this[item.Key].Equals(item.Value);
+        public bool ContainsKey(TKey key) => true;
 
+        public bool TryGetValue(TKey key, out TValue value) {
+            value = this[key];
+            return true;
+        }
 
-        public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)this.dictionary).Keys;
-        public ICollection<TValue> Values => ((IDictionary<TKey, TValue>)this.dictionary).Values;
-        public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Count;
-        public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).IsReadOnly;
-        public void Add(TKey key, TValue value) => ((IDictionary<TKey, TValue>)this.dictionary).Add(key, value);
+        #region Auto-generated ICollection implementation 
+
+        public int Count => this.dictionary.Count;
+        public ICollection<TKey> Keys => this.dictionary.Keys;
+        public ICollection<TValue> Values => this.dictionary.Values;
+        public bool Remove(TKey key) => this.dictionary.Remove(key);
+        public void Add(TKey key, TValue value) => this.dictionary.Add(key, value);
+        public void Clear() => this.dictionary.Clear();
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => this.dictionary.GetEnumerator();
+
         public void Add(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Add(item);
-        public void Clear() => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Clear();
-        public bool Contains(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Contains(item);
-        public bool ContainsKey(TKey key) => ((IDictionary<TKey, TValue>)this.dictionary).ContainsKey(key);
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).CopyTo(array, arrayIndex);
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => ((IEnumerable<KeyValuePair<TKey, TValue>>)this.dictionary).GetEnumerator();
-        public bool Remove(TKey key) => ((IDictionary<TKey, TValue>)this.dictionary).Remove(key);
         public bool Remove(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Remove(item);
-        public bool TryGetValue(TKey key, out TValue value) => ((IDictionary<TKey, TValue>)this.dictionary).TryGetValue(key, out value);
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)this.dictionary).GetEnumerator();
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).CopyTo(array, arrayIndex);
+
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => this.Keys;
+        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => this.Values;
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
         #endregion
     }

@@ -44,7 +44,6 @@ namespace ComicsViewer
          *   7. Add the ability to save filters into a list of bookmarks
          *   8. Figure out how to implement DisplayAuthor
          *   9. Add the ability to rename profiles, categories, and a comic's folder name.
-         *  11. Make search history per-profile instead of per-app
          *  12. User-definable playlists that can be added or deleted at any time (unlike tags, which are difficult to
          *      add/remove en masse and are intended to be permanent, playlists are intended to be temporary). 
          *

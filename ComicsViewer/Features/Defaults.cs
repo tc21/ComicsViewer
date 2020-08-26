@@ -3,6 +3,7 @@ using ComicsViewer.Support;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,38 +21,32 @@ namespace ComicsViewer.Features {
         public T Get<T>(string key) {
             this.ValidateValueType(key, typeof(T));
 
-            if (SettingsContainer.Values.ContainsKey(key)) {
-                return (T)SettingsContainer.Values[key];
+            if (SettingsContainer.Values.TryGetValue(key, out var stored) && stored is T value) {
+                return value;
+            } else {
+                Debug.WriteLine($"Warning: {nameof(Get)} retrieved an invalid stored value and is returning a default");
             }
 
             return this.GetDefault<T>(key);
         }
 
-        public IDictionary<string, T> GetCollection<T>(string key) {
-            this.ValidateCollectionType(key, typeof(T));
-
-            if (!SettingsContainer.Containers.ContainsKey(key)) {
-                return this.GetCollectionDefault<T>(key);
-            }
-
-            var result = new Dictionary<string, T>();
-            var container = SettingsContainer.Containers[key];
-            var defaults = (Dictionary<string, object>)this.defaults[key].Value;
-
-
-            foreach (var collectionKey in defaults.Keys) {
-                result[collectionKey] = (T)container.Values[collectionKey];
-            }
-
-            return result;
-        }
-
         // Note: we could optimize GetCollectionItem and SetCollectionItem, but we'll do that when we have that performance need
-        public T GetCollectionItem<T>(string key, string collectionKey) {
-            this.ValidateCollectionType(key, typeof(T));
-            this.ValidateCollectionItem(key, collectionKey);
+        public T GetCollectionItem<T>(string collectionName, string keyName) {
+            this.ValidateCollectionType(collectionName, typeof(T));
+            this.ValidateCollectionItem<T>(collectionName, keyName);
 
-            return this.GetCollection<T>(key)[collectionKey];
+            if (SettingsContainer.Containers.TryGetValue(collectionName, out var container)) {
+                if (container.Values.TryGetValue(keyName, out var stored)) {
+                    if (stored is T value) {
+                        return value;
+                    } else {
+                        Debug.WriteLine($"Warning: {nameof(GetCollectionItem)} retrieved an invalid stored value and is returning a default");
+                        return this.GetCollectionItemDefault<T>(collectionName, keyName);
+                    }
+                }
+            }
+
+            return this.GetCollectionItemDefault<T>(collectionName, keyName);
         }
 
         public void Set<T>(string key, T value) {
@@ -59,33 +54,12 @@ namespace ComicsViewer.Features {
             SettingsContainer.Values[key] = value;
         }
 
-        // As an implementation detail, a container must have all its values set at once
-        public void SetCollection<T>(string key, IDictionary<string, T> collection) {
-            this.ValidateCollectionType(key, typeof(T));
-            this.ValidateCollectionKeys(key, collection.Keys);
+        public void SetCollectionItem<T>(string collectionName, string keyName, T value) {
+            this.ValidateCollectionType(collectionName, typeof(T));
+            this.ValidateCollectionItem<T>(collectionName, keyName);
 
-            var current = this.GetCollection<T>(key);
-            foreach (var (collectionKey, value) in collection) {
-                current[collectionKey] = value;
-            }
-
-            this.WriteCollection(key, current);
-        }
-
-        public void SetCollectionItem<T>(string key, string collectionKey, T value) {
-            this.ValidateCollectionType(key, typeof(T));
-            this.ValidateCollectionItem(key, collectionKey);
-
-            var collection = this.GetCollection<T>(key);
-            collection[collectionKey] = value;
-            this.WriteCollection(key, collection);
-        }
-
-        private void WriteCollection<T>(string key, IDictionary<string, T> collection) {
-            var container = SettingsContainer.CreateContainer(key, ApplicationDataCreateDisposition.Always);
-            foreach (var (collectionKey, value) in collection) {
-                container.Values[collectionKey] = value;
-            }
+            var container = SettingsContainer.CreateContainer(collectionName, ApplicationDataCreateDisposition.Always);
+            container.Values[keyName] = value;
         }
 
         public T GetDefault<T>(string key) {
@@ -93,44 +67,32 @@ namespace ComicsViewer.Features {
             return (T)this.defaults[key].Value;
         }
 
-        public IDictionary<string, T> GetCollectionDefault<T>(string key) {
-            this.ValidateCollectionType(key, typeof(T));
+        public T GetCollectionItemDefault<T>(string collectionName, string keyName) {
+            this.ValidateCollectionType(collectionName, typeof(T));
 
-            var defaults = (Dictionary<string, object>)this.defaults[key].Value;
-
-            var result = new Dictionary<string, T>();
-
-            foreach (var (collectionKey, value) in defaults) {
-                result[collectionKey] = (T)value;
+            var defaults = (IDictionary<string, T>)this.defaults[collectionName].Value;
+            if (defaults.TryGetValue(keyName, out var value)) {
+                return value;
+            } else {
+                throw new ArgumentException($"Could not found key {keyName} in collection {collectionName}");
             }
-
-            return result;
-        }
-
-        public T GetCollectionItemDefault<T>(string key, string collectionKey) {
-            this.ValidateCollectionType(key, typeof(T));
-            this.ValidateCollectionItem(key, collectionKey);
-
-            var defaults = (Dictionary<string, object>)this.defaults[key].Value;
-            return (T)defaults[collectionKey];
         }
 
         // This constructor is not type-checked at all so be diligent
         internal DefaultSettingsAccessor(Dictionary<string, object> defaults) {
             foreach (var (key, value) in defaults) {
                 var type = value.GetType();
-                // Note: we actually only allow Dictionary, not just any IDictionary
-                if (value is IDictionary dict) {
-                    var valueType = type.GenericTypeArguments[1];
-                    var defaultValues = new Dictionary<string, object>();
-                    foreach (var collectionKey in dict.Keys) {
-                        defaultValues.Add((string)collectionKey, dict[collectionKey]);
-                    }
 
-                    this.defaults[key] = new DefaultSetting(DefaultSettingType.Collection, valueType, defaultValues);
+                if (type.GetInterfaces().Any(t => ImplementsGenericInterface(t, typeof(IDictionary<,>)))) {
+                    var valueType = type.GenericTypeArguments[1];
+                    this.defaults[key] = new DefaultSetting(DefaultSettingType.Collection, valueType, value);
                 } else {
                     this.defaults[key] = new DefaultSetting(DefaultSettingType.Value, type, value);
                 }
+            }
+
+            static bool ImplementsGenericInterface(Type type, Type interfaceType) {
+                return type.IsGenericType && type.GetGenericTypeDefinition() == interfaceType;
             }
         }
 
@@ -178,18 +140,11 @@ namespace ComicsViewer.Features {
             }
         }
 
-        private void ValidateCollectionItem(string key, string collectionKey) {
+        private void ValidateCollectionItem<T>(string key, string collectionKey) {
             // assumes caller calls ValidateCollectionType
-            var defaults = (Dictionary<string, object>)this.defaults[key].Value;
+            var defaults = (IDictionary<string, T>)this.defaults[key].Value;
             if (!defaults.ContainsKey(collectionKey)) {
                 throw new ArgumentException($"Invalid key '{collectionKey}' for collection '{key}'");
-            }
-        }
-
-        private void ValidateCollectionKeys(string key, IEnumerable<string> keys) {
-            // assumes caller calls ValidateCollectionType
-            foreach (var collectionKey in keys) {
-                this.ValidateCollectionItem(key, collectionKey);
             }
         }
     }
@@ -206,7 +161,7 @@ namespace ComicsViewer.Features {
                 [NavigationTag.Detail.ToTagName()] =(int)ComicSortSelector.Author
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...
-            ["SavedSearches"] = "",
+            ["SavedSearches"] = new DefaultDictionary<string, string>(() => ""),
         };
 
         private static readonly DefaultSettingsAccessor defaultSettingsAccessor = new DefaultSettingsAccessor(defaultSettings);
@@ -226,10 +181,11 @@ namespace ComicsViewer.Features {
             public static void SetLastSortSelection(NavigationTag tag, int value)
                 => defaultSettingsAccessor.SetCollectionItem("SortSelections", tag.ToTagName(), value);
 
-            public static IList<string> SavedSearches {
-                get => defaultSettingsAccessor.Get<string>("SavedSearches").Split('|').ToList();
-                set => defaultSettingsAccessor.Set("SavedSearches", string.Join('|', value));
-            }
+            public static List<string> GetSavedSearches(string profileName)
+                => defaultSettingsAccessor.GetCollectionItem<string>("SavedSearches", profileName).Split('|').ToList();
+
+            public static void SetSavedSearches(string profileName, IEnumerable<string> searches)
+                => defaultSettingsAccessor.SetCollectionItem("SavedSearches", profileName, string.Join('|', searches.Take(4)));
         }
 
         private static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;

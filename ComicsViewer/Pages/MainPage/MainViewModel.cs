@@ -238,15 +238,10 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 // Add this search to the recents list
                 if (searchText.Trim() != "") {
-                    var savedSearches = Defaults.SettingsAccessor.SavedSearches;
+                    IList<string> savedSearches = Defaults.SettingsAccessor.GetSavedSearches(this.Profile.Name);
                     RemoveIgnoreCase(ref savedSearches, searchText);
                     savedSearches.Insert(0, searchText);
-
-                    while (savedSearches.Count > 4) {
-                        savedSearches.RemoveAt(4);
-                    }
-
-                    Defaults.SettingsAccessor.SavedSearches = savedSearches;
+                    Defaults.SettingsAccessor.SetSavedSearches(this.Profile.Name, savedSearches);
                 }
             }
 
