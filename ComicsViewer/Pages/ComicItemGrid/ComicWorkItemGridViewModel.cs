@@ -152,11 +152,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public async Task ToggleDislikedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
             var comics = selectedItems.Select(item => item.Comic).ToList();
             var newStatus = !comics.All(item => item.Disliked);
-
-            var changes = selectedItems.Select(item => item.Comic.WithUpdatedMetadata(metadata => {
-                metadata.Disliked = newStatus;
-                return metadata;
-            }));
+            var changes = selectedItems.Select(item => item.Comic.WithMetadata(disliked: newStatus));
 
             await this.MainViewModel.UpdateComicAsync(changes);
         }
@@ -164,11 +160,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
             var comics = selectedItems.Select(item => item.Comic).ToList();
             var newStatus = !comics.All(item => item.Loved);
-
-            var changes = selectedItems.Select(item => item.Comic.WithUpdatedMetadata(metadata => {
-                metadata.Loved = newStatus;
-                return metadata;
-            }));
+            var changes = selectedItems.Select(item => item.Comic.WithMetadata(loved: newStatus));
 
             await this.MainViewModel.UpdateComicAsync(changes);
         }

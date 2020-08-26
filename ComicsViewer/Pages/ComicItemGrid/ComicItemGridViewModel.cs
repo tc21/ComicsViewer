@@ -159,10 +159,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task TryRedefineThumbnailAsync(ComicWorkItem comicItem, StorageFile file) {
-            var comic = comicItem.Comic.WithUpdatedMetadata(metadata => {
-                metadata.ThumbnailSource = file.Path.GetPathRelativeTo(comicItem.Comic.Path);
-                return metadata;
-            });
+            var comic = comicItem.Comic.WithMetadata(thumbnailSource: file.Path.GetPathRelativeTo(comicItem.Comic.Path));
 
             var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(comic, file, this.MainViewModel.Profile, replace: true);
             if (success) {

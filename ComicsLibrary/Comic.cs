@@ -4,23 +4,20 @@ using System.Collections.Generic;
 #nullable enable
 
 namespace ComicsLibrary {
-    public struct Comic {
-        /* title and author are part of the comic's identity. to replace these, remove the comic and create a new one */
+    public class Comic {
         public string Title { get; }
         public string Author { get; }
         public string UniqueIdentifier => $"[{this.Author}]{this.Title}";
-
-        /* path, category, and metadata may be set by the viewmodel, as long as it knows to properly save and update stuff */
-        public string Path { get; set; }
-        public string Category { get; set; }
-        public ComicMetadata Metadata { get; set; }
+        public string Path { get; }
+        public string Category { get; }
+        private ComicMetadata Metadata { get; }
 
         public Comic(string path, string title, string author, string category, ComicMetadata? metadata = null) {
             this.Path = path;
             this.Title = title;
             this.Author = author;
             this.Category = category;
-            this.Metadata = metadata ?? ComicMetadata.Default();
+            this.Metadata = metadata ?? new ComicMetadata();
         }
 
         private const string OldestDate = "1970-01-01 12:00:00";
@@ -28,7 +25,7 @@ namespace ComicsLibrary {
         public string DisplayTitle => this.Metadata.DisplayTitle ?? this.Title;
         public string DisplayAuthor => this.Author;
         public string DisplayCategory => this.Category;
-        public ISet<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
+        public IReadOnlyCollection<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
         public bool Loved => this.Metadata.Loved;
         public bool Disliked => this.Metadata.Disliked;
         public string DateAdded => this.Metadata.DateAdded ?? OldestDate;
@@ -50,26 +47,40 @@ namespace ComicsLibrary {
             return this.UniqueIdentifier == other.UniqueIdentifier;
         }
 
-        public Comic WithUpdatedMetadata(Func<ComicMetadata, ComicMetadata> changes) {
-            var copy = this;
-            copy.Metadata = changes(this.Metadata);
-            return copy;
+        public Comic With(string? title = null, string? author = null, string? path = null, string? category = null, ComicMetadata? metadata = null) {
+            return new Comic(
+                title: title ?? this.Title,
+                author: author ?? this.Author,
+                path: path ?? this.Path,
+                category: category ?? this.Category,
+                metadata: metadata ?? this.Metadata
+            );
+        }
+
+        public Comic WithMetadata(string? displayTitle = null, IEnumerable<string>? tags = null, bool? loved = null,
+                                  bool? disliked = null, string? thumbnailSource = null, string? dateAdded = null) {
+            var metadata = new ComicMetadata {
+                DisplayTitle = displayTitle ?? this.DisplayTitle,
+                Loved = loved ?? this.Loved,
+                Disliked = disliked ?? this.Disliked,
+                ThumbnailSource = thumbnailSource ?? this.ThumbnailSource,
+                DateAdded = dateAdded ?? this.DateAdded
+            };
+
+            if (tags != null) {
+                metadata.Tags.UnionWith(tags);
+            }
+
+            return this.With(metadata: metadata);
         }
     }
 
-    public struct ComicMetadata {
+    public class ComicMetadata {
         public string? DisplayTitle { get; set; }
-        public HashSet<string> Tags { get; set; }
-        public bool Loved { get; set; }
-        public bool Disliked { get; set; }
+        public HashSet<string> Tags { get; set; } = new HashSet<string>();
+        public bool Loved { get; set; } = false;
+        public bool Disliked { get; set; } = false;
         public string? ThumbnailSource { get; set; }
-        public string DateAdded { get; set; }
-
-        public static ComicMetadata Default() => new ComicMetadata {
-            Tags = new HashSet<string>(),
-            Disliked = false,
-            Loved = false,
-            DateAdded = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-        };
+        public string DateAdded { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
 }

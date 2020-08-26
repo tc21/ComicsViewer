@@ -65,9 +65,7 @@ namespace ComicsLibrary.SQL {
             foreach (var comic in comics) {
                 var metadata = await this.TryGetMetadataAsync(comic);
                 if (metadata is ComicMetadata m) {
-                    var copy = comic;
-                    copy.Metadata = m;
-                    result.Add(copy);
+                    result.Add(comic.With(metadata: m));
                 } else {
                     result.Add(comic);
                 }

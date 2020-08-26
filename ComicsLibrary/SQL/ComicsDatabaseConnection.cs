@@ -72,8 +72,8 @@ namespace ComicsLibrary.SQL {
                 (key_category, comic.Category),
                 (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
-                (key_thumbnail_source, comic.Metadata.ThumbnailSource),
-                (key_display_title, comic.Metadata.DisplayTitle),
+                (key_thumbnail_source, comic.ThumbnailSource),
+                (key_display_title, comic.DisplayTitle),
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
@@ -104,8 +104,8 @@ namespace ComicsLibrary.SQL {
                 (key_category, comic.Category),
                 (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
-                (key_thumbnail_source, comic.Metadata.ThumbnailSource),
-                (key_display_title, comic.Metadata.DisplayTitle),
+                (key_thumbnail_source, comic.ThumbnailSource),
+                (key_display_title, comic.DisplayTitle),
                 (key_active, true),
             }) {
                 if (value != null) {

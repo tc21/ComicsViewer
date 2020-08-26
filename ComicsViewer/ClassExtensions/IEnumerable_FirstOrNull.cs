@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ComicsViewer.ClassExtensions {
     public static class IEnumerable_FirstOrNull {
-        public static T? FirstOrNull<T>(this IEnumerable<T> enumerable) where T : struct {
+        public static T? FirstOrNull<T>(this IEnumerable<T> enumerable) where T : class {
             var enumerator = enumerable.GetEnumerator();
 
             if (enumerator.MoveNext()) {

@@ -432,14 +432,14 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        public Task StartRenameAuthorTaskAsync(string oldName, string newName) {
-            var comics = this.Comics.Where(c => c.Author == oldName);
+        public Task StartRenameAuthorTaskAsync(string oldAuthor, string newAuthor) {
+            var comics = this.Comics.Where(c => c.Author == oldAuthor);
 
             // Note: if we make another function where we need to move files around, we should move this to a new class.
-            return this.StartUniqueTaskAsync("moveFiles", $"Moving {comics.Count().PluralString("item")} belonging to author {oldName}...",
+            return this.StartUniqueTaskAsync("moveFiles", $"Moving {comics.Count().PluralString("item")} belonging to author {oldAuthor}...",
                 async (cc, p) => {
                     // Step 1. Validation
-                    if (newName.Any(c => Path.GetInvalidFileNameChars().Contains(c))) {
+                    if (newAuthor.Any(c => Path.GetInvalidFileNameChars().Contains(c))) {
                         throw new IntendedBehaviorException("new author name contains invalid filename characters");
                     }
 
@@ -453,12 +453,12 @@ namespace ComicsViewer.ViewModels.Pages {
                         "Could not determine the category for the following items"
                     );
 
-                    var existingComicsUnderNewName = this.Comics.Where(c => c.Author == newName);
+                    var existingComicsUnderNewName = this.Comics.Where(c => c.Author == newAuthor);
                     if (existingComicsUnderNewName.Any()) {
                         var existingTitles = existingComicsUnderNewName.Select(c => c.Title).ToHashSet();
                         EnsureEmpty(
                             comics.Where(c => existingTitles.Contains(c.Title)),
-                            $"The following items cannot be moved, because an item with the same title already exists undner author {newName}"
+                            $"The following items cannot be moved, because an item with the same title already exists undner author {newAuthor}"
                         );
                     }
 
@@ -474,9 +474,9 @@ namespace ComicsViewer.ViewModels.Pages {
                         }
 
                         var category = this.Profile.RootPaths.Find(p => p.Name == comic.Category);
-                        _ = oldDirectories.Add(Path.Combine(category.Path, oldName));
-                        var oldPath = Path.Combine(category.Path, oldName, comic.Title);
-                        var newPath = Path.Combine(category.Path, newName, comic.Title);
+                        _ = oldDirectories.Add(Path.Combine(category.Path, oldAuthor));
+                        var oldPath = Path.Combine(category.Path, oldAuthor, comic.Title);
+                        var newPath = Path.Combine(category.Path, newAuthor, comic.Title);
 
                         // some checks just in case
                         if (!FileApiInterop.FileOrDirectoryExists(oldPath)) {
@@ -487,7 +487,7 @@ namespace ComicsViewer.ViewModels.Pages {
                             throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic already exists at {newPath}");
                         }
 
-                        var newComic = new Comic(newPath, comic.Title, newName, comic.Category, comic.Metadata);
+                        var newComic = comic.With(path: newPath, author: newAuthor);
 
                         FileApiInterop.MoveDirectory(oldPath, newPath);
 
@@ -615,12 +615,10 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Providing features
 
         public Task UpdateTagNameAsync(string oldName, string newName) {
-            var updatedComics = this.Comics.Where(c => c.Tags.Contains(oldName)).Select(c => c.WithUpdatedMetadata(metadata => {
-                metadata.Tags = new HashSet<string>(metadata.Tags);
-                _ = metadata.Tags.Remove(oldName);
-                _ = metadata.Tags.Add(newName);
-                return metadata;
-            })).ToList();
+            var updatedComics = this.Comics
+                .Where(c => c.Tags.Contains(oldName))
+                .Select(c => c.WithMetadata(tags: c.Tags.Except(new[] { oldName }).Union(new[] { newName })))
+                .ToList();
 
             return this.UpdateComicAsync(updatedComics);
         }

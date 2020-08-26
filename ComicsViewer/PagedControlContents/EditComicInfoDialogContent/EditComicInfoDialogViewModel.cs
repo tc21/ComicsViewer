@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,25 +32,14 @@ namespace ComicsViewer.ViewModels.Pages {
         public string ComicCategory => this.Comic.DisplayCategory;
 
         public async Task SaveComicInfoAsync(string title, string tags, bool loved, bool disliked) {
-            var modified = this.Comic.WithUpdatedMetadata(metadata => {
-                if (title != this.ComicTitle) {
-                    metadata.DisplayTitle = title.Trim();
-                }
+            var assignTags = (tags == this.ComicTags) ? null : StringConversions.CommaDelimitedList.Convert(tags);
 
-                if (tags != this.ComicTags) {
-                    metadata.Tags = tags.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToHashSet();
-                }
-
-                if (loved != this.ComicLoved) {
-                    metadata.Loved = loved;
-                }
-
-                if (disliked != this.ComicDisliked) {
-                    metadata.Disliked = disliked;
-                }
-
-                return metadata;
-            });
+            var modified = this.Comic.WithMetadata(
+                displayTitle: title.Trim(),
+                tags: assignTags,
+                loved: loved,
+                disliked: disliked
+            );
 
             // we don't care about what happens after this, the program works even if you don't await this,
             // but it's probably best practice to do so anyway

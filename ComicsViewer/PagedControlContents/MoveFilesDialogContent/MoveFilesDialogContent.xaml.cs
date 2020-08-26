@@ -94,9 +94,7 @@ namespace ComicsViewer.Pages {
                             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                                 Windows.UI.Core.CoreDispatcherPriority.Normal,
                                 async () => {
-                                    var copy = comic;
-                                    copy.Path = targetPath;
-                                    copy.Category = category.Name;
+                                    var copy = comic.With(path: targetPath, category: category.Name);
                                     await this.MainViewModel!.UpdateComicAsync(new[] { copy });
                                 }
                             );

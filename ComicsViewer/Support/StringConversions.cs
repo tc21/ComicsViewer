@@ -31,7 +31,7 @@ namespace ComicsViewer.Support {
             }
 
             public override IEnumerable<string> Convert(string str) {
-                var split = str.Split(this.separator);
+                var split = str.Split(this.separator, StringSplitOptions.RemoveEmptyEntries);
                 if (this.canTrimWhitespace) {
                     return split.Select(s => s.Trim());
                 } else {
