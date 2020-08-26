@@ -251,6 +251,8 @@ namespace ComicsViewer.Controls {
 
         private void TextBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
+                this.IsContentModified = true;
+
                 if (this.ValidateWithReason?.Invoke(sender.Text) is ValidateResult result) {
                     this.IsContentValid = result;
                     this.ErrorText = result.Comment;
@@ -258,8 +260,6 @@ namespace ComicsViewer.Controls {
                     this.IsContentValid = true;
                     this.ErrorText = null;
                 }
-
-                this.IsContentModified = true;
             }
         }
 
