@@ -70,7 +70,7 @@ namespace ComicsViewer.Pages {
 
             if (!items[0].IsOfType(StorageItemTypes.File) ||
                     !UserProfile.ImageFileExtensions.Any(ext => items[0].Name.EndsWith(ext, StringComparison.OrdinalIgnoreCase))) {
-                _ = await new MessageDialog("Please select an image as the new thumbnail.", "Invalid thumbnail file").ShowAsync();
+                _ = await new ContentDialog { Content = "Please select an image as the new thumbnail.", Title = "Invalid thumbnail file" }.ShowAsync();
                 return;
             }
 

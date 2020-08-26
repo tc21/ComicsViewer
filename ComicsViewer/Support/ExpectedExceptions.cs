@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Popups;
+using Windows.UI.Xaml.Controls;
 
 #nullable enable
 
@@ -36,7 +37,11 @@ namespace ComicsViewer.Support {
                 message += "\n(Note: the operation that caused this error has been cancelled.)";
             }
 
-            _ = await new MessageDialog(message, title).ShowAsync();
+            _ = await new ContentDialog {
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK"
+            }.ShowAsync();
         }
 
         public static async Task<bool> HandleFileRelatedExceptionsAsync(Exception e) {

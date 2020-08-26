@@ -324,10 +324,10 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     if (await exceptionHandler(task.StoredException) == false) {
-                        _ = await new MessageDialog(
-                            task.StoredException.ToString(),
-                            $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}"
-                        ).ShowAsync();
+                        _ = await new ContentDialog{
+                            Content = task.StoredException.ToString(),
+                            Title = $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}"
+                        }.ShowAsync();
                     }
                 }
 
@@ -381,10 +381,10 @@ namespace ComicsViewer.ViewModels.Pages {
                 string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, 
                 Func<T, Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
             if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
-                _ = await new MessageDialog(
-                   $"A task with tag '{tag}' is already running. Please wait for it to finish.",
-                    "Cannot start task"
-                ).ShowAsync();
+                _ = await new ContentDialog {
+                    Content = $"A task with tag '{tag}' is already running. Please wait for it to finish.",
+                    Title = "Cannot start task"
+                }.ShowAsync();
             }
         }
 
@@ -591,7 +591,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 message += $"\n{comic.UniqueIdentifier}";
             }
 
-            _ = await new MessageDialog(message, "Warning: items not added").ShowAsync();
+            _ = await new ContentDialog { Content = message, Title = "Warning: items not added" }.ShowAsync();
         }
 
         private async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
