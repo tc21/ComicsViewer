@@ -61,7 +61,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         "If the author already exists, the two authors will be merged. This cannot be undone.");
 
                 case NavigationTag.Category:
-                    if (this.parent.MainViewModel.Profile.RootPaths.Any(p => p.Name == title)) {
+                    if (this.parent.MainViewModel.Profile.RootPaths.ContainsName(title)) {
                         return $"The category '{title}' already exists. You cannot rename a category to one that already exists. " +
                             $"To merge categories, right click a category and select 'Move'.";
                     }

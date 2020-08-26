@@ -464,7 +464,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     );
 
                     EnsureEmpty(
-                        comics.Where(c => this.Profile.RootPaths.Find(p => p.Name == c.Category) == default),
+                        comics.Where(c => !this.Profile.RootPaths.ContainsName(c.Category)),
                         "Could not determine the category for the following items"
                     );
 
@@ -488,10 +488,10 @@ namespace ComicsViewer.ViewModels.Pages {
                             return;
                         }
 
-                        var category = this.Profile.RootPaths.Find(p => p.Name == comic.Category);
-                        _ = oldDirectories.Add(Path.Combine(category.Path, oldAuthor));
-                        var oldPath = Path.Combine(category.Path, oldAuthor, comic.Title);
-                        var newPath = Path.Combine(category.Path, newAuthor, comic.Title);
+                        var categoryPath = this.Profile.RootPaths[comic.Category];
+                        _ = oldDirectories.Add(Path.Combine(categoryPath, oldAuthor));
+                        var oldPath = Path.Combine(categoryPath, oldAuthor, comic.Title);
+                        var newPath = Path.Combine(categoryPath, newAuthor, comic.Title);
 
                         // some checks just in case
                         if (!FileApiInterop.FileOrDirectoryExists(oldPath)) {
@@ -646,13 +646,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RenameCategoryAsync(string oldName, string newName) {
-            var _oldCategory = this.Profile.RootPaths.Where(p => p.Name == oldName);
-            if (!_oldCategory.Any()) {
+            if (this.Profile.RootPaths.TryGetValue(oldName, out var category)) { 
                 throw new ProgrammerError($"category {oldName} does not exist");
             }
-            var oldCategory = _oldCategory.First();
 
-            if (this.Profile.RootPaths.Any(p => p.Name == newName)) {
+            if (this.Profile.RootPaths.ContainsName(newName)) {
                 throw new ProgrammerError($"category {newName} already exists");
             }
 
@@ -661,7 +659,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 .Select(c => c.With(category: newName))
                 .ToList();
 
-            oldCategory.Name = newName;
+            _ = this.Profile.RootPaths.Remove(oldName);
+            this.Profile.RootPaths.Add(newName, category.Path);
 
             await this.UpdateComicAsync(updatedComics);
             await ProfileManager.SaveProfileAsync(this.Profile);

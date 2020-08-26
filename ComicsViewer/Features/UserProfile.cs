@@ -1,6 +1,6 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Support;
 using ComicsViewer.Support.Interop;
+using Microsoft.Toolkit.Uwp.UI.Animations.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +20,8 @@ namespace ComicsViewer.Features {
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
         public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
-        public List<NamedPath> RootPaths { get; set; } = new List<NamedPath>();
+        [JsonConverter(typeof(RootPathsJsonConverter))]
+        public RootPaths RootPaths { get; set; } = new RootPaths();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
         // TODO currently this has to be manually entered in *.profile.json. we will need a UI. 
         public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new List<ExternalDescriptionSpecification>();
@@ -42,7 +43,7 @@ namespace ComicsViewer.Features {
             this.ImageHeight = copy.ImageHeight;
             this.ImageWidth = copy.ImageWidth;
             this.FileExtensions = copy.FileExtensions.ToList();
-            this.RootPaths = copy.RootPaths.ToList();
+            this.RootPaths = new RootPaths(copy.RootPaths);
             this.StartupApplicationType = copy.StartupApplicationType;
         }
 
