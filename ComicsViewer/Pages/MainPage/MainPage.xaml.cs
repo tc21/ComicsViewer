@@ -277,14 +277,5 @@ namespace ComicsViewer {
                 }
             }
         }
-
-        private void MainGrid_KeyDown(object sender, KeyRoutedEventArgs e) {
-            if (e.Key == Windows.System.VirtualKey.Escape || e.Key == Windows.System.VirtualKey.Back) {
-                if (this.ContentFrame.CanGoBack) {
-                    this.ContentFrame.GoBack();
-                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
-                }
-            }
-        }
     }
 }
