@@ -45,7 +45,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
-            foreach (var comic in comics) {
+            foreach (var comic in comics.ToList()) {
                 var item = new ComicWorkItem(this.MainViewModel, comic, trackChangesFrom: this.comics);
                 item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
                 yield return item;
