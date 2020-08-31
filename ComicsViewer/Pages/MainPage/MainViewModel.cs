@@ -321,7 +321,8 @@ namespace ComicsViewer.ViewModels.Pages {
                     if (await exceptionHandler(task.StoredException) == false) {
                         _ = await new ContentDialog{
                             Content = task.StoredException.ToString(),
-                            Title = $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}"
+                            Title = $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}",
+                            CloseButtonText = "OK"
                         }.ShowAsync();
                     }
                 }
@@ -378,7 +379,8 @@ namespace ComicsViewer.ViewModels.Pages {
             if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
                 _ = await new ContentDialog {
                     Content = $"A task with tag '{tag}' is already running. Please wait for it to finish.",
-                    Title = "Cannot start task"
+                    Title = "Cannot start task",
+                    CloseButtonText = "OK"
                 }.ShowAsync();
             }
         }
@@ -586,7 +588,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 message += $"\n{comic.UniqueIdentifier}";
             }
 
-            _ = await new ContentDialog { Content = message, Title = "Warning: items not added" }.ShowAsync();
+            _ = await new ContentDialog { Content = message, Title = "Warning: items not added", CloseButtonText = "OK" }.ShowAsync();
         }
 
         private async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
@@ -646,7 +648,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RenameCategoryAsync(string oldName, string newName) {
-            if (this.Profile.RootPaths.TryGetValue(oldName, out var category)) { 
+            if (!this.Profile.RootPaths.TryGetValue(oldName, out var category)) { 
                 throw new ProgrammerError($"category {oldName} does not exist");
             }
 
