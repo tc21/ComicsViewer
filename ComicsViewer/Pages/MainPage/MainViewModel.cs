@@ -211,8 +211,12 @@ namespace ComicsViewer.ViewModels.Pages {
             this.FilterToComics(items.SelectMany(item => item.ContainedComics()));
         }
 
-        public void FilterToAuthor(string displayName) {
-            this.FilterToComics(this.Comics.Where(comic => comic.Author == displayName));
+        public void FilterToAuthor(string author) {
+            var properties = this.Comics.SortedProperties(c => new[] { c.Author }, ComicsLibrary.Sorting.ComicPropertySortSelector.Random);
+            var authorView = properties.PropertyView(author);
+            var placeholder = ComicItem.NavigationItem(author, authorView);
+
+            this.NavigateInto(placeholder);
         }
 
         private void FilterToComics(IEnumerable<Comic> comics) {

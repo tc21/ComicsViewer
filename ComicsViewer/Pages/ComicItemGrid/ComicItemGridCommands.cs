@@ -252,7 +252,20 @@ namespace ComicsViewer.Pages {
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Show all items by {e.Items.First().Comic.Author}",
-                execute: e => e.MainViewModel.FilterToAuthor(e.Items.First().Comic.Author),
+                execute: async e => {
+                    var item = e.Items.First();
+                    e.Grid.PrepareNavigateIn(item);
+
+                    // TODO: the current program assumes that you cannot navigate into anything from a detail view.
+                    // Much of the code is implemented with this assumption, causing navigating out of a detail view into 
+                    // another detail view to crash the app. Therefore we have to navigate out first.
+                    if (e.ViewModel.NavigationTag == NavigationTag.Detail) {
+                        e.MainViewModel.NavigateOut();
+                        await Task.Delay(150);
+                    }
+
+                    e.MainViewModel.FilterToAuthor(item.Comic.Author);
+                },
                 canExecute: e => e.Count == 1
             );
 

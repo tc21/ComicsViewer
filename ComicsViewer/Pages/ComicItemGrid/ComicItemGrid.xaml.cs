@@ -103,9 +103,7 @@ namespace ComicsViewer.Pages {
                     return;
 
                 case ComicNavigationItemGridViewModel vm:
-                    _ = this.VisibleComicsGrid.PrepareConnectedAnimation("navigateInto", item, "ComicItemThumbnailContainer");
-                    connectedAnimationComic = item.ContainedComics().First();
-
+                    this.PrepareNavigateIn(item);
                     vm.NavigateIntoItem((ComicNavigationItem)item);
                     return;
 
@@ -284,6 +282,11 @@ namespace ComicsViewer.Pages {
                 animation.Configuration = new DirectConnectedAnimationConfiguration();
                 this.connectedAnimationItem = null;
             }
+        }
+
+        public void PrepareNavigateIn(ComicItem item) {
+            _ = this.VisibleComicsGrid.PrepareConnectedAnimation("navigateInto", item, "ComicItemThumbnailContainer");
+            connectedAnimationComic = item.ContainedComics().First();
         }
 
         #endregion

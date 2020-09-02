@@ -135,8 +135,8 @@
 
             <Grid>
                 <Frame x:Name="ContentFrame" 
-                    Margin="0 40 0 0"
-                    NavigationFailed="Frame_NavigationFailed"/>
+                       Margin="0 40 0 0"
+                       NavigationFailed="Frame_NavigationFailed"/>
 
                 <controls:Loading IsLoading="{x:Bind ViewModel.IsLoadingProfile, Mode=OneWay}">
                     <controls:Loading.Background>
