@@ -182,7 +182,7 @@ namespace ComicsViewer {
         }
 
         private void CurrentView_BackRequested(object sender, BackRequestedEventArgs e) {
-            this.ViewModel.NavigateOut();
+            this.ViewModel.NavigateOut(of: this.activeContent);
         }
 
         private void Frame_NavigationFailed(object _, NavigationFailedEventArgs e) {
@@ -270,10 +270,8 @@ namespace ComicsViewer {
             if (e.Pointer.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse) {
                 var properties = e.GetCurrentPoint(this.MainGrid).Properties;
                 if (properties.IsXButton1Pressed) {
-                    if (this.ContentFrame.CanGoBack) {
-                        this.ContentFrame.GoBack();
-                        this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
-                    }
+                    this.ViewModel.NavigateOut(of: this.activeContent);
+                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
                 }
             }
         }

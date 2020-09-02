@@ -23,7 +23,7 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0">
-                        <Grid>
+                        <Grid x:Name="ComicItemThumbnailContainer" >
                             <Image x:Name="ComicItemThumbnail" Source="{x:Bind ThumbnailImage, Mode=OneWay}" />
 
                             <Grid Visibility="{x:Bind IsLoved, Mode=OneWay}">

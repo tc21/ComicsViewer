@@ -176,7 +176,9 @@ namespace ComicsViewer.ViewModels.Pages {
             this.PageName = null;
         }
 
-        public void NavigateOut(bool ignoreCache = false) {
+        public void NavigateOut(bool ignoreCache = false, ComicItemGrid? of = null) {
+            of?.PrepareNavigateOut();
+
             if (ignoreCache) {
                 this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
                 return;
@@ -684,6 +686,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public Type? PageType { get; set; }
         public NavigationTag? Tag { get; set; }
         public ComicView? Comics { get; set; }
+        public ComicItem? ConnectedAnimationItem { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
         public NavigationType NavigationType { get; set; } = NavigationType.New;
