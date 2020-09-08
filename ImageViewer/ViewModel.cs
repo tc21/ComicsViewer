@@ -173,6 +173,8 @@ namespace ImageViewer {
                 result = true;
             } catch (NotSupportedException) {
                 result = false;
+            } catch (FileNotFoundException) {
+                result = false;
             }
 
             this.updatingBitmapSource = false;
