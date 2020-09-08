@@ -229,13 +229,18 @@ namespace ImageViewer {
             }
 
             if (metadata != null) {
-                try {
-                    description += $"\nMetadata: Taken on {FormatDate(metadata.DateTaken)}";
-                    if (!(string.IsNullOrEmpty(metadata.CameraManufacturer) && string.IsNullOrEmpty(metadata.CameraModel))) {
-                        description += $", {metadata.CameraManufacturer} {metadata.CameraModel}";
-                    }
-                } catch (NotSupportedException) {
-                    /* do nothing */
+                var info = new List<string>();
+
+                if (metadata.DateTaken.Year > 1600) {
+                    info.Add($"on {FormatDate(metadata.DateTaken)}");
+                }
+
+                if (!(string.IsNullOrEmpty(metadata.CameraManufacturer) && string.IsNullOrEmpty(metadata.CameraModel))) {
+                    info.Add($"with {metadata.CameraManufacturer} {metadata.CameraModel}");
+                }
+
+                if (info.Any()) {
+                    description += $"\nMetadata: Taken " + string.Join(' ', info);
                 }
             }
 
