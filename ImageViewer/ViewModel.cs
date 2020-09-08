@@ -99,7 +99,7 @@ namespace ImageViewer {
 
             this.SetCurrentImageIndex(index);
 
-            if (!await this.UpdateBitmapSourceAsync(index)) {
+            if (!await this.UpdateBitmapSourceAsync(this.Images[index])) {
                 this.Images.RemoveAt(index);
                 await this.SeekAsync(index, reload: true);
                 return;
@@ -113,13 +113,18 @@ namespace ImageViewer {
                 return;
             }
 
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
             var files = await parent.GetFilesAsync();
 
             await this.LoadImagesAsync(files, seekTo: null);
 
             for (var i = 0; i < this.Images.Count; i++) {
                 if (this.Images[i].Name == file.Name) {
-                    await this.SeekAsync(i, reload: true);
+                    if (passthroughSuccessful) {
+                        this.SetCurrentImageIndex(i);
+                    } else {
+                        await this.SeekAsync(i, reload: true);
+                    }
                 }
             }
         }
@@ -155,16 +160,15 @@ namespace ImageViewer {
 
         // note: index must be valid!
         private bool updatingBitmapSource;
-        private int? queuedIndex;
-        private async Task<bool> UpdateBitmapSourceAsync(int index) {
+        private StorageFile? queuedFile;
+
+        private async Task<bool> UpdateBitmapSourceAsync(StorageFile file) {
             if (this.updatingBitmapSource) {
-                this.queuedIndex = index;
+                this.queuedFile = file;
                 return true;
             }
 
             this.updatingBitmapSource = true;
-
-            var file = this.Images[index];
 
             bool result;
 
@@ -179,9 +183,9 @@ namespace ImageViewer {
 
             this.updatingBitmapSource = false;
 
-            if (this.queuedIndex is int i) {
-                this.queuedIndex = null;
-                _ = await this.UpdateBitmapSourceAsync(i);
+            if (this.queuedFile is StorageFile f) {
+                this.queuedFile = null;
+                _ = await this.UpdateBitmapSourceAsync(f);
                 // we can't really notify that another image is invalid yet
                 return true;
             } else {
@@ -208,7 +212,7 @@ namespace ImageViewer {
         }
 
         private string CurrentImageDescription(BasicProperties? basicProperties, ImageProperties? metadata = null) {
-            if (this.CurrentImagePath == null || this.CurrentImageSource == null) {
+            if (this.CurrentImageSource == null) {
                 return "No images open.";
             }
 
