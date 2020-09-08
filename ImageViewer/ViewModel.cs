@@ -46,16 +46,27 @@ namespace ImageViewer {
             }
         }
 
+        private string _title = "Viewer";
         public string Title {
-            get {
-                var title = "Viewer";
-
-                if (this.Images.Count > 0) {
-                    title += $" - {this.CurrentImageIndex + 1}/{this.Images.Count}: {Path.GetFileName(this.CurrentImagePath)}";
-                }
-
-                return title;
+            get => this._title;
+            set {
+                this._title = value;
+                this.OnPropertyChanged();
             }
+        }
+
+        private void UpdateTitle() {
+            var title = "Viewer";
+
+            if (this.Images.Count > 0) {
+                var indicator = "";
+                if (this.Images.Count > 1) {
+                    indicator = $"{this.CurrentImageIndex + 1}/{this.Images.Count}: ";
+                }
+                title += $" - {indicator}{Path.GetFileName(this.CurrentImagePath)}";
+            }
+
+            this.Title = title;
         }
 
         private BitmapSource? _currentImageSource;
@@ -76,15 +87,23 @@ namespace ImageViewer {
             }
         }
         public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0) {
+            this.canSeek = false;
             this.Images.Clear();
             this.Images.AddRange(files.Where(f => IsImage(f.Path)));
+            this.canSeek = true;
 
             if (seekTo is int index) {
                 await this.SeekAsync(index, reload: true);
             }
         }
 
+        public bool canSeek;
+
         public async Task SeekAsync(int index, bool reload = false) {
+            if (!this.canSeek) {
+                return;
+            }
+
             if (this.Images.Count == 0) {
                 this.SetCurrentImageIndex(0);
                 await this.SetCurrentImageSourceAsync(null);
@@ -113,6 +132,8 @@ namespace ImageViewer {
                 return;
             }
 
+            this.canSeek = false;
+            this.Title = "Viewer - Loading related files...";
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
             var files = await parent.GetFilesAsync();
 
@@ -137,7 +158,7 @@ namespace ImageViewer {
         private void SetCurrentImageIndex(int i) {
             this.CurrentImageIndex = i;
             this.OnPropertyChanged(nameof(this.CurrentImagePath));
-            this.OnPropertyChanged(nameof(this.Title));
+            this.UpdateTitle();
         }
 
         private async Task SetCurrentImageSourceAsync(StorageFile? file) {
