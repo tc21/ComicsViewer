@@ -9,6 +9,8 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.UI.Core;
+using Windows.UI.Input;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -42,6 +44,9 @@ namespace ImageViewer {
             titleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
             titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 255, 255, 255);
             titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(51, 255, 255, 255);
+
+            CoreWindow.GetForCurrentThread().KeyDown += this.MainPage_KeyDown;
+            CoreWindow.GetForCurrentThread().KeyUp += this.MainPage_KeyUp;
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
@@ -121,7 +126,7 @@ namespace ImageViewer {
                 /* Although ChangeView automatically constrains zooms to MaxZoomFactor, we need the accurate value for our calculations below.
                  * We don't need to do this for MinZoomFactor, because the image is already forced to be centered in that case. */
                 var zoomTo = this.ImageContainer.ZoomFactor * (float)scale;
-                
+
                 if (zoomTo > this.ImageContainer.MaxZoomFactor) {
                     zoomTo = this.ImageContainer.MaxZoomFactor;
                 }
@@ -151,38 +156,83 @@ namespace ImageViewer {
 
                 _ = this.ImageContainer.ChangeView(
                     this.ImageContainer.HorizontalOffset - widthDifference,
-                    this.ImageContainer.VerticalOffset - heightDifference, 
+                    this.ImageContainer.VerticalOffset - heightDifference,
                     zoomTo
                 );
             }), null, 10, Timeout.Infinite);
         }
 
-        private void ImageContainer_PointerWheelChanged(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
-                return;
+        private void MainPage_KeyDown(CoreWindow sender, KeyEventArgs args) {
+            if (args.VirtualKey == Windows.System.VirtualKey.Control) {
+                this.MousewheelInterceptBorder.IsHitTestVisible = false;
             }
+        }
 
-            // Scrolling with mouse wheel is just disabled
-            this.Page_PointerWheelChanged(sender, e);
-            e.Handled = true;
+        private void MainPage_KeyUp(CoreWindow sender, KeyEventArgs args) {
+            if (args.VirtualKey == Windows.System.VirtualKey.Control) {
+                this.MousewheelInterceptBorder.IsHitTestVisible = true;
+            }
         }
 
         /* we need to handle mouse events differently to get panning on drag. */
+        private Point? dragStart;
+        private Point? offsetsAtDragStart;
+        bool actuallyDragged = false;
+
         private void ImageContainer_PointerPressed(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
+            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
+                    || !(e.GetCurrentPoint(this.ImageContainer) is PointerPoint point)
+                    || !point.Properties.IsLeftButtonPressed
+                    ) {
                 return;
             }
+
+            this.dragStart = e.GetCurrentPoint(this.ImageContainer).Position;
+            this.offsetsAtDragStart = new Point(this.ImageContainer.HorizontalOffset, this.ImageContainer.VerticalOffset);
         }
 
-        private void ImageContainer_PointerReleased(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
+        private async void ImageContainer_PointerReleased(object sender, PointerRoutedEventArgs e) {
+            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
+                    || !(e.GetCurrentPoint(this.ImageContainer) is PointerPoint point)
+                    || !point.Properties.IsLeftButtonPressed
+                    ) {
                 return;
             }
+
+            this.dragStart = null;
+            this.offsetsAtDragStart = null;
+
+            if (!this.actuallyDragged) {
+                await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + 1);
+            }
+
+            this.actuallyDragged = false;
         }
 
         private void ImageContainer_PointerMoved(object sender, PointerRoutedEventArgs e) {
             if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
                 return;
+            }
+
+            if (this.dragStart is Point dragStart) {
+                if (!(this.offsetsAtDragStart is Point startingOffsets)) {
+                    throw new Exception("This should be set in MouseDown!");
+                }
+
+                var offsets = new Point(
+                    dragStart.X - e.GetCurrentPoint(this.ImageContainer).Position.X,
+                    dragStart.Y - e.GetCurrentPoint(this.ImageContainer).Position.Y
+                );
+
+                if (!this.actuallyDragged) {
+                    if (Math.Abs(offsets.X) < 5 && Math.Abs(offsets.Y) < 5) {
+                        return;
+                    }
+                }
+
+                this.actuallyDragged = true;
+
+                _ = this.ImageContainer.ChangeView(startingOffsets.X + offsets.X, startingOffsets.Y + offsets.Y, null, true);
             }
         }
 

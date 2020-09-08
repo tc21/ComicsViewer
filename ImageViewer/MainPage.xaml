@@ -120,10 +120,6 @@
             <ScrollViewer x:Name="ImageContainer"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto"
-                          PointerWheelChanged="ImageContainer_PointerWheelChanged"
-                          PointerPressed="ImageContainer_PointerPressed"
-                          PointerReleased="ImageContainer_PointerReleased"
-                          PointerMoved="ImageContainer_PointerMoved"
                           RenderTransformOrigin="0.5 0.5"
                           ZoomMode="Enabled">
                 <Image x:Name="Image"
@@ -133,6 +129,13 @@
                        Stretch="Uniform"
                        />
             </ScrollViewer>
+
+            <!-- This border intercepts PointerWheelChanged so that it doesn't get passed to the scrollviewer.
+                 This is very much a hack, but we don't have a better solution for now... -->
+            <Border x:Name="MousewheelInterceptBorder" Background="Transparent"
+                    PointerPressed="ImageContainer_PointerPressed"
+                    PointerReleased="ImageContainer_PointerReleased"
+                    PointerMoved="ImageContainer_PointerMoved"/>
 
             <Border x:Name="Metadata"
                     Margin="10" Padding="10" 
