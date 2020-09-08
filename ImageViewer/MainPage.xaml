@@ -36,6 +36,19 @@
               Drop="Grid_Drop">
             <Grid.ContextFlyout>
                 <MenuFlyout>
+
+                    <MenuFlyoutItem Text="Toggle image information" Command="{x:Bind ToggleImageInfoCommand}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Tab" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+
+                    <MenuFlyoutItem Text="Show in Explorer" Command="{x:Bind ShowInExplorerCommand}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="E" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </MenuFlyoutItem>
+                    
                     <MenuFlyoutSubItem Text="Go to">
                         <MenuFlyoutItem Text="Next image" Command="{x:Bind SeekRelativeCommand}" CommandParameter="1">
                             <MenuFlyoutItem.KeyboardAccelerators>
@@ -49,30 +62,45 @@
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem Text="First image" Command="{x:Bind SeekCommand}" CommandParameter="0">
+                        <MenuFlyoutItem Text="First image" Command="{x:Bind SeekCommand}" CommandParameter="0"
+                                        KeyboardAcceleratorTextOverride="Ctrl+[">
+                            <!-- note: the override is required or else WinUI crashes looking up the string representation of VkOpenBracket -->
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="{x:Bind VkOpenBracket}"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem Text="Last image" Command="{x:Bind SeekCommand}" CommandParameter="-1">
+                        <MenuFlyoutItem Text="Last image" Command="{x:Bind SeekCommand}" CommandParameter="-1"
+                                        KeyboardAcceleratorTextOverride="Ctrl+]">
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkCloseBracket}"/>
+                                <KeyboardAccelerator Key="{x:Bind VkCloseBracket}" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
-                    <MenuFlyoutItem Text="Toggle image information" Command="{x:Bind ToggleImageInfoCommand}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                            <KeyboardAccelerator Key="Tab" Modifiers="Control"/>
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                    </MenuFlyoutItem>
+                    <MenuFlyoutSubItem Text="Zoom">
+                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="1.33"
+                                        KeyboardAcceleratorTextOverride="Ctrl+-">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="{x:Bind VkMinus}" Modifiers="Control" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
 
-                    <MenuFlyoutItem Text="Show in Explorer" Command="{x:Bind ShowInExplorerCommand}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                            <KeyboardAccelerator Key="E" Modifiers="Control"/>
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                    </MenuFlyoutItem>
+                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="0.75"
+                                        KeyboardAcceleratorTextOverride="Ctrl+=">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="{x:Bind VkPlus}" Modifiers="Control" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        
+                        <MenuFlyoutItem Text="Reset zoom" Command="{x:Bind ResetZoomCommand}">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="Number0" Modifiers="Control" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                    </MenuFlyoutSubItem>
+
+                    <MenuFlyoutSeparator/>
 
                     <MenuFlyoutItem Text="Delete" Command="{x:Bind DeleteCommand}">
                         <MenuFlyoutItem.KeyboardAccelerators>
@@ -86,32 +114,6 @@
                             <KeyboardAccelerator Key="W" Modifiers="Control" />
                         </MenuFlyoutItem.KeyboardAccelerators>
                     </MenuFlyoutItem>
-
-                    <MenuFlyoutSubItem Text="Zoom">
-                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="1.33">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkMinus}" Modifiers="Control" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-
-                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="0.75">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkPlus}" Modifiers="Control" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        
-                        <MenuFlyoutItem Text="Reset zoom" Command="{x:Bind ResetZoomCommand}">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="0" Modifiers="Control" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                    </MenuFlyoutSubItem>
-
-                    <!--
-                    <KeyBinding Gesture="Ctrl+OemPlus" Command="{Binding ZoomCommand}" CommandParameter="1.33" />
-                    <KeyBinding Gesture="Ctrl+OemMinus" Command="{Binding ZoomCommand}" CommandParameter="0.75" />
-                    <KeyBinding Gesture="Ctrl+0" Command="{Binding ResetZoomCommand}" />
-                    -->
                 </MenuFlyout>
             </Grid.ContextFlyout>
 

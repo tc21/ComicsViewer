@@ -120,9 +120,22 @@ namespace ImageViewer {
             _ = new Timer(async _ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
                 /* Although ChangeView automatically constrains zooms to MaxZoomFactor, we need the accurate value for our calculations below.
                  * We don't need to do this for MinZoomFactor, because the image is already forced to be centered in that case. */
-                if (scale * this.ImageContainer.ZoomFactor > this.ImageContainer.MaxZoomFactor) {
-                    scale = this.ImageContainer.MaxZoomFactor / this.ImageContainer.ZoomFactor;
+                var zoomTo = this.ImageContainer.ZoomFactor * (float)scale;
+                
+                if (zoomTo > this.ImageContainer.MaxZoomFactor) {
+                    zoomTo = this.ImageContainer.MaxZoomFactor;
                 }
+
+                // we use these imprecise numbers because floats are imprecise
+                if ((zoomTo > 0.99 && this.ImageContainer.ZoomFactor < 0.99) || (zoomTo < 1.01 && this.ImageContainer.ZoomFactor > 1.01)) {
+                    zoomTo = 1;
+                }
+
+                if (Math.Abs(zoomTo - 1) < 0.05) {
+                    zoomTo = 1;
+                }
+
+                scale = zoomTo / this.ImageContainer.ZoomFactor;
 
                 /* zoomOriginX is the origin of the zoom relative to (0, 0), in the extent coordinate space
                  * (i.e. if a 100x100 image is zoomed at 200%, then ExtentSize = 200x200, while ActualSize = 100x100
@@ -139,7 +152,7 @@ namespace ImageViewer {
                 _ = this.ImageContainer.ChangeView(
                     this.ImageContainer.HorizontalOffset - widthDifference,
                     this.ImageContainer.VerticalOffset - heightDifference, 
-                    (float)(this.ImageContainer.ZoomFactor * scale)
+                    zoomTo
                 );
             }), null, 10, Timeout.Infinite);
         }
