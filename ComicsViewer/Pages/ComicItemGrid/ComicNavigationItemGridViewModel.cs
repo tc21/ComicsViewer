@@ -18,8 +18,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly ComicView comics;
         // This is set during the constructor, but not by the constructor. We use this "hack" to mark the semantic difference.
-        private OneTimeComicPropertiesView? comicProperties;
-        public OneTimeComicPropertiesView ComicProperties => this.comicProperties!;
+        private OneTimeComicPropertiesView? _comicProperties;
+        public OneTimeComicPropertiesView ComicProperties => this._comicProperties ?? throw new ProgrammerError("ComicProperties must be initialized");
 
         public ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
             : base(appViewModel)
@@ -39,7 +39,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private protected override void SortOrderChanged() {
             var view = this.GetOneTimeSortedProperties();
-            this.comicProperties = view;
+            this._comicProperties = view;
 
             var items = view.Select(property => 
                 ComicItem.NavigationItem(property.Name, view.PropertyView(property.Name))
@@ -53,7 +53,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private OneTimeComicPropertiesView GetOneTimeSortedProperties() {
-            return comics.SortedProperties(
+            return this.comics.SortedProperties(
                 this.NavigationTag switch {
                     NavigationTag.Author => comic => new[] { comic.Author },
                     NavigationTag.Category => comic => new[] { comic.Category },
@@ -65,7 +65,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
-            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
+            Debug.WriteLine($"VM{this.debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
 
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:

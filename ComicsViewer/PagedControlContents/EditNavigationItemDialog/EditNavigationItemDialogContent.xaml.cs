@@ -26,7 +26,10 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        public EditNavigationItemDialogViewModel? ViewModel;
+
+        private EditNavigationItemDialogViewModel? _viewModel;
+        private EditNavigationItemDialogViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -34,7 +37,7 @@ namespace ComicsViewer.Pages {
                 PagedControlAccessor.FromNavigationArguments<EditNavigationItemDialogNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = controller;
 
-            this.ViewModel = new EditNavigationItemDialogViewModel(args.ParentViewModel, args.PropertyName);
+            this._viewModel = new EditNavigationItemDialogViewModel(args.ParentViewModel, args.PropertyName);
 
             this.EditItemTitleTextBox.RegisterHandlers(
                 get: () => this.ViewModel.ItemTitle,

@@ -13,13 +13,13 @@ namespace ComicsViewer.Features {
         private readonly HashSet<string> selectedAuthors = new HashSet<string>();
         private readonly HashSet<string> selectedCategories = new HashSet<string>();
         private readonly HashSet<string> selectedTags = new HashSet<string>();
-        private Func<Comic, bool>? generatedFilter;
-        private Func<Comic, bool>? search;
-        private bool onlyShowLoved = false;
-        private bool showDisliked = false;
+        private Func<Comic, bool>? _generatedFilter;
+        private Func<Comic, bool>? _search;
+        private bool _onlyShowLoved = false;
+        private bool _showDisliked = false;
 
         public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
-            || this.selectedTags.Count != 0 || this.generatedFilter != null || this.onlyShowLoved || this.ShowDisliked;
+            || this.selectedTags.Count != 0 || this._generatedFilter != null || this._onlyShowLoved || this.ShowDisliked;
 
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
@@ -39,49 +39,49 @@ namespace ComicsViewer.Features {
         public FilterMetadata Metadata = new FilterMetadata();
 
         public Func<Comic, bool>? GeneratedFilter {
-            get => this.generatedFilter;
+            get => this._generatedFilter;
             set { 
-                if (this.generatedFilter == value) {
+                if (this._generatedFilter == value) {
                     return;
                 }
 
-                this.generatedFilter = value;
+                this._generatedFilter = value;
                 this.SendNotification();
             }
         }
 
         public Func<Comic, bool>? Search {
-            get => this.search;
+            get => this._search;
             set {
-                if (this.search == value) {
+                if (this._search == value) {
                     return;
                 }
 
-                this.search = value;
+                this._search = value;
                 this.SendNotification();
             }
         }
 
         public bool OnlyShowLoved {
-            get => this.onlyShowLoved;
+            get => this._onlyShowLoved;
             set {
-                if (this.onlyShowLoved == value) {
+                if (this._onlyShowLoved == value) {
                     return;
                 }
 
-                this.onlyShowLoved = value;
+                this._onlyShowLoved = value;
                 this.SendNotification();
             }
         }
 
         public bool ShowDisliked {
-            get => this.showDisliked;
+            get => this._showDisliked;
             set {
-                if (this.showDisliked == value) {
+                if (this._showDisliked == value) {
                     return;
                 }
 
-                this.showDisliked = value;
+                this._showDisliked = value;
                 this.SendNotification();
             }
         }
@@ -90,10 +90,10 @@ namespace ComicsViewer.Features {
             this.selectedAuthors.Clear();
             this.selectedCategories.Clear();
             this.selectedTags.Clear();
-            this.search = null;
-            this.generatedFilter = null;
-            this.onlyShowLoved = false;
-            this.showDisliked = false;
+            this._search = null;
+            this._generatedFilter = null;
+            this._onlyShowLoved = false;
+            this._showDisliked = false;
             this.SendNotification();
         }
 
@@ -142,11 +142,11 @@ namespace ComicsViewer.Features {
                 return false;
             }
 
-            if (this.onlyShowLoved && !comic.Loved) {
+            if (this._onlyShowLoved && !comic.Loved) {
                 return false;
             }
 
-            if (!this.showDisliked && comic.Disliked) {
+            if (!this._showDisliked && comic.Disliked) {
                 return false;
             }
 

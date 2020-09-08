@@ -21,7 +21,7 @@ namespace ComicsViewer.ViewModels.Pages {
     public class ComicInfoFlyoutViewModel : ViewModelBase {
         internal readonly ComicItemGridViewModel ParentViewModel;
         internal readonly ComicWorkItem Item;
-        private MainViewModel MainViewModel => ParentViewModel.MainViewModel;
+        private MainViewModel MainViewModel => this.ParentViewModel.MainViewModel;
 
         public ComicInfoFlyoutViewModel(ComicItemGridViewModel parentViewModel, ComicWorkItem item) {
             this.ParentViewModel = parentViewModel;

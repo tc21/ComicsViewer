@@ -25,11 +25,11 @@ using ComicsLibrary.Sorting;
 namespace ComicsViewer.ViewModels.Pages {
     public abstract class ComicItemGridViewModel : ViewModelBase, IDisposable {
         /* automatically managed properties */
-        private int selectedSortIndex;
+        private int _selectedSortIndex;
         public int SelectedSortIndex {
-            get => this.selectedSortIndex;
+            get => this._selectedSortIndex;
             set {
-                if (this.selectedSortIndex == value) {
+                if (this._selectedSortIndex == value) {
                     return;
                 }
 
@@ -38,7 +38,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     value = Defaults.SettingsAccessor.DefaultSortSelection(this.NavigationTag);
                 }
 
-                this.selectedSortIndex = value;
+                this._selectedSortIndex = value;
                 this.OnPropertyChanged();
             }
         }
@@ -89,7 +89,7 @@ namespace ComicsViewer.ViewModels.Pages {
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
         private protected ComicItemGridViewModel(MainViewModel appViewModel) {
-            Debug.WriteLine($"VM{debug_this_count} created");
+            Debug.WriteLine($"VM{this.debug_this_count} created");
 
             this.MainViewModel = appViewModel;
             this.NavigationTag = appViewModel.ActiveNavigationTag;
@@ -105,7 +105,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         ~ComicItemGridViewModel() {
-            Debug.WriteLine($"VM{debug_this_count} destroyed");
+            Debug.WriteLine($"VM{this.debug_this_count} destroyed");
         }
 
         public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {

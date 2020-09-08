@@ -17,14 +17,14 @@ namespace ComicsViewer.ViewModels.Pages {
         public override string[] SortSelectors => SortSelectorNames.ComicSortSelectorNames;
         private ComicSortSelector SelectedSortSelector => (ComicSortSelector)this.SelectedSortIndex;
 
-        private readonly SortedComicView comics;
-        public ComicView Comics => this.comics;
+        private readonly SortedComicView _comics;
+        public ComicView Comics => this._comics;
 
         public ComicWorkItemGridViewModel(MainViewModel appViewModel, ComicView comics) 
             : base(appViewModel) 
         {
-            this.comics = comics.Sorted(this.SelectedSortSelector);
-            this.comics.ComicsChanged += this.Comics_ComicsChanged;
+            this._comics = comics.Sorted(this.SelectedSortSelector);
+            this._comics.ComicsChanged += this.Comics_ComicsChanged;
 
             // Sorts and loads the actual comic items
             this.RefreshComicItems();
@@ -36,17 +36,17 @@ namespace ComicsViewer.ViewModels.Pages {
          * list of workItems is already sorted here. On the other hand, we have to manually sort our ComicPropertiesView,
          * because we didn't need to waste time working out an event-based ComicPropertiesView */
         private protected override void SortOrderChanged() {
-            this.comics.Sort(this.SelectedSortSelector);
+            this._comics.Sort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
 
         private void RefreshComicItems() {
-            this.SetComicItems(this.MakeComicItems(this.comics));
+            this.SetComicItems(this.MakeComicItems(this._comics));
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
             foreach (var comic in comics.ToList()) {
-                var item = new ComicWorkItem(this.MainViewModel, comic, trackChangesFrom: this.comics);
+                var item = new ComicWorkItem(this.MainViewModel, comic, trackChangesFrom: this._comics);
                 item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
                 yield return item;
             }
@@ -80,7 +80,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
-            Debug.WriteLine($"VM{debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
+            Debug.WriteLine($"VM{this.debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
 
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
@@ -173,7 +173,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public override void Dispose() {
             base.Dispose();
 
-            this.comics.ComicsChanged -= this.Comics_ComicsChanged;
+            this._comics.ComicsChanged -= this.Comics_ComicsChanged;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace ComicsViewer.Support {
         protected abstract void DoNotify();
 
         protected void SendNotification() {
-            if (!deferNotifications) {
+            if (!this.deferNotifications) {
                 this.DoNotify();
             }
         }

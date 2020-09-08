@@ -28,15 +28,16 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        public SettingsPageViewModel? ViewModel;
-        private MainViewModel? MainViewModel => ViewModel?.MainViewModel;
+        private SettingsPageViewModel? _viewModel;
+        public SettingsPageViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is SettingsPageNavigationArguments args)) {
                 throw new ProgrammerError();
             }
 
-            this.ViewModel = new SettingsPageViewModel(args.MainViewModel, args.Profile);
+            this._viewModel = new SettingsPageViewModel(args.MainViewModel, args.Profile);
         }
 
         #region Creating a new profile 
@@ -47,7 +48,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.ViewModel!.CreateProfileAsync(this.NewProfileTextBox.Text, 
+            await this.ViewModel.CreateProfileAsync(this.NewProfileTextBox.Text, 
                 copyCurrent: this.NewProfileRadioButtons.SelectedItem == this.NewProfileCopyCurrentProfileRadioButton);
         }
 
@@ -78,7 +79,7 @@ namespace ComicsViewer.Pages {
         #endregion
 
         private void AddProfileCategoryButton_Click(object sender, RoutedEventArgs e) {
-            this.ViewModel!.AddEmptyProfileCategory();
+            this.ViewModel.AddEmptyProfileCategory();
         }
 
         private void ProfileCategoryDataGrid_CellEditEnded(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridCellEditEndedEventArgs e) {
@@ -86,7 +87,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void SaveProfileCategoriesButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.SaveProfileCategoriesAsync();
+            await this.ViewModel.SaveProfileCategoriesAsync();
             this.SaveProfleCategoriesButton.Visibility = Visibility.Collapsed;
         }
 
@@ -97,7 +98,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.MainViewModel!.StartReloadAllComicsTaskAsync();
+            await this.MainViewModel.StartReloadAllComicsTaskAsync();
         }
 
         private async void ReloadCategoryButton_Click(object sender, RoutedEventArgs e) {
@@ -111,7 +112,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError();
             }
 
-            await this.MainViewModel!.StartReloadCategoryTaskAsync(namedPath);
+            await this.MainViewModel.StartReloadCategoryTaskAsync(namedPath);
         }
     }
 }

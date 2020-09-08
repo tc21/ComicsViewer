@@ -28,7 +28,9 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        public FilterFlyoutViewModel? ViewModel;
+        private FilterFlyoutViewModel? _viewModel;
+        private FilterFlyoutViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+
         public PagedControlAccessor? PagedControlAccessor => throw new NotImplementedException();
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -38,7 +40,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("args cannot be null");
             }
 
-            this.ViewModel = new FilterFlyoutViewModel(args.ParentViewModel, args.Filter, args.AuxiliaryInfo);
+            this._viewModel = new FilterFlyoutViewModel(args.ParentViewModel, args.Filter, args.AuxiliaryInfo);
 
             /* Note: SelectedItems is currently being set BEFORE ItemsSource, and our solution of allowing it to be
              * done is more of a hack than the proper way to handle it. One day we might decide it to be better to set
@@ -61,32 +63,32 @@ namespace ComicsViewer.Pages {
         }
 
         private void ClearCustomFilterButton_Click(object sender, RoutedEventArgs e) {
-            this.ViewModel!.GeneratedFilter = null;
+            this.ViewModel.GeneratedFilter = null;
         }
 
         private void CategoryChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
-            var filter = this.ViewModel!.Filter;
+            var filter = this.ViewModel.Filter;
             this.HandleSelectionChange(e, filter, filter.AddCategory, filter.RemoveCategory);
         }
 
         private void AuthorChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
-            var filter = this.ViewModel!.Filter;
+            var filter = this.ViewModel.Filter;
             this.HandleSelectionChange(e, filter, filter.AddAuthor, filter.RemoveAuthor);
         }
 
         private void TagChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
-            var filter = this.ViewModel!.Filter;
+            var filter = this.ViewModel.Filter;
             this.HandleSelectionChange(e, filter, filter.AddTag, filter.RemoveTag);
         }
 
         private void HandleSelectionChange(SelectedItemsChangedEventArgs e, Filter filter, Func<string, bool> addItem, Func<string, bool> removeItem) {
             using (filter.DeferNotifications()) {
                 foreach (var item in e.RemovedItems) {
-                    removeItem(item.Name);
+                    _ = removeItem(item.Name);
                 }
 
                 foreach (var item in e.AddedItems) {
-                    addItem(item.Name);
+                    _ = addItem(item.Name);
                 }
             }
         }

@@ -11,22 +11,22 @@ namespace ComicsViewer.ViewModels {
     public class CheckBoxItem<T> : ViewModelBase {
         public T Item { get; }
 
-        private bool isChecked;
+        private bool _isChecked;
         public bool IsChecked {
-            get => this.isChecked;
+            get => this._isChecked;
             set {
-                if (this.isChecked == value) {
+                if (this._isChecked == value) {
                     return;
                 }
 
-                this.isChecked = value;
+                this._isChecked = value;
                 this.OnPropertyChanged();
             }
         }
 
         public CheckBoxItem(T name, bool isChecked = false) {
             this.Item = name;
-            this.isChecked = isChecked;
+            this._isChecked = isChecked;
         }
     }
 }

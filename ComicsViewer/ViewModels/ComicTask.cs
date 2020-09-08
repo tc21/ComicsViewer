@@ -36,7 +36,7 @@ namespace ComicsViewer.ViewModels {
         }
 
         public void Start() {
-            this.task = Task.Run(() => userAction(this.cancellationTokenSource.Token, this.progress)).ContinueWith(async finishedTask => {
+            this.task = Task.Run(() => this.userAction(this.cancellationTokenSource.Token, this.progress)).ContinueWith(async finishedTask => {
                 if (finishedTask.IsCompletedSuccessfully) {
                     this.IsCompleted = true;
                     this.Status = "completed";
@@ -81,7 +81,7 @@ namespace ComicsViewer.ViewModels {
             this.cancellationTokenSource.Cancel();
 
             _ = Task.Run(async () => {
-                if (this.task.Status == TaskStatus.WaitingForActivation || task.Status == TaskStatus.Running) {
+                if (this.task.Status == TaskStatus.WaitingForActivation || this.task.Status == TaskStatus.Running) {
                     await this.task;
                 }
 
@@ -109,7 +109,7 @@ namespace ComicsViewer.ViewModels {
         public event Action<ComicTask, object?> TaskCompleted = delegate { };
 
         public void CancelTaskButton_Click(object sender, RoutedEventArgs e) {
-            this.Cancel();
+            _ = this.Cancel();
         }
     }
 }

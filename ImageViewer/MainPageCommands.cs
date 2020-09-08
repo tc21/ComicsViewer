@@ -179,13 +179,13 @@ namespace ImageViewer {
         internal static readonly List<RelayCommand> CreatedCommands = new List<RelayCommand>();
 
         // reference: https://stackoverflow.com/questions/1468791
-        private readonly Predicate<object>? canExecute;
-        private readonly Action<object> execute;
+        private readonly Predicate<object>? _canExecute;
+        private readonly Action<object> _execute;
 
 
         public RelayCommand(Action<object> execute, Predicate<object>? canExecute = null) {
-            this.execute = execute;
-            this.canExecute = canExecute;
+            this._execute = execute;
+            this._canExecute = canExecute;
 
             CreatedCommands.Add(this);
         }
@@ -195,7 +195,7 @@ namespace ImageViewer {
             this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void Execute(object parameter) => this.execute(parameter);
-        public bool CanExecute(object parameter) => this.canExecute?.Invoke(parameter) ?? true;
+        public void Execute(object parameter) => this._execute(parameter);
+        public bool CanExecute(object parameter) => this._canExecute?.Invoke(parameter) ?? true;
     }
 }

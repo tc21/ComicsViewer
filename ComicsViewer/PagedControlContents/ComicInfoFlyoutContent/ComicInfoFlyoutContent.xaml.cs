@@ -27,7 +27,9 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        private ComicInfoFlyoutViewModel? ViewModel;
+        private ComicInfoFlyoutViewModel? _viewModel;
+        private ComicInfoFlyoutViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+
         private Action? EditInfoCallback { get; set; }
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
@@ -36,15 +38,15 @@ namespace ComicsViewer.Pages {
             this.PagedControlAccessor = controller;
 
             this.EditInfoCallback = args.EditInfoCallback;
-            this.ViewModel = new ComicInfoFlyoutViewModel(args.ParentViewModel, args.ComicItem);
+            this._viewModel = new ComicInfoFlyoutViewModel(args.ParentViewModel, args.ComicItem);
 
             if (!(await this.ViewModel.LoadDescriptionsAsync(this.InfoPivotText))) {
-                this.Pivot.Items.Remove(this.InfoPivotItem);
+                _ = this.Pivot.Items.Remove(this.InfoPivotItem);
             }
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.InitializeAsync();
+            await this.ViewModel.InitializeAsync();
         }
 
         private async void ListView_ItemClick(object sender, ItemClickEventArgs e) {
@@ -52,7 +54,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("ListView_ItemClick received unexpected item");
             }
 
-            await this.ViewModel!.OpenItemAsync(item);
+            await this.ViewModel.OpenItemAsync(item);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) {

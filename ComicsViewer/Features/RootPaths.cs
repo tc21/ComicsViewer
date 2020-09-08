@@ -23,7 +23,7 @@ namespace ComicsViewer.Features {
             }
         }
 
-        public int Count => paths.Count;
+        public int Count => this.paths.Count;
         public bool IsReadOnly => false;
 
         public void Add(string name, string path) => this.paths.Add(name, path);

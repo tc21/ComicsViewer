@@ -27,7 +27,7 @@ namespace ComicsViewer.Controls {
 
             this.SelectedItemsChanged += this.ExpandableChecklist_SelectedItemsChanged;
 
-            VisualStateManager.GoToState(this, "Collapsed", false);
+            _ = VisualStateManager.GoToState(this, "Collapsed", false);
         }
 
         private List<CountedStringCheckBoxItem> itemListItemsSource = new List<CountedStringCheckBoxItem>();
@@ -40,7 +40,7 @@ namespace ComicsViewer.Controls {
             set {
                 this.SetValue(ItemsSourceProperty, value);
                 // We allow setting selectedItems before ItemsSource, so we check for it here
-                this.itemListItemsSource = value.Select(e => new CountedStringCheckBoxItem(e, this.selectedItems.Contains(e))).ToList();
+                this.itemListItemsSource = value.Select(e => new CountedStringCheckBoxItem(e, this._selectedItems.Contains(e))).ToList();
                 this.ItemList.ItemsSource = this.itemListItemsSource;
             }
         }
@@ -63,37 +63,37 @@ namespace ComicsViewer.Controls {
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(string), typeof(ExpandableChecklist), new PropertyMetadata(""));
 
-        private HashSet<CountedString> selectedItems = new HashSet<CountedString>();
+        private HashSet<CountedString> _selectedItems = new HashSet<CountedString>();
         public IEnumerable<CountedString> SelectedItems {
-            get => this.selectedItems;
+            get => this._selectedItems;
             set {
-                var oldSelectedItems = this.selectedItems;
-                this.selectedItems = new HashSet<CountedString>(value);
+                var oldSelectedItems = this._selectedItems;
+                this._selectedItems = new HashSet<CountedString>(value);
 
                 foreach (var item in this.itemListItemsSource) {
-                    item.IsChecked = this.selectedItems.Contains(item.Item);
+                    item.IsChecked = this._selectedItems.Contains(item.Item);
                 }
 
                 var addedItems = new List<CountedString>();
 
-                foreach (var item in this.selectedItems) {
+                foreach (var item in this._selectedItems) {
                     if (!oldSelectedItems.Contains(item)) {
                         addedItems.Add(item);
                     }
                 }
 
                 // We use this set in place since we don't need it anymore
-                _ = oldSelectedItems.RemoveWhere(this.selectedItems.Contains);
+                _ = oldSelectedItems.RemoveWhere(this._selectedItems.Contains);
                 this.SelectedItemsChanged(this, new SelectedItemsChangedEventArgs(removedItems: oldSelectedItems, addedItems));
             }
         }
 
         private void DeselectAllButton_Tapped(object sender, TappedRoutedEventArgs e) {
-            var removedItems = this.selectedItems.ToList();
-            this.selectedItems.Clear();
+            var removedItems = this._selectedItems.ToList();
+            this._selectedItems.Clear();
 
             foreach (var item in this.itemListItemsSource) {
-                item.IsChecked = this.selectedItems.Contains(item.Item);
+                item.IsChecked = this._selectedItems.Contains(item.Item);
             }
 
             this.SelectedItemsChanged(this, new SelectedItemsChangedEventArgs(removedItems, EmptyList));
@@ -104,7 +104,7 @@ namespace ComicsViewer.Controls {
                 throw new ProgrammerError("ChecklistItem_Unchecked received unexpected item");
             }
 
-            this.selectedItems.Remove(item.Item);
+            _ = this._selectedItems.Remove(item.Item);
             this.SelectedItemsChanged(this, new SelectedItemsChangedEventArgs(
                 new List<CountedString> { item.Item }, EmptyList));
         }
@@ -114,17 +114,17 @@ namespace ComicsViewer.Controls {
                 throw new ProgrammerError("ChecklistItem_Checked received unexpected item");
             }
 
-            this.selectedItems.Add(item.Item);
+            _ = this._selectedItems.Add(item.Item);
             this.SelectedItemsChanged(this, new SelectedItemsChangedEventArgs(
                 EmptyList, new List<CountedString> { item.Item }));
         }
 
         private void ExpandableChecklist_SelectedItemsChanged(ExpandableChecklist sender, SelectedItemsChangedEventArgs e) {
-            if (this.selectedItems.Count == 0) {
+            if (this._selectedItems.Count == 0) {
                 this.DeselectAllButton.Visibility = Visibility.Collapsed;
                 this.SelectedItemsIndicator.Visibility = Visibility.Collapsed;
             } else {
-                this.SelectedItemsCounter.Text = this.selectedItems.Count.ToString();
+                this.SelectedItemsCounter.Text = this._selectedItems.Count.ToString();
                 this.DeselectAllButton.Visibility = Visibility.Visible;
                 this.SelectedItemsIndicator.Visibility = Visibility.Visible;
             }
@@ -145,12 +145,12 @@ namespace ComicsViewer.Controls {
         }
 
         private void HeaderToggleButton_Checked(object sender, RoutedEventArgs e) {
-            VisualStateManager.GoToState(this, "Expanded", true);
+            _ = VisualStateManager.GoToState(this, "Expanded", true);
             this.Expanding(this, EventArgs.Empty);
         }
 
         private void HeaderToggleButton_Unchecked(object sender, RoutedEventArgs e) {
-            VisualStateManager.GoToState(this, "Collapsed", true);
+            _ = VisualStateManager.GoToState(this, "Collapsed", true);
         }
     }
 

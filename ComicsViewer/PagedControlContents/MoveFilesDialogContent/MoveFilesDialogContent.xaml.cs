@@ -40,16 +40,19 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             var (accessor, args) = PagedControlAccessor.FromNavigationArguments<MoveFilesDialogNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = accessor;
-            this.Comics = args.Comics.ToList();
-            this.ParentViewModel = args.ParentViewModel;
+            this._comics = args.Comics.ToList();
+            this._parentViewModel = args.ParentViewModel;
 
-            this.CategoryComboBox.ItemsSource = this.MainViewModel!.Profile.RootPaths;
+            this.CategoryComboBox.ItemsSource = this.MainViewModel.Profile.RootPaths;
         }
 
         /* We will bypass using a view model since the logic of this page is so simple */
-        private List<Comic>? Comics;
-        private ComicItemGridViewModel? ParentViewModel;
-        private MainViewModel? MainViewModel => ParentViewModel?.MainViewModel;
+        private List<Comic>? _comics;
+        private ComicItemGridViewModel? _parentViewModel;
+
+        private List<Comic> Comics => this._comics ?? throw new ProgrammerError("Comics must be initialized");
+        private ComicItemGridViewModel ParentViewModel => this._parentViewModel ?? throw new ProgrammerError("ParentViewModel must be initialized");
+        private MainViewModel MainViewModel => this.ParentViewModel.MainViewModel;
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) {
             this.PagedControlAccessor?.CloseContainer();
@@ -60,15 +63,15 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError();
             }
 
-            _ = this.MainViewModel!.StartUniqueTaskAsync(
+            _ = this.MainViewModel.StartUniqueTaskAsync(
                 "moveFiles",
-                $"Moving {this.Comics!.Count.PluralString("item")} to category '{category.Name}'...",
+                $"Moving {this.Comics.Count.PluralString("item")} to category '{category.Name}'...",
                 async (cc, p) => {
                     var progress = 0;
                     // We should probably try to catch FileNotFound and UnauthorizedAccess here
                     var rootFolder = await StorageFolder.GetFolderFromPathAsync(category.Path);
 
-                    foreach (var comic in this.Comics!) {
+                    foreach (var comic in this.Comics) {
                         if (comic.Category != category.Name) {
                             var originalAuthorPath = Path.GetDirectoryName(comic.Path);
                             var targetPath = Path.Combine(category.Path, comic.Author, comic.Title);
@@ -95,7 +98,7 @@ namespace ComicsViewer.Pages {
                                 Windows.UI.Core.CoreDispatcherPriority.Normal,
                                 async () => {
                                     var copy = comic.With(path: targetPath, category: category.Name);
-                                    await this.MainViewModel!.UpdateComicAsync(new[] { copy });
+                                    await this.MainViewModel.UpdateComicAsync(new[] { copy });
                                 }
                             );
                         }

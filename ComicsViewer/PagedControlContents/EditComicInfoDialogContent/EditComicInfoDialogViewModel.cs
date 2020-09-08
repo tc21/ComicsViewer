@@ -13,7 +13,7 @@ namespace ComicsViewer.ViewModels.Pages {
     public class EditComicInfoDialogViewModel : ViewModelBase {
         public readonly ComicWorkItem Item;
         public readonly ComicItemGridViewModel ParentViewModel;
-        private MainViewModel MainViewModel => ParentViewModel.MainViewModel;
+        private MainViewModel MainViewModel => this.ParentViewModel.MainViewModel;
 
         public EditComicInfoDialogViewModel(ComicItemGridViewModel parentViewModel, ComicWorkItem item) {
             this.ParentViewModel = parentViewModel;

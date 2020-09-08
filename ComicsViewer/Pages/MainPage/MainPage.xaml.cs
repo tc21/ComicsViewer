@@ -160,7 +160,7 @@ namespace ComicsViewer {
                 if (!(this.ContentFrame.Content is SettingsPage)) {
                     this.ViewModel.NavigationLevel = 2;
                     this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
-                    _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel!, this.ViewModel!.Profile));
+                    _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel, this.ViewModel.Profile));
                 }
                 return;
             }
@@ -222,7 +222,7 @@ namespace ComicsViewer {
                 this.ViewModel.SubmitSearch(search, sender.Text);
 
                 // remove focus from the search box (partially to indicate that the search succeeded)
-                this.activeContent?.Focus(FocusState.Pointer);
+                _ = this.activeContent?.Focus(FocusState.Pointer);
             }
         }
 
@@ -247,7 +247,7 @@ namespace ComicsViewer {
 
             this.FilterFlyout.NavigateAndShowAt(
                 typeof(FilterFlyoutContent),
-                this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel!),
+                this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel),
                 (FrameworkElement)sender
             );
         }

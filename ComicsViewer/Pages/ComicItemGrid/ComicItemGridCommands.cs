@@ -43,8 +43,8 @@ namespace ComicsViewer.Pages {
         // This class defined within ComicItemGrid to have access to VisibleComicsGrid
         public class CommandArgs<T, X> where T : ComicItemGridViewModel where X : ComicItem {
             public ComicItemGrid Grid { get; }
-            public T ViewModel => (T)this.Grid.ViewModel!;
-            public MainViewModel MainViewModel => this.Grid.MainViewModel!;
+            public T ViewModel => (T)this.Grid.ViewModel;
+            public MainViewModel MainViewModel => this.Grid.MainViewModel;
             public int Count => this.Grid.VisibleComicsGrid.SelectedItems.Count;
             public IEnumerable<X> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<X>();
             public bool IsWorkItems => this.ViewModel.NavigationTag.IsWorkItemNavigationTag();

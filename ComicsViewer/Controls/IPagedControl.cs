@@ -65,7 +65,7 @@ namespace ComicsViewer.Controls {
                 throw new ProgrammerError("IPagedItemContainer cannot have custom content");
             }
 
-            container.ContentFrame.NavigateToType(
+            _ = container.ContentFrame.NavigateToType(
                 pageType,
                 new PagedControlNavigationArguments(container, parameter),
                 new FrameNavigationOptions { IsNavigationStackEnabled = false }

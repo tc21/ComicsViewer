@@ -36,7 +36,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            this.Frame.Navigate(typeof(ComicItemGrid), e.Parameter, new SuppressNavigationTransitionInfo());
+            _ = this.Frame.Navigate(typeof(ComicItemGrid), e.Parameter, new SuppressNavigationTransitionInfo());
         }
     }
 }

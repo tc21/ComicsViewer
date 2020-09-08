@@ -53,9 +53,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            //Debug.WriteLine($"TopLevelContainer.OnNavigatedTo");
-
-            this.Frame.Navigate(typeof(ComicItemGrid), e.Parameter, new SuppressNavigationTransitionInfo());
+            _ = this.Frame.Navigate(typeof(ComicItemGrid), e.Parameter, new SuppressNavigationTransitionInfo());
         }
     }
 }

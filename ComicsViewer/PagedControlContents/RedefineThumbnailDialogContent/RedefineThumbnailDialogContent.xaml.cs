@@ -28,9 +28,12 @@ namespace ComicsViewer.Pages {
      * The result of this decision, obviously, isn't that programs won't want to open the file picker to arbitrary
      * locations, but that we will have to write our own file pickers. */
     public sealed partial class RedefineThumbnailDialogContent : Page, IPagedControlContent {
+        private ComicItemGridViewModel? _parentViewModel;
+        public ComicWorkItem? _item;
+
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
-        public ComicItemGridViewModel? ParentViewModel { get; private set; }
-        public ComicWorkItem? Item { get; private set; }
+        public ComicItemGridViewModel ParentViewModel => this._parentViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        public ComicWorkItem Item => this._item ?? throw new ProgrammerError("Item must be initialized");
 
         public RedefineThumbnailDialogContent() {
             this.InitializeComponent();
@@ -41,8 +44,8 @@ namespace ComicsViewer.Pages {
                 = PagedControlAccessor.FromNavigationArguments<RedefineThumbnailDialogNavigationArguments>(e.Parameter);
 
             this.PagedControlAccessor = accessor;
-            this.Item = args.Item;
-            this.ParentViewModel = args.ParentViewModel;
+            this._item = args.Item;
+            this._parentViewModel = args.ParentViewModel;
 
             var items = new List<ThumbnailGridItem>();
 
@@ -62,12 +65,12 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError();
             }
 
-            await this.ParentViewModel!.TryRedefineThumbnailAsync(this.Item!, item.File);
+            await this.ParentViewModel.TryRedefineThumbnailAsync(this.Item, item.File);
             this.PagedControlAccessor!.CloseContainer();
         }
 
         private async void CustomFileButton_Click(object sender, RoutedEventArgs e) {
-            await this.ParentViewModel!.TryRedefineThumbnailFromFilePickerAsync(this.Item!);
+            await this.ParentViewModel.TryRedefineThumbnailFromFilePickerAsync(this.Item);
             this.PagedControlAccessor!.CloseContainer();
         }
 

@@ -31,7 +31,10 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        public EditComicInfoDialogViewModel? ViewModel;
+
+        private EditComicInfoDialogViewModel? _viewModel;
+        private EditComicInfoDialogViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -39,11 +42,11 @@ namespace ComicsViewer.Pages {
                 PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(e.Parameter);
             this.PagedControlAccessor = controller;
 
-            this.ViewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
+            this._viewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
         }
 
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel!.SaveComicInfoAsync(
+            await this.ViewModel.SaveComicInfoAsync(
                 title: this.ComicTitleTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
                 loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError(),
@@ -74,7 +77,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.ViewModel!.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel!.Item, (StorageFile)items[0]);
+            await this.ViewModel.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel.Item, (StorageFile)items[0]);
         }
 
         private void ThumbnailBorder_DragEnter(object sender, DragEventArgs e) {
