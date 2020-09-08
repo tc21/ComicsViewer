@@ -47,14 +47,14 @@ namespace ComicsViewer.Features {
 
                     if (ImageExtensions.Contains(Path.GetExtension(firstFile.Name))) {
                         var data = new ValueSet {
-                            ["FirstFileToken"] = SharedStorageAccessManager.AddFile(firstFile)
+                            ["Path"] = firstFile.Path
                         };
 
                         var opt = new LauncherOptions {
                             TargetApplicationPackageFamilyName = "d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434"
                         };
 
-                        if (!await Launcher.LaunchUriAsync(new Uri("comics-imageviewer:///files"), opt, data)) {
+                        if (!await Launcher.LaunchUriAsync(new Uri("comics-imageviewer:///path"), opt, data)) {
                             await ExpectedExceptions.IntendedBehaviorAsync(
                                 title: "Cannot open item",
                                 message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",

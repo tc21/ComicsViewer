@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.DataTransfer;
@@ -44,7 +45,35 @@ namespace ImageViewer {
                     return;
                 }
 
+                if (eventArgs.Uri.AbsolutePath == "/path" && eventArgs.Data.TryGetValue("Path", out var p) && p is string path) {
+                    try {
+                        try {
+                            var s = await StorageFolder.GetFolderFromPathAsync(path);
+                            _ = rootFrame.Navigate(typeof(MainPage), await s.GetFilesAsync());
+                            return;
+                        } catch (ArgumentException) {
+                            /* fall through */
+                        } catch (FileNotFoundException) {
+                            /* fall through */
+                        }
+
+                        var f = await StorageFile.GetFileFromPathAsync(path);
+                        _ = rootFrame.Navigate(typeof(MainPage), new[] { f });
+                        Window.Current.Activate();
+                        return;
+                    } catch (Exception e) {
+                        Window.Current.Activate();
+                        await Task.Delay(100);
+                        _ = new ContentDialog {
+                            Title = "An exception occured",
+                            Content = e.ToString(),
+                            CloseButtonText = "OK"
+                        }.ShowAsync();
+                    }
+                }
+
                 Window.Current.Activate();
+                await Task.Delay(100);
                 _ = new ContentDialog {
                     Title = "Failed to parse launch uri",
                     Content = $"The application could not parse the launch uri.\n" +
