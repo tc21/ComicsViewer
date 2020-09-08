@@ -62,8 +62,11 @@ namespace ComicsViewer.ViewModels.Pages {
             // Although we don't have to await these, we will need to do so for it to throw an 
             // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
             try {
+                var tasks = items.Select(async item => {
+                    var subitem = await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic);
+                    await Startup.OpenComicAtPathAsync(subitem.First().Path, this.MainViewModel.Profile);
+                });
 
-                var tasks = items.Select(item => Startup.OpenComicAtPathAsync(item.Comic.Path, this.MainViewModel.Profile));
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
                 await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();

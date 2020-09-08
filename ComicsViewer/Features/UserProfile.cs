@@ -82,5 +82,42 @@ namespace ComicsViewer.Features {
         public async Task<bool> FolderContainsValidComicAsync(StorageFolder folder) {
             return (await this.GetFirstFileForComicAsync(folder)) != null;
         }
+
+        // Temporary: this code should be moved elsewhere
+        // Unfortunately we aren't actually on .NET Core 3.0, meaning we can't await an IAsyncEnumerable
+        public async Task<IEnumerable<ComicSubitem>> GetComicSubitemsAsync(Comic comic) {
+            // We currently recurse one level. More levels may be desired in the future...
+            var subitems = new List<ComicSubitem>();
+
+            var rootItem = await this.ComicSubitemForFolderAsync(comic, await StorageFolder.GetFolderFromPathAsync(comic.Path), rootItem: true);
+            if (rootItem != null) {
+                subitems.Add(rootItem);
+            }
+
+            var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+            foreach (var subfolder in await folder.GetFoldersAsync()) {
+                var item = await this.ComicSubitemForFolderAsync(comic, subfolder);
+                if (item != null) {
+                    subitems.Add(item);
+                }
+            }
+
+            return subitems;
+        }
+
+        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, bool rootItem = false) {
+            var files = await this.GetTopLevelFilesForFolderAsync(folder);
+            var fileCount = files.Count();
+
+            if (fileCount == 0) {
+                return null;
+            }
+
+            if (rootItem) {
+                return new ComicSubitem(comic, relativePath: "", displayName: "(root item)", fileCount);
+            }
+
+            return new ComicSubitem(comic, relativePath: folder.Name, displayName: folder.Name, fileCount);
+        }
     }
 }
