@@ -195,11 +195,11 @@ namespace ImageViewer {
             await reloadTask;
         }
 
-        private async Task UpdateBitmapMetadataAsync(StorageFile stream) {
+        private async Task UpdateBitmapMetadataAsync(StorageFile file) {
             try {
-                var properties = await stream.GetBasicPropertiesAsync();
-                var imageProperties = await stream.Properties.GetImagePropertiesAsync();
-                this.CurrentImageMetadata = this.CurrentImageDescription(properties);
+                var properties = await file.GetBasicPropertiesAsync();
+                var imageProperties = await file.Properties.GetImagePropertiesAsync();
+                this.CurrentImageMetadata = this.CurrentImageDescription(properties, imageProperties);
             } catch (NotSupportedException) {
                 this.CurrentImageMetadata = null;
             }
@@ -214,7 +214,7 @@ namespace ImageViewer {
                 return "No metadata loaded.";
             }
 
-            var description = $"File size: {FormatFileSize(basicProperties.Size)}\nLast modified: {basicProperties.DateModified}";
+            var description = $"File size: {FormatFileSize(basicProperties.Size)}\nLast modified: {FormatDate(basicProperties.DateModified, true)}";
 
             try {
                 description += $"\nDimensions: {this.CurrentImageSource.PixelWidth}x{this.CurrentImageSource.PixelHeight}";
@@ -224,10 +224,10 @@ namespace ImageViewer {
 
             if (metadata != null) {
                 try {
-                    description += string.Format(
-                        "\nMetadata: {0}, {1} {2}",
-                        metadata.DateTaken, metadata.CameraManufacturer, metadata.CameraModel
-                    );
+                    description += $"\nMetadata: Taken on {FormatDate(metadata.DateTaken)}";
+                    if (!(string.IsNullOrEmpty(metadata.CameraManufacturer) && string.IsNullOrEmpty(metadata.CameraModel))) {
+                        description += $", {metadata.CameraManufacturer} {metadata.CameraModel}";
+                    }
                 } catch (NotSupportedException) {
                     /* do nothing */
                 }
@@ -257,6 +257,16 @@ namespace ImageViewer {
             static string FormatDouble(double d) {
                 return $"{d:F2}".TrimEnd('0').TrimEnd('.');
             }
+        }
+
+        private static string FormatDate(DateTimeOffset offset, bool includeTime = false) {
+            var formatted = offset.ToString("yyyy-MM-dd");
+
+            if (includeTime) {
+                formatted += " " + offset.ToString("t");
+            }
+
+            return formatted;
         }
     
 
