@@ -70,13 +70,17 @@ namespace MusicPlayer {
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(250, this.AppTitleBar.ActualHeight + this.Player.ActualHeight));
         }
 
-        private async void MediaPlayer_MediaEnded(Windows.Media.Playback.MediaPlayer sender, object args) {
+        private async void MediaPlayer_MediaEnded(Windows.Media.Playback.MediaPlayer sender, object? args) {
             sender.MediaEnded -= this.MediaPlayer_MediaEnded;
             sender.Pause();
 
             if (this.ViewModel.Next() is PlaylistItem item) {
                 await this.ViewModel.PlayAsync(item);
             }
+        }
+
+        private void OurMediaTransportControlsHack_NextTrackClicked(MediaTransportControls sender, RoutedEventArgs args) {
+            this.MediaPlayer_MediaEnded(this.Player.MediaPlayer, null);
         }
 
         private void ViewModel_PlayRequested(ViewModel sender, MediaSource source) {
@@ -133,5 +137,23 @@ namespace MusicPlayer {
 
             this.AppTitleBar.Height = sender.Height;
         }
+    }
+
+    /* The "correct" way of enabling the forward/previous buttons is to use a MediaPlaybackList. However, that
+     * overly complicates the logic of PlaylistPage, so we use this hack for now. */
+    public class OurMediaTransportControlsHack : MediaTransportControls {
+        protected override void OnApplyTemplate() {
+            if (this.GetTemplateChild("NextTrackButton") is Button nextTrack) {
+                nextTrack.Click += this.NextTrack_Click;
+            }
+
+            base.OnApplyTemplate();
+        }
+
+        private void NextTrack_Click(object sender, RoutedEventArgs e) {
+            this.NextTrackClicked?.Invoke(this, e);
+        }
+
+        public event Action<MediaTransportControls, RoutedEventArgs>? NextTrackClicked;
     }
 }

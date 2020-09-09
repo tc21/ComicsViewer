@@ -37,8 +37,15 @@
                             DragOver="Player_DragOver"
                             Drop="Player_Drop">
             <MediaPlayerElement.TransportControls>
-                <MediaTransportControls IsZoomButtonVisible="False"
-                                        IsFullWindowButtonVisible="False" />
+                <local:OurMediaTransportControlsHack
+                    IsZoomButtonVisible="False"
+                    IsSkipBackwardButtonVisible="True"
+                    IsSkipForwardButtonVisible="True"
+                    IsSkipBackwardEnabled="True"
+                    IsSkipForwardEnabled="True"
+                    IsNextTrackButtonVisible="True"
+                    IsFullWindowButtonVisible="False"
+                    NextTrackClicked="OurMediaTransportControlsHack_NextTrackClicked"/>
             </MediaPlayerElement.TransportControls>
         </MediaPlayerElement>
 
