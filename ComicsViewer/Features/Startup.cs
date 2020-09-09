@@ -43,31 +43,22 @@ namespace ComicsViewer.Features {
                         return;
                     }
 
-                    var firstFile = files.First();
+                    var path = files.First().Path;
 
-                    if (ImageExtensions.Contains(Path.GetExtension(firstFile.Name))) {
-                        var data = new ValueSet {
-                            ["Path"] = firstFile.Path
-                        };
+                    if (ImageExtensions.Contains(Path.GetExtension(path))) {
+                        await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///path", path);
+                        return;
+                    }
 
-                        var opt = new LauncherOptions {
-                            TargetApplicationPackageFamilyName = "d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434"
-                        };
-
-                        if (!await Launcher.LaunchUriAsync(new Uri("comics-imageviewer:///path"), opt, data)) {
-                            await ExpectedExceptions.IntendedBehaviorAsync(
-                                title: "Cannot open item",
-                                message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",
-                                cancelled: false
-                            );
-                        }
+                    if (MusicExtensions.Contains(Path.GetExtension(path))) {
+                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///path", path);
                         return;
                     }
 
                     await ExpectedExceptions.IntendedBehaviorAsync(
                         title: "Cannot open item",
                         message: "The application could not open this item in a built-in viewer, " +
-                            $"because it doesn't recognize its extension: '{Path.GetExtension(firstFile.Name)}'.",
+                            $"because it doesn't recognize its extension: '{Path.GetExtension(files.First().Name)}'.",
                         cancelled: false
                     );
 
@@ -75,6 +66,25 @@ namespace ComicsViewer.Features {
 
                 default:
                     throw new ProgrammerError($"{nameof(OpenComicFolderAsync)}: unhandled switch case");
+            }
+
+            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string path) {
+                var data = new ValueSet {
+                    ["Path"] = path
+                };
+
+                var opt = new LauncherOptions {
+                    TargetApplicationPackageFamilyName = packageFamilyName
+                };
+
+                if (!await Launcher.LaunchUriAsync(new Uri(uri), opt, data)) {
+                    await ExpectedExceptions.IntendedBehaviorAsync(
+                        title: "Cannot open item",
+                        message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",
+                        cancelled: false
+                    );
+                }
+                return;
             }
         }
 
@@ -89,6 +99,10 @@ namespace ComicsViewer.Features {
         private static readonly string[] ImageExtensions = {
             ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
             ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
-        }; 
+        };
+
+        private static readonly string[] MusicExtensions = {
+            ".mp3", ".m4a", ".wav", ".flac"
+        };
     }
 }
