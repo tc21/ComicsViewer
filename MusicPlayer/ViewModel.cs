@@ -22,22 +22,25 @@ namespace MusicPlayer {
 
         private PlaylistItem? nowPlaying;
 
-        public async Task OpenContainingFolderAsync(StorageFile item) {
+        public async Task OpenContainingFolderAsync(StorageFile item, bool append = false) {
             if (!(await item.GetParentAsync() is StorageFolder folder)) {
                 await ExpectedExceptions.UnauthorizedAccessAsync(cancelled: false);
                 return;
             }
 
-            await this.OpenFolderAsync(folder, item.Name);
+            await this.OpenFolderAsync(folder, item.Name, append);
         }
 
-        public async Task OpenFolderAsync(StorageFolder item, string? startAtName = null) {
-            await this.OpenFilesAsync(await item.GetFilesAsync(), startAtName);
+        public async Task OpenFolderAsync(StorageFolder item, string? startAtName = null, bool append = false) {
+            await this.OpenFilesAsync(await item.GetFilesAsync(), startAtName, append);
         }
 
-        public async Task OpenFilesAsync(IEnumerable<StorageFile> items, string? startAtName = null) {
+        public async Task OpenFilesAsync(IEnumerable<StorageFile> items, string? startAtName = null, bool append = false) {
+            if (!append) {
+                this.PlaylistItems.Clear();
+            }
+
             var startIndex = 0;
-
             var currentIndex = 0;
             foreach (var file in items.Where(f => IsPlayableFile(f.Name))) {
                 this.PlaylistItems.Add(await PlaylistItem.FromFileAsync(file));
