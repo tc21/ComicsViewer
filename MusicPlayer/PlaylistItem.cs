@@ -21,7 +21,7 @@ namespace MusicPlayer {
 
                 while (dur >= 60) {
                     str = $":{dur % 60:D2}" + str;
-                    dur %= 60;
+                    dur /= 60;
                 }
 
                 return $"{dur}{str}";
