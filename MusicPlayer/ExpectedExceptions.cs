@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ComicsViewer.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,8 +10,8 @@ using Windows.UI.Xaml.Controls;
 
 #nullable enable
 
-namespace ComicsViewer.Common {
-    public static class ExpectedExceptions {
+namespace MusicPlayer {
+    internal static class ExpectedExceptions {
         public static Task FileNotFoundAsync(string? filename = null, string message = "The application attempted to open a file, but it wasn't found.", bool cancelled = true) {
             if (filename != null) {
                 message += $" ({filename})";
@@ -19,11 +20,10 @@ namespace ComicsViewer.Common {
             return IntendedBehaviorAsync(message, "File not found", cancelled);
         }
 
-
         public static Task UnauthorizedAccessAsync(bool cancelled = true) {
             return IntendedBehaviorAsync(
-                "The application could not access files that it needs to correctly work. " +
-                    "Please enable file system access in settings.", 
+                "Comics could not access files that it needs to correctly work. " +
+                    "Please enable file system access in settings to open comics.", 
                 "Access denied", 
                 cancelled
             );
@@ -39,29 +39,6 @@ namespace ComicsViewer.Common {
                 Content = message,
                 CloseButtonText = "OK"
             }.ShowAsync();
-        }
-
-        public static async Task<bool> HandleFileRelatedExceptionsAsync(Exception e) {
-            switch (e) {
-                case UnauthorizedAccessException _:
-                    await UnauthorizedAccessAsync();
-                    return true;
-                case FileNotFoundException ef:
-                    await FileNotFoundAsync(ef.FileName);
-                    return true;
-                default:
-                    return await HandleIntendedBehaviorExceptionsAsync(e);
-            }
-        }
-
-        public static async Task<bool> HandleIntendedBehaviorExceptionsAsync(Exception e) {
-            switch (e) {
-                case IntendedBehaviorException ib:
-                    await IntendedBehaviorAsync(ib.Message, ib.Title);
-                    return true;
-                default:
-                    return false;
-            }
         }
     }
 }

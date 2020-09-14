@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using DWORD = System.UInt32;
 using WORD = System.UInt16;
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
+using ComicsViewer.Common;
 
 #nullable enable
 

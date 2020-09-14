@@ -127,6 +127,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ExpectedExceptions.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -216,7 +217,12 @@
       <Version>6.2.10</Version>
     </PackageReference>
   </ItemGroup>
-  <Import Project="..\Common\Common.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\ComicsViewer.Common\ComicsViewer.Common.csproj">
+      <Project>{0e793585-a50b-40d0-9af1-70aa455e685d}</Project>
+      <Name>ComicsViewer.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

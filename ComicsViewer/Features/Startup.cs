@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Common;
 using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
@@ -90,7 +91,7 @@ namespace ComicsViewer.Features {
 
         public static async Task OpenContainingFolderAsync(Comic comic) {
             if (!Support.Interop.FileApiInterop.FileOrDirectoryExists(comic.Path)) {
-                await Support.ExpectedExceptions.ComicNotFoundAsync(comic);
+                await ExpectedExceptions.ComicNotFoundAsync(comic);
             }
 
             _ = await Launcher.LaunchFolderPathAsync(comic.Path);

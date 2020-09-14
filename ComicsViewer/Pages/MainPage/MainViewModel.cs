@@ -2,6 +2,7 @@
 using ComicsLibrary.Collections;
 using ComicsLibrary.SQL;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.Support;
@@ -29,7 +30,7 @@ using Windows.UI.Xaml.Media.Animation;
 namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         internal readonly MainComicList Comics = new MainComicList();
-        public ComicView ComicView => Comics.Filtered();
+        public ComicView ComicView => this.Comics.Filtered();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -124,7 +125,7 @@ namespace ComicsViewer.ViewModels.Pages {
             } catch (FileNotFoundException) {
                 // we allow that
             } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync(cancelled: false);
+                await ExpectedExceptions.UnauthorizedAccessAsync(cancelled: false);
                 return false;
             }
 
@@ -305,7 +306,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private bool ScheduleTask<T>(
                 string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, 
                 Func<T, Task>? asyncCallback, Func<Exception, Task<bool>>? exceptionHandler) {
-            if (taskNames.ContainsKey(tag)) { 
+            if (this.taskNames.ContainsKey(tag)) { 
                 return false;
             }
 

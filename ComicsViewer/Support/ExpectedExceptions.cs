@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +24,7 @@ namespace ComicsViewer.Support {
             return IntendedBehaviorAsync($"The folder for item {comic.Title} could not be found. ({comic.Path})", "Item not found");
         }
 
-        public static Task UnauthorizedFileSystemAccessAsync(bool cancelled = true) {
+        public static Task UnauthorizedAccessAsync(bool cancelled = true) {
             return IntendedBehaviorAsync(
                 "Comics could not access files that it needs to correctly work. " +
                     "Please enable file system access in settings to open comics.", 
@@ -47,7 +48,7 @@ namespace ComicsViewer.Support {
         public static async Task<bool> HandleFileRelatedExceptionsAsync(Exception e) {
             switch (e) {
                 case UnauthorizedAccessException _:
-                    await UnauthorizedFileSystemAccessAsync();
+                    await UnauthorizedAccessAsync();
                     return true;
                 case FileNotFoundException ef:
                     await FileNotFoundAsync(ef.FileName);

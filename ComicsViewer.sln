@@ -13,13 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageViewer", "ImageViewer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicPlayer", "MusicPlayer\MusicPlayer.csproj", "{31755BEF-7EE8-4EFF-8D3A-49405DD7BCA1}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Common", "Common\Common.shproj", "{E2A5CA7D-305E-4592-AA5B-49BED677DFAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicsViewer.Common", "ComicsViewer.Common\ComicsViewer.Common.csproj", "{0E793585-A50B-40D0-9AF1-70AA455E685D}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Common\Common.projitems*{31755bef-7ee8-4eff-8d3a-49405dd7bca1}*SharedItemsImports = 4
-		Common\Common.projitems*{e2a5ca7d-305e-4592-aa5b-49bed677dfaf}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
@@ -159,6 +155,26 @@ Global
 		{31755BEF-7EE8-4EFF-8D3A-49405DD7BCA1}.Release|x86.ActiveCfg = Release|x86
 		{31755BEF-7EE8-4EFF-8D3A-49405DD7BCA1}.Release|x86.Build.0 = Release|x86
 		{31755BEF-7EE8-4EFF-8D3A-49405DD7BCA1}.Release|x86.Deploy.0 = Release|x86
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|ARM.Build.0 = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Debug|x86.Build.0 = Debug|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|ARM.Build.0 = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|ARM64.Build.0 = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|x64.Build.0 = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|x86.ActiveCfg = Release|Any CPU
+		{0E793585-A50B-40D0-9AF1-70AA455E685D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

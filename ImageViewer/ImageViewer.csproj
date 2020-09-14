@@ -213,6 +213,12 @@
       <Version>2.4.3</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ComicsViewer.Common\ComicsViewer.Common.csproj">
+      <Project>{0e793585-a50b-40d0-9af1-70aa455e685d}</Project>
+      <Name>ComicsViewer.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

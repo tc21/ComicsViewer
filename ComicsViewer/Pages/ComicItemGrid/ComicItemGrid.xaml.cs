@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;

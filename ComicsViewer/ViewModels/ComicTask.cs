@@ -1,4 +1,5 @@
 ﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

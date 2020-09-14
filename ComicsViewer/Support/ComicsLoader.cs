@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using Windows.Storage;
 using ComicsViewer.Support.Interop;
+using ComicsViewer.Common;
 
 #nullable enable
 

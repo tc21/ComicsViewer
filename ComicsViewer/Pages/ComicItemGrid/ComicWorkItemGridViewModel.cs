@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using System;
@@ -69,7 +70,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 await Task.WhenAll(tasks);
             } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
+                await ExpectedExceptions.UnauthorizedAccessAsync();
             } catch (FileNotFoundException e) {
                 if (items.Count() == 1) {
                     await ExpectedExceptions.ComicNotFoundAsync(items.First().Comic);

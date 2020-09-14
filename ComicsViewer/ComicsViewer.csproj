@@ -148,7 +148,6 @@
     <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Support\FileApiInterop.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
-    <Compile Include="Support\IntendedBehaviorException.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />
@@ -216,7 +215,6 @@
     <Compile Include="Support\DeferredNotify.cs" />
     <Compile Include="Support\ComicsLoader.cs" />
     <Compile Include="Features\Search.cs" />
-    <Compile Include="Support\ProgrammerError.cs" />
     <Compile Include="Features\Thumbnail.cs" />
     <Compile Include="ViewModels\ComicItem.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
@@ -377,6 +375,10 @@
     <ProjectReference Include="..\ComicsLibrary\ComicsLibrary.csproj">
       <Project>{5dff8285-b9fe-4e29-aad9-bd3326bbab7a}</Project>
       <Name>ComicsLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ComicsViewer.Common\ComicsViewer.Common.csproj">
+      <Project>{0e793585-a50b-40d0-9af1-70aa455e685d}</Project>
+      <Name>ComicsViewer.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

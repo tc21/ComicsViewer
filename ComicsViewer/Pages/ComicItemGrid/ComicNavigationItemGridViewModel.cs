@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;

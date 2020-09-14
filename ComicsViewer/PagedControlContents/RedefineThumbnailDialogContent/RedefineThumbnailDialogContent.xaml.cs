@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Controls;
+﻿using ComicsViewer.Common;
+using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;

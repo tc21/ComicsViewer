@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using System;
@@ -35,7 +36,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     this.ComicSubitems.Add(item);
                 }
             } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedFileSystemAccessAsync();
+                await ExpectedExceptions.UnauthorizedAccessAsync();
             } catch (FileNotFoundException) {
                 await ExpectedExceptions.ComicNotFoundAsync(this.Item.Comic);
             }

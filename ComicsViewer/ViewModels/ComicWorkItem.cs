@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels.Pages;
 using System;

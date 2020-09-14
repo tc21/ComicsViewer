@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using ComicsViewer.Common;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
@@ -16,7 +17,7 @@ using Windows.UI.Xaml.Media.Imaging;
 #nullable enable
 
 namespace ImageViewer {
-    public class ViewModel : INotifyPropertyChanged {
+    public class ViewModel : ViewModelBase {
         public static readonly string[] ImageExtensions = {
             ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
             ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
@@ -299,13 +300,6 @@ namespace ImageViewer {
             }
 
             return formatted;
-        }
-    
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = "") {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

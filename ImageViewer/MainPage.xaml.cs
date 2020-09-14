@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
+using ComicsViewer.Common;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
@@ -212,7 +213,7 @@ namespace ImageViewer {
 
             if (this.dragStart is Point dragStart) {
                 if (!(this.offsetsAtDragStart is Point startingOffsets)) {
-                    throw new Exception("This should be set in MouseDown!");
+                    throw new ProgrammerError("This should be set in MouseDown!");
                 }
 
                 var offsets = new Point(

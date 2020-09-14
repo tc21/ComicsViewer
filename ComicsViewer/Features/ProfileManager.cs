@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary.SQL;
 using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
