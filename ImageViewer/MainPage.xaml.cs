@@ -192,13 +192,9 @@ namespace ImageViewer {
         }
 
         private async void ImageContainer_PointerReleased(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
-                    || !(e.GetCurrentPoint(this.ImageContainer) is PointerPoint point)
-                    || !point.Properties.IsLeftButtonPressed
-                    ) {
-                return;
-            }
-
+            /* remarks: once PointerPressed is triggered, any other pointers get routed to PointerMoved instead.
+             * this means that if dragStart is not null, then we must have received the same pointer that triggered
+             * PointerPressed, i.e. a mouse left button. */
             this.dragStart = null;
             this.offsetsAtDragStart = null;
 
