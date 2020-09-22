@@ -196,14 +196,16 @@ namespace ImageViewer {
             /* remarks: once PointerPressed is triggered, any other pointers get routed to PointerMoved instead.
              * this means that if dragStart is not null, then we must have received the same pointer that triggered
              * PointerPressed, i.e. a mouse left button. */
-            this.dragStart = null;
-            this.offsetsAtDragStart = null;
+            if (this.dragStart != null) {
+                this.dragStart = null;
+                this.offsetsAtDragStart = null;
 
-            if (!this.actuallyDragged) {
-                await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + 1);
+                if (!this.actuallyDragged) {
+                    await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + 1);
+                }
+
+                this.actuallyDragged = false;
             }
-
-            this.actuallyDragged = false;
         }
 
         private void ImageContainer_PointerMoved(object sender, PointerRoutedEventArgs e) {
