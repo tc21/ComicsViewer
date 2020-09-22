@@ -127,7 +127,8 @@
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto"
                           RenderTransformOrigin="0.5 0.5"
-                          ZoomMode="Enabled">
+                          ZoomMode="Enabled"
+                          SizeChanged="ImageContainer_SizeChanged">
                 <Image x:Name="Image"
                        MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
                        MaxHeight="{Binding ViewportHeight, ElementName=ImageContainer}"

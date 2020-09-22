@@ -9,6 +9,7 @@ using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Graphics.Display;
 using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Input;
@@ -46,8 +47,11 @@ namespace ImageViewer {
             titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 255, 255, 255);
             titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(51, 255, 255, 255);
 
-            CoreWindow.GetForCurrentThread().KeyDown += this.MainPage_KeyDown;
-            CoreWindow.GetForCurrentThread().KeyUp += this.MainPage_KeyUp;
+            var coreWindow = CoreWindow.GetForCurrentThread();
+            coreWindow.KeyDown += this.MainPage_KeyDown;
+            coreWindow.KeyUp += this.MainPage_KeyUp;
+            coreWindow.ResizeStarted += this.MainPage_ResizeStarted;
+            coreWindow.ResizeCompleted += this.MainPage_ResizeCompleted;
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
@@ -243,6 +247,28 @@ namespace ImageViewer {
             this.RightPaddingColumn.Width = new GridLength(sender.SystemOverlayRightInset);
 
             this.AppTitleBar.Height = sender.Height;
+        }
+
+        // copied from ComicItemGrid.xaml.cs
+        private bool resizing;
+
+        private void MainPage_ResizeStarted(CoreWindow sender, object args) {
+            this.resizing = true;
+        }
+
+        private void MainPage_ResizeCompleted(CoreWindow sender, object args) {
+            this.resizing = false;
+            if (this.ViewModel.DecodeImageHeight != null) {
+                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
+            }
+        }
+
+        private void ImageContainer_SizeChanged(object sender, SizeChangedEventArgs e) {
+            if (!this.resizing && this.ViewModel.DecodeImageHeight != null) {
+                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
+            }
         }
     }
 }
