@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Graphics.Display;
 using Windows.System;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
@@ -149,6 +150,26 @@ namespace ImageViewer {
                 }
 
                 return this.resetZoomCommand;
+            }
+        }
+
+        private ICommand? _toggleScalingCommand;
+        public ICommand ToggleScalingCommand {
+            get {
+                if (this._toggleScalingCommand == null) {
+                    this._toggleScalingCommand = new RelayCommand(
+                        val => {
+                            if (this.ViewModel.DecodeImageHeight == null) {
+                                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+                                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
+                            } else {
+                                this.ViewModel.DecodeImageHeight = null;
+                            }
+                        }
+                    );
+                }
+
+                return this._toggleScalingCommand;
             }
         }
 

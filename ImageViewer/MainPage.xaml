@@ -100,6 +100,12 @@
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
+                    <ToggleMenuFlyoutItem Text="(Experimental) Reduce moiré" Command="{x:Bind ToggleScalingCommand}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="M" Modifiers="Control"/>
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                    </ToggleMenuFlyoutItem>
+
                     <MenuFlyoutSeparator/>
 
                     <MenuFlyoutItem Text="Delete" Command="{x:Bind DeleteCommand}">

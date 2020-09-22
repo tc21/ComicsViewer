@@ -87,6 +87,22 @@ namespace ImageViewer {
                 this.OnPropertyChanged();
             }
         }
+
+        private int? _decodeImageHeight;
+        public int? DecodeImageHeight {
+            get => this._decodeImageHeight;
+            set {
+                if (this._decodeImageHeight == value) {
+                    return;
+                }
+
+                this._decodeImageHeight = value;
+                if (this.CurrentImageSource != null) {
+                    _ = this.SetCurrentImageSourceAsync(this.Images[this.CurrentImageIndex], value).ConfigureAwait(false);
+                }
+            }
+        }
+
         public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0) {
             this.canSeek = false;
             this.Images.Clear();
@@ -107,7 +123,7 @@ namespace ImageViewer {
 
             if (this.Images.Count == 0) {
                 this.SetCurrentImageIndex(0);
-                await this.SetCurrentImageSourceAsync(null);
+                await this.SetCurrentImageSourceAsync(null, this.DecodeImageHeight);
                 return;
             }
 
@@ -162,7 +178,7 @@ namespace ImageViewer {
             this.UpdateTitle();
         }
 
-        private async Task SetCurrentImageSourceAsync(StorageFile? file) {
+        private async Task SetCurrentImageSourceAsync(StorageFile? file, int? decodePixelHeight) {
             if (file == null) {
                 this.CurrentImageSource = null;
                 this.CurrentImageMetadata = null;
@@ -172,6 +188,10 @@ namespace ImageViewer {
             var image = new BitmapImage();
 
             using (var stream = await file.OpenReadAsync()) {
+                if (decodePixelHeight is int height) {
+                    image.DecodePixelHeight = height;
+                }
+
                 await image.SetSourceAsync(stream);
             }
 
@@ -195,7 +215,7 @@ namespace ImageViewer {
             bool result;
 
             try {
-                await this.SetCurrentImageSourceAsync(file);
+                await this.SetCurrentImageSourceAsync(file, this.DecodeImageHeight);
                 result = true;
             } catch (NotSupportedException) {
                 result = false;
