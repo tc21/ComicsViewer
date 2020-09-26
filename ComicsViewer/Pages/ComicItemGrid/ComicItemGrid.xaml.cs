@@ -414,10 +414,16 @@ namespace ComicsViewer.Pages {
             if (this.ViewModel.NavigationTag == NavigationTag.Detail && connectedAnimationComic != null) {
                 var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateInto");
                 if (animation != null) {
-                    var search = this.ViewModel.ComicItems.Take(20).Cast<ComicWorkItem>().Where(i => i.Comic.IsSame(connectedAnimationComic));
+                    var itemsWrapGrid = (ItemsWrapGrid)this.VisibleComicsGrid.ItemsPanelRoot;
+                    var visibleColumns = (int)(this.VisibleComicsGrid.ActualWidth / itemsWrapGrid.ItemWidth);
+                    var visibleRows = (int)Math.Ceiling(this.VisibleComicsGrid.ActualHeight / itemsWrapGrid.ItemHeight);
+                    var visibleItemCount = visibleColumns * visibleRows;
+
+                    var search = this.ViewModel.ComicItems.Take(visibleItemCount).Cast<ComicWorkItem>().Where(i => i.Comic.IsSame(connectedAnimationComic));
 
                     if (search.Any()) {
                         var item = search.First();
+
                         _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, item, "ComicItemThumbnailContainer");
                         this.connectedAnimationItem = item;
                     } else {
