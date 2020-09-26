@@ -43,6 +43,10 @@ namespace ComicsLibrary.Collections {
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
         }
 
+        public void Add(Comic comic) => this.Add(new[] { comic });
+
+        public void Remove(Comic comic) => this.Remove(new[] { comic });
+
         // you should pass in the new list of comics
         public void Modify(IEnumerable<Comic> comics) {
             var removed = comics.Select(c => this.GetStored(c)).ToList();
