@@ -47,18 +47,17 @@ namespace MusicPlayer {
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
-            switch (e.Parameter) {
-                case IEnumerable<StorageFile> files:
-                    await this.ViewModel.OpenFilesAsync(files);
-                    break;
-                case StorageFolder folder:
-                    await this.ViewModel.OpenFolderAsync(folder);
-                    break;
-                case StorageFile file:
-                    await this.ViewModel.OpenContainingFolderAsync(file);
-                    break;
-                default:
-                    return;
+            if (e.Parameter is MainPageNavigationArgs args) {
+                switch (args.Mode) {
+                    case MainPageNavigationMode.FirstFile:
+                        await this.ViewModel.OpenContainingFolderAsync(args.FirstFile!);
+                        break;
+                    case MainPageNavigationMode.Folder:
+                        await this.ViewModel.OpenFolderAsync(args.Folder!);
+                        break;
+                }
+
+                this.ViewModel.CurrentDescription = args.Description; 
             }
 
             this.NavigationView.SelectedItem = this.NavigationView.MenuItems[0];
@@ -122,7 +121,7 @@ namespace MusicPlayer {
                     break;
 
                 case "Info":
-                    
+                    _ = this.NavigationViewContent.Navigate(typeof(InfoPage), this.ViewModel);
                     break;
 
                 default:

@@ -65,7 +65,7 @@ namespace ComicsViewer.ViewModels.Pages {
             try {
                 var tasks = items.Select(async item => {
                     var subitem = await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic);
-                    await Startup.OpenComicAtPathAsync(subitem.First().Path, this.MainViewModel.Profile);
+                    await Startup.OpenComicAtPathAsync(item.Comic, subitem.First().Path, this.MainViewModel.Profile);
                 });
 
                 await Task.WhenAll(tasks);

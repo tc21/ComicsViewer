@@ -22,12 +22,12 @@ namespace ComicsViewer.Features {
     }
 
     public static class Startup {
-        public static async Task OpenComicAtPathAsync(string path, UserProfile profile) {
+        public static async Task OpenComicAtPathAsync(Comic comic, string path, UserProfile profile) {
             var folder = await StorageFolder.GetFolderFromPathAsync(path);
-            await OpenComicFolderAsync(folder, profile);
+            await OpenComicFolderAsync(comic, folder, profile);
         }
 
-        public static async Task OpenComicFolderAsync(StorageFolder folder, UserProfile profile) {
+        public static async Task OpenComicFolderAsync(Comic comic, StorageFolder folder, UserProfile profile) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
@@ -52,7 +52,16 @@ namespace ComicsViewer.Features {
                     }
 
                     if (MusicExtensions.Contains(Path.GetExtension(path))) {
-                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///path", path);
+                        var description = "";
+                        var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+                        foreach (var descriptionSpecification in profile.ExternalDescriptions) {
+                            if ((await descriptionSpecification.FetchFromFolderAsync(comicFolder)) is ExternalDescription desc) {
+                                description += desc.Content;
+                                description += "\n";
+                            }
+                        }
+
+                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///path", path, description);
                         return;
                     }
 
@@ -69,10 +78,14 @@ namespace ComicsViewer.Features {
                     throw new ProgrammerError($"{nameof(OpenComicFolderAsync)}: unhandled switch case");
             }
 
-            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string path) {
+            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string path, string? description = null) {
                 var data = new ValueSet {
                     ["Path"] = path
                 };
+
+                if (description != null) {
+                    data["Description"] = description;
+                }
 
                 var opt = new LauncherOptions {
                     TargetApplicationPackageFamilyName = packageFamilyName

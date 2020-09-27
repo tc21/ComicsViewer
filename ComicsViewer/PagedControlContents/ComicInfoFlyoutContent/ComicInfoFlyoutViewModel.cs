@@ -51,7 +51,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public bool IsLoadingSubItems { get; private set; } = true;
 
         public Task OpenItemAsync(ComicSubitem item) {
-            return Startup.OpenComicAtPathAsync(item.Path, this.MainViewModel.Profile);
+            return Startup.OpenComicAtPathAsync(this.Item.Comic, item.Path, this.MainViewModel.Profile);
         }
 
         #endregion

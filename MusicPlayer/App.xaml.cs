@@ -18,7 +18,10 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
+#nullable enable
+
 namespace MusicPlayer {
+
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
@@ -36,11 +39,19 @@ namespace MusicPlayer {
             if (args.Kind == ActivationKind.Protocol) {
                 var rootFrame = this.EnsureInitialized();
 
-                var eventArgs = args as ProtocolActivatedEventArgs;
+                if (!(args is ProtocolActivatedEventArgs eventArgs)) {
+                    return;
+                }
+
+                string? description = null;
+
+                if (eventArgs.Data.TryGetValue("Description", out var o1) && o1 is string desc) {
+                    description = desc;
+                }
 
                 if (eventArgs.Uri.AbsolutePath == "/files" && eventArgs.Data.TryGetValue("FirstFileToken", out var o) && o is string token) {
                     var file = await SharedStorageAccessManager.RedeemTokenForFileAsync(token);
-                    _ = rootFrame.Navigate(typeof(MainPage), file);
+                    _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFirstFile(file, description));
                     Window.Current.Activate();
                     return;
                 }
@@ -49,7 +60,7 @@ namespace MusicPlayer {
                     try {
                         try {
                             var s = await StorageFolder.GetFolderFromPathAsync(path);
-                            _ = rootFrame.Navigate(typeof(MainPage), s);
+                            _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFolder(s, description));
                             return;
                         } catch (ArgumentException) {
                             /* fall through */
@@ -58,7 +69,7 @@ namespace MusicPlayer {
                         }
 
                         var f = await StorageFile.GetFileFromPathAsync(path);
-                        _ = rootFrame.Navigate(typeof(MainPage), f);
+                        _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFirstFile(f, description));
                         Window.Current.Activate();
                         return;
                     } catch (Exception e) {

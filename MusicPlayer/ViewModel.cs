@@ -20,6 +20,20 @@ namespace MusicPlayer {
             this.PlayFailed += this.OnPlayFailed;
         }
 
+        public string Description => this.CurrentDescription ?? "";
+        private string? _currentDescription;
+        public string? CurrentDescription {
+            get => this._currentDescription;
+            set {
+                if (this._currentDescription == value) {
+                    return;
+                }
+
+                this._currentDescription = value;
+                this.OnPropertyChanged(nameof(this.Description));
+            }
+        }
+
         private PlaylistItem? nowPlaying;
 
         public async Task OpenContainingFolderAsync(StorageFile item, bool append = false) {
