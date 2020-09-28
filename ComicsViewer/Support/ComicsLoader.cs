@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Windows.Storage;
-using ComicsViewer.Support.Interop;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -89,7 +88,7 @@ namespace ComicsViewer.Support {
 
                 foreach (var comic in comics) {
                     try {
-                        var comicExists = FileApiInterop.FileOrDirectoryExists(comic.Path);
+                        var comicExists = Uwp.Common.Win32Interop.IO.FileOrDirectoryExists(comic.Path);
 
                         if (!comicExists) {
                             invalidComics.Add(comic);

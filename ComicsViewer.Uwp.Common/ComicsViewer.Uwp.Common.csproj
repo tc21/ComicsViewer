@@ -130,8 +130,13 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Win32Interop\General.cs" />
+    <Compile Include="Win32Interop\Flags.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="Win32Interop\IO.cs" />
+    <Compile Include="Win32Interop\NativeException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Win32Interop\Structs.cs" />
     <EmbeddedResource Include="Properties\ComicsViewer.Uwp.Common.rd.xml" />
   </ItemGroup>
   <ItemGroup>

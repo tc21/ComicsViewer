@@ -6,7 +6,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.Support;
-using ComicsViewer.Support.Interop;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -460,7 +460,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     EnsureEmpty(
-                        comics.Where(c => !FileApiInterop.FileOrDirectoryExists(c.Path)),
+                        comics.Where(c => !IO.FileOrDirectoryExists(c.Path)),
                         "The following items could not be found"
                     );
 
@@ -495,23 +495,23 @@ namespace ComicsViewer.ViewModels.Pages {
                         var newPath = Path.Combine(categoryPath, newAuthor, comic.Title);
 
                         // some checks just in case
-                        if (!FileApiInterop.FileOrDirectoryExists(oldPath)) {
+                        if (!IO.FileOrDirectoryExists(oldPath)) {
                             throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic not found at {oldPath}");
                         }
 
-                        if (FileApiInterop.FileOrDirectoryExists(newPath)) {
+                        if (IO.FileOrDirectoryExists(newPath)) {
                             throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic already exists at {newPath}");
                         }
 
                         var newComic = comic.With(path: newPath, author: newAuthor);
 
-                        FileApiInterop.MoveDirectory(oldPath, newPath);
+                        IO.MoveDirectory(oldPath, newPath);
 
-                        if (FileApiInterop.FileOrDirectoryExists(Thumbnail.ThumbnailPath(newComic))) {
-                            FileApiInterop.RemoveFile(Thumbnail.ThumbnailPath(newComic));
+                        if (IO.FileOrDirectoryExists(Thumbnail.ThumbnailPath(newComic))) {
+                            IO.RemoveFile(Thumbnail.ThumbnailPath(newComic));
                         }
 
-                        FileApiInterop.MoveFile(Thumbnail.ThumbnailPath(comic), Thumbnail.ThumbnailPath(newComic));
+                        IO.MoveFile(Thumbnail.ThumbnailPath(comic), Thumbnail.ThumbnailPath(newComic));
 
                         // Step 2.1. Update viewmodel
                         await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
@@ -529,12 +529,12 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     // step 3.
                     foreach (var old in oldDirectories) {
-                        if (FileApiInterop.GetDirectoryContents(old).Any()) {
+                        if (IO.GetDirectoryContents(old).Any()) {
                             throw new ProgrammerError("Not every file under directory {} was moved " +
                                 "(the function should've terminated before reaching this point.)");
                         }
 
-                        FileApiInterop.RemoveDirectory(old);
+                        IO.RemoveDirectory(old);
                     }
                 },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync

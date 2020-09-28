@@ -3,7 +3,7 @@ using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Support;
-using ComicsViewer.Support.Interop;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
@@ -77,20 +77,20 @@ namespace ComicsViewer.Pages {
                             var originalAuthorPath = Path.GetDirectoryName(comic.Path);
                             var targetPath = Path.Combine(category.Path, comic.Author, comic.Title);
 
-                            if (FileApiInterop.FileOrDirectoryExists(targetPath)) {
+                            if (IO.FileOrDirectoryExists(targetPath)) {
                                 throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}' " +
                                     $"because an item with the same name already exists at the destination.");
                             }
 
-                            if (!FileApiInterop.FileOrDirectoryExists(comic.Path)) {
+                            if (!IO.FileOrDirectoryExists(comic.Path)) {
                                 throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}': " +
                                     $"the folder for this item could not be found. ({comic.Path})", "Item not found");
                             }
 
-                            FileApiInterop.MoveDirectory(comic.Path, targetPath);
+                            IO.MoveDirectory(comic.Path, targetPath);
 
-                            if (FileApiInterop.GetDirectoryContents(originalAuthorPath).Count() == 0) {
-                                FileApiInterop.RemoveDirectory(originalAuthorPath);
+                            if (IO.GetDirectoryContents(originalAuthorPath).Count() == 0) {
+                                IO.RemoveDirectory(originalAuthorPath);
                             }
 
                             // Although we could modify comic.Path, comic.Category, and call into database update methods,

@@ -15,7 +15,6 @@ using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using MUXC = Microsoft.UI.Xaml.Controls;
 using ComicsViewer.Support;
-using ComicsViewer.Support.Interop;
 using System.Threading.Tasks;
 using System.IO;
 using Windows.Storage;

@@ -1,5 +1,4 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Support.Interop;
 using Microsoft.Toolkit.Uwp.UI.Animations.Behaviors;
 using System;
 using System.Collections.Generic;
