@@ -96,21 +96,17 @@ namespace MusicPlayer {
                 return;
             }
 
-            var subsequentFiles = new List<StorageFile>();
-
-            try {
-                for (var i = 1; i < filenames.Length; i++) {
-                    subsequentFiles.Add(await StorageFile.GetFileFromPathAsync(filenames[i]));
-                } 
-            } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedAccessAsync();
-                return;
-            } catch (FileNotFoundException) {
-                await ExpectedExceptions.FileNotFoundAsync(filenames[0]);
-                return;
-            }
-
-            await this.OpenFilesAsync(subsequentFiles, append: true);
+            for (var i = 1; i < filenames.Length; i++) {
+                try {
+                    await this.OpenFilesAsync(new[] { await StorageFile.GetFileFromPathAsync(filenames[i]) }, append: true);
+                } catch (UnauthorizedAccessException) {
+                    await ExpectedExceptions.UnauthorizedAccessAsync();
+                    return;
+                } catch (FileNotFoundException) {
+                    await ExpectedExceptions.FileNotFoundAsync(filenames[0]);
+                    continue;
+                }
+            } 
         }
 
         public async Task PlayAsync(PlaylistItem item) {

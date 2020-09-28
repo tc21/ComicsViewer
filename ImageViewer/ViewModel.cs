@@ -104,31 +104,40 @@ namespace ImageViewer {
             }
         }
 
-        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0) {
+        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false) {
             this.canSeek = false;
 
-            this.Images.Clear();
+            if (!append) {
+                this.Images.Clear();
+            }
+
             this.Images.AddRange(files.Where(f => IsImage(f.Path)));
             this.canSeek = true;
 
             if (seekTo is int index) {
+                if (append) {
+                    throw new ArgumentException("For the moment, you must not seek when appending");
+                }
+
                 await this.SeekAsync(index, reload: true);
+            } else {
+                this.UpdateTitle();
             }
         }
 
-        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths_, int? seekTo_ = 0, bool append = false) {
-            var paths = paths_.ToList();
-            var seekTo = seekTo_ ?? 0;
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths) {
+            if (!paths.Any()) {
+                return;
+            }
 
-            var passthrough = await StorageFile.GetFileFromPathAsync(paths[seekTo]);
+            var first = paths.First();
+            var rest = paths.Skip(1);
 
-            await this.LoadViaPassthrough(passthrough, async () => {
-                var files = new List<StorageFile>();
-                foreach (var filename in paths) {
-                    files.Add(await StorageFile.GetFileFromPathAsync(filename));
-                }
-                return files;
-            });
+            await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(first) });
+
+            foreach (var filename in rest) {
+                await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(filename) }, seekTo: null, append: true);
+            }
         }
 
         private async Task LoadViaPassthrough<I>(StorageFile passthrough, Func<Task<I>> getAllFiles) where I : IEnumerable<StorageFile> {
@@ -150,7 +159,6 @@ namespace ImageViewer {
                     return;
                 }
             }
-
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
