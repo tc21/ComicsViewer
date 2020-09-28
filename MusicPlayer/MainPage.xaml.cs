@@ -55,6 +55,11 @@ namespace MusicPlayer {
                     case MainPageNavigationMode.Folder:
                         await this.ViewModel.OpenFolderAsync(args.Folder!);
                         break;
+                    case MainPageNavigationMode.Files:
+                        await this.ViewModel.OpenFilesAsync(args.Files!);
+                        break;
+                    default:
+                        throw new ProgrammerError("unhandled switch case");
                 }
 
                 this.ViewModel.CurrentDescription = args.Description; 

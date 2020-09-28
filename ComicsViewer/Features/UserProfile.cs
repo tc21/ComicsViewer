@@ -89,35 +89,36 @@ namespace ComicsViewer.Features {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
 
-            var rootItem = await this.ComicSubitemForFolderAsync(comic, await StorageFolder.GetFolderFromPathAsync(comic.Path), rootItem: true);
-            if (rootItem != null) {
-                subitems.Add(rootItem);
-            }
+            var allFiles = new List<StorageFile>();
 
-            var folder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
-            foreach (var subfolder in await folder.GetFoldersAsync()) {
-                var item = await this.ComicSubitemForFolderAsync(comic, subfolder);
-                if (item != null) {
-                    subitems.Add(item);
+            var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+
+            foreach (var item in await comicFolder.GetItemsAsync()) {
+                if (item is StorageFile file && this.FileExtensions.Contains(Path.GetExtension(file.Name))) {
+                    allFiles.Add(file);
+                }
+
+                if (item is StorageFolder folder) {
+                    if (await this.ComicSubitemForFolderAsync(comic, folder) is ComicSubitem subitem) {
+                        subitems.Add(subitem);
+                        allFiles.AddRange(subitem.Files);
+                    }
                 }
             }
+
+            subitems.Insert(0, new ComicSubitem(comic, "(all items)", allFiles));
 
             return subitems;
         }
 
-        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, bool rootItem = false) {
+        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, string? displayName = null) {
             var files = await this.GetTopLevelFilesForFolderAsync(folder);
-            var fileCount = files.Count();
 
-            if (fileCount == 0) {
+            if (!files.Any()) {
                 return null;
             }
 
-            if (rootItem) {
-                return new ComicSubitem(comic, relativePath: "", displayName: "(root item)", fileCount);
-            }
-
-            return new ComicSubitem(comic, relativePath: folder.Name, displayName: folder.Name, fileCount);
+            return new ComicSubitem(comic, displayName ?? folder.Name, files);
         }
     }
 }

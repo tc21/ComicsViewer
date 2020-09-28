@@ -1,22 +1,24 @@
-﻿using ComicsLibrary;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ComicsLibrary;
+using Windows.Storage;
 
-#nullable enable 
+#nullable enable
 
 namespace ComicsViewer.Features {
     public class ComicSubitem {
-        private readonly Comic comic;
-        private readonly string relativePath;
-        private readonly int itemCount;
         private readonly string displayName;
+        private readonly List<StorageFile> files;
 
-        public string DisplayName => $"{this.displayName} ({this.itemCount} items)";
-        public string Path => System.IO.Path.Combine(this.comic.Path, this.relativePath);
+        public Comic Comic { get; }
+        private int ItemCount => this.files.Count;
+        public string DisplayName => $"{this.displayName} ({this.ItemCount} items)";
+        public IReadOnlyList<StorageFile> Files => this.files;
 
-        public ComicSubitem(Comic comic, string relativePath, string displayName, int itemCount) {
-            this.comic = comic;
-            this.relativePath = relativePath;
+        public ComicSubitem(Comic comic, string displayName, IEnumerable<StorageFile> files) {
+            this.Comic = comic;
             this.displayName = displayName;
-            this.itemCount = itemCount;
+            this.files = files.ToList();
         }
     }
 }

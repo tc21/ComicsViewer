@@ -32,18 +32,21 @@ namespace ImageViewer {
             this.Suspending += this.OnSuspending;
         }
 
+        private async Task StopAppLaunch(string title, string message) {
+            Window.Current.Activate();
+            await Task.Delay(100);
+            _ = await new ContentDialog {
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK"
+            }.ShowAsync();
+        }
+
         protected override async void OnActivated(IActivatedEventArgs args) {
             if (args.Kind == ActivationKind.Protocol) {
                 var rootFrame = this.EnsureInitialized();
 
                 var eventArgs = args as ProtocolActivatedEventArgs;
-
-                if (eventArgs.Uri.AbsolutePath == "/files" && eventArgs.Data.TryGetValue("FirstFileToken", out var o) && o is string token) {
-                    var file = await SharedStorageAccessManager.RedeemTokenForFileAsync(token);
-                    _ = rootFrame.Navigate(typeof(MainPage), new[] { file });
-                    Window.Current.Activate();
-                    return;
-                }
 
                 if (eventArgs.Uri.AbsolutePath == "/path" && eventArgs.Data.TryGetValue("Path", out var p) && p is string path) {
                     try {
@@ -62,25 +65,42 @@ namespace ImageViewer {
                         Window.Current.Activate();
                         return;
                     } catch (Exception e) {
-                        Window.Current.Activate();
-                        await Task.Delay(100);
-                        _ = new ContentDialog {
-                            Title = "An exception occured",
-                            Content = e.ToString(),
-                            CloseButtonText = "OK"
-                        }.ShowAsync();
+                        await this.StopAppLaunch("An exception occured", e.ToString());
+                        return;
                     }
+                }
+
+                if (eventArgs.Uri.AbsolutePath == "/filenames" && eventArgs.Data.TryGetValue("Filenames", out var o2) && o2 is string[] filenames) {
+                    var files = new List<StorageFile>();
+                    var notFound = new List<string>();
+
+                    foreach (var filename in filenames) {
+                        try {
+                            files.Add(await StorageFile.GetFileFromPathAsync(filename));
+                        } catch (FileNotFoundException) {
+                            notFound.Add(filename);
+                        } catch (UnauthorizedAccessException) {
+                            await this.StopAppLaunch(
+                                "Access denied",
+                                $"The application could not open the required files. Please ensure file system access is enabled in Settings."
+                            );
+                            return;
+                        }
+                    }
+
+                    _ = rootFrame.Navigate(typeof(MainPage), files);
+                    Window.Current.Activate();
+                    return;
                 }
 
                 Window.Current.Activate();
                 await Task.Delay(100);
-                _ = new ContentDialog {
-                    Title = "Failed to parse launch uri",
-                    Content = $"The application could not parse the launch uri.\n" +
-                    $"Url.AbsolutePath = {eventArgs.Uri.AbsolutePath}\n" +
-                    $"Data[FirstFileToken] = {(eventArgs.Data.TryGetValue("FirstFileToken", out var t) ? t : "<unassigned>")}",
-                    CloseButtonText = "OK"
-                }.ShowAsync();
+                await this.StopAppLaunch(
+                    "Failed to parse launch uri",
+                    $"The application could not parse the launch uri.\n" +
+                        $"Url.AbsolutePath = {eventArgs.Uri.AbsolutePath}\n" +
+                        $"Data[FirstFileToken] = {(eventArgs.Data.TryGetValue("FirstFileToken", out var t) ? t : "<unassigned>")}"
+                );
             }
         }
 

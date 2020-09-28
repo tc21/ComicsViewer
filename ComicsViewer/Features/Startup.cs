@@ -22,38 +22,25 @@ namespace ComicsViewer.Features {
     }
 
     public static class Startup {
-        public static async Task OpenComicAtPathAsync(Comic comic, string path, UserProfile profile) {
-            var folder = await StorageFolder.GetFolderFromPathAsync(path);
-            await OpenComicFolderAsync(comic, folder, profile);
-        }
-
-        public static async Task OpenComicFolderAsync(Comic comic, StorageFolder folder, UserProfile profile) {
+        public static async Task OpenComicSubitemAsync(ComicSubitem subitem, UserProfile profile) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
-                    if (await profile.GetFirstFileForComicAsync(folder) is StorageFile file) {
-                        // There's no reason for us to wait for the file to actually launch
-                        _ = await Launcher.LaunchFileAsync(file);
-                    }
+                    _ = await Launcher.LaunchFileAsync(subitem.Files.First());
                     return;
 
                 case StartupApplicationType.BuiltinViewer:
-                    var files = await profile.GetTopLevelFilesForFolderAsync(folder);
+                    var testFile = subitem.Files.First().Path;
+                    var files = subitem.Files.Select(f => f.Path).ToArray();
 
-                    if (!files.Any()) {
+                    if (ImageExtensions.Contains(Path.GetExtension(testFile))) {
+                        await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
                         return;
                     }
 
-                    var path = files.First().Path;
-
-                    if (ImageExtensions.Contains(Path.GetExtension(path))) {
-                        await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///path", path);
-                        return;
-                    }
-
-                    if (MusicExtensions.Contains(Path.GetExtension(path))) {
+                    if (MusicExtensions.Contains(Path.GetExtension(testFile))) {
                         var description = "";
-                        var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+                        var comicFolder = await StorageFolder.GetFolderFromPathAsync(subitem.Comic.Path);
                         foreach (var descriptionSpecification in profile.ExternalDescriptions) {
                             if ((await descriptionSpecification.FetchFromFolderAsync(comicFolder)) is ExternalDescription desc) {
                                 description += desc.Content;
@@ -61,26 +48,26 @@ namespace ComicsViewer.Features {
                             }
                         }
 
-                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///path", path, description);
+                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///filenames", files, description);
                         return;
                     }
 
                     await ExpectedExceptions.IntendedBehaviorAsync(
                         title: "Cannot open item",
                         message: "The application could not open this item in a built-in viewer, " +
-                            $"because it doesn't recognize its extension: '{Path.GetExtension(files.First().Name)}'.",
+                            $"because it doesn't recognize its extension: '{Path.GetExtension(testFile)}'.",
                         cancelled: false
                     );
 
                     return;
 
                 default:
-                    throw new ProgrammerError($"{nameof(OpenComicFolderAsync)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(OpenComicSubitemAsync)}: unhandled switch case");
             }
 
-            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string path, string? description = null) {
+            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string[] filenames, string? description = null) {
                 var data = new ValueSet {
-                    ["Path"] = path
+                    ["Filenames"] = filenames
                 };
 
                 if (description != null) {

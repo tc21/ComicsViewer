@@ -35,6 +35,16 @@ namespace MusicPlayer {
             this.Suspending += OnSuspending;
         }
 
+        private async Task StopAppLaunch(string title, string message) {
+            Window.Current.Activate();
+            await Task.Delay(100);
+            _ = await new ContentDialog {
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK"
+            }.ShowAsync();
+        }
+
         protected override async void OnActivated(IActivatedEventArgs args) {
             if (args.Kind == ActivationKind.Protocol) {
                 var rootFrame = this.EnsureInitialized();
@@ -47,13 +57,6 @@ namespace MusicPlayer {
 
                 if (eventArgs.Data.TryGetValue("Description", out var o1) && o1 is string desc) {
                     description = desc;
-                }
-
-                if (eventArgs.Uri.AbsolutePath == "/files" && eventArgs.Data.TryGetValue("FirstFileToken", out var o) && o is string token) {
-                    var file = await SharedStorageAccessManager.RedeemTokenForFileAsync(token);
-                    _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFirstFile(file, description));
-                    Window.Current.Activate();
-                    return;
                 }
 
                 if (eventArgs.Uri.AbsolutePath == "/path" && eventArgs.Data.TryGetValue("Path", out var p) && p is string path) {
@@ -81,6 +84,30 @@ namespace MusicPlayer {
                             CloseButtonText = "OK"
                         }.ShowAsync();
                     }
+                }
+
+                // TODO: we should consolidate code between ImageViewer and MusicPlayer. We will need a UWP-level shared code, separate from ComicsViewer.Common
+                if (eventArgs.Uri.AbsolutePath == "/filenames" && eventArgs.Data.TryGetValue("Filenames", out var o2) && o2 is string[] filenames) {
+                    var files = new List<StorageFile>();
+                    var notFound = new List<string>();
+
+                    foreach (var filename in filenames) {
+                        try {
+                            files.Add(await StorageFile.GetFileFromPathAsync(filename));
+                        } catch (FileNotFoundException) {
+                            notFound.Add(filename);
+                        } catch (UnauthorizedAccessException) {
+                            await this.StopAppLaunch(
+                                "Access denied",
+                                $"The application could not open the required files. Please ensure file system access is enabled in Settings."
+                            );
+                            return;
+                        }
+                    }
+
+                    _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFiles(files, description));
+                    Window.Current.Activate();
+                    return;
                 }
 
                 Window.Current.Activate();
