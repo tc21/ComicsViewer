@@ -63,10 +63,26 @@ namespace ImageViewer {
             }
         }
 
-        protected override void OnFileActivated(FileActivatedEventArgs args) {
+        protected override async void OnFileActivated(FileActivatedEventArgs args) {
             var rootFrame = this.EnsureInitialized();
 
-            _ = rootFrame.Navigate(typeof(MainPage), args.Files.OfType<StorageFile>());
+            if (args.Files.OfType<StorageFolder>().Any()) {
+                await this.StopAppLaunch("Not supported", "we cannot open folders");
+                return;
+            };
+
+            var files = args.Files.OfType<StorageFile>();
+
+            if (files.Count() != 1) {
+                await this.StopAppLaunch("Not supported", "we only allow opening individual images");
+                return;
+            }
+
+            _ = rootFrame.Navigate(typeof(MainPage), new ProtocolActivatedArguments {
+                Mode = ProtocolActivatedMode.File,
+                File = files.First()
+            });
+
             Window.Current.Activate();
         }
 

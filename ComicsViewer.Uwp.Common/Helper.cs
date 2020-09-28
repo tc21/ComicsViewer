@@ -79,14 +79,14 @@ namespace ComicsViewer.Uwp.Common {
     }
 
     public class ProtocolActivatedArguments {
-        public ProtocolActivatedResult Result { get; internal set; }
-        public ProtocolActivatedMode Mode { get; internal set; }
+        public ProtocolActivatedResult Result { get; set; }
+        public ProtocolActivatedMode Mode { get; set; }
 
-        public string? ErrorMessage { get; internal set; }
-        public string[]? Filenames { get; internal set; }
-        public StorageFolder? Folder { get; internal set; }
-        public StorageFile? File { get; internal set; }
-        public string? Description { get; internal set; }
+        public string? ErrorMessage { get; set; }
+        public string[]? Filenames { get; set; }
+        public StorageFolder? Folder { get; set; }
+        public StorageFile? File { get; set; }
+        public string? Description { get; set; }
     }
 
     public enum ProtocolActivatedResult {
