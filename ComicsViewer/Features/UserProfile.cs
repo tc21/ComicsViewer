@@ -89,24 +89,30 @@ namespace ComicsViewer.Features {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
 
-            var allFiles = new List<StorageFile>();
+            var rootFiles = new List<StorageFile>();
 
             var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
 
             foreach (var item in await comicFolder.GetItemsAsync()) {
                 if (item is StorageFile file && this.FileExtensions.Contains(Path.GetExtension(file.Name))) {
-                    allFiles.Add(file);
+                    rootFiles.Add(file);
                 }
 
                 if (item is StorageFolder folder) {
                     if (await this.ComicSubitemForFolderAsync(comic, folder) is ComicSubitem subitem) {
                         subitems.Add(subitem);
-                        allFiles.AddRange(subitem.Files);
+
+                        if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer) {
+                            rootFiles.AddRange(subitem.Files);
+                        }
                     }
                 }
             }
 
-            subitems.Insert(0, new ComicSubitem(comic, "(all items)", allFiles));
+            var displayName = this.StartupApplicationType == StartupApplicationType.BuiltinViewer
+                ? "(all items)" : "(root items)";
+
+            subitems.Insert(0, new ComicSubitem(comic, displayName, rootFiles));
 
             return subitems;
         }
