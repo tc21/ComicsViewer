@@ -35,6 +35,10 @@ namespace ComicsViewer.Features {
         // and considering I'm the only user
         public static readonly string[] IgnoredFilenamePrefixes = { "~", "(" };
 
+        public static bool IsIgnoredPath(string path) {
+            return IgnoredFilenamePrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        }
+
         public UserProfile() { }
 
         public UserProfile(UserProfile copy) {
@@ -87,31 +91,27 @@ namespace ComicsViewer.Features {
         public async Task<IEnumerable<ComicSubitem>> GetComicSubitemsAsync(Comic comic) {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
-
-            var rootFiles = new List<StorageFile>();
-
+            var allFiles = new List<StorageFile>();
             var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
 
-            foreach (var item in await comicFolder.GetItemsAsync()) {
-                if (item is StorageFile file && this.FileExtensions.Contains(Path.GetExtension(file.Name))) {
-                    rootFiles.Add(file);
-                }
+            if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is ComicSubitem rootItem) {
+                subitems.Add(rootItem);
+                allFiles.AddRange(rootItem.Files);
+            }
 
-                if (item is StorageFolder folder) {
-                    if (await this.ComicSubitemForFolderAsync(comic, folder) is ComicSubitem subitem) {
-                        subitems.Add(subitem);
+            foreach (var folder in await comicFolder.GetFoldersAsync()) {
+                if (await this.ComicSubitemForFolderAsync(comic, folder) is ComicSubitem subitem) {
+                    subitems.Add(subitem);
 
-                        if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer) {
-                            rootFiles.AddRange(subitem.Files);
-                        }
+                    if (!IsIgnoredPath(subitem.DisplayName)) {
+                        allFiles.AddRange(subitem.Files);
                     }
                 }
             }
 
-            var displayName = this.StartupApplicationType == StartupApplicationType.BuiltinViewer
-                ? "(all items)" : "(root items)";
-
-            subitems.Insert(0, new ComicSubitem(comic, displayName, rootFiles));
+            if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer && allFiles.Count > 0) {
+                subitems.Insert(0, new ComicSubitem(comic, "(all items)", allFiles));
+            }
 
             return subitems;
         }
