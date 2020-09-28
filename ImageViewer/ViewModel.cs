@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
 using Windows.ApplicationModel.Core;
+using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
 using Windows.Storage.Streams;
@@ -105,12 +106,77 @@ namespace ImageViewer {
 
         public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0) {
             this.canSeek = false;
+
             this.Images.Clear();
             this.Images.AddRange(files.Where(f => IsImage(f.Path)));
             this.canSeek = true;
 
             if (seekTo is int index) {
                 await this.SeekAsync(index, reload: true);
+            }
+        }
+
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths_, int? seekTo_ = 0, bool append = false) {
+            var paths = paths_.ToList();
+            var seekTo = seekTo_ ?? 0;
+
+            var passthrough = await StorageFile.GetFileFromPathAsync(paths[seekTo]);
+
+            await this.LoadViaPassthrough(passthrough, async () => {
+                var files = new List<StorageFile>();
+                foreach (var filename in paths) {
+                    files.Add(await StorageFile.GetFileFromPathAsync(filename));
+                }
+                return files;
+            });
+        }
+
+        private async Task LoadViaPassthrough<I>(StorageFile passthrough, Func<Task<I>> getAllFiles) where I : IEnumerable<StorageFile> {
+            this.canSeek = false;
+            this.Title = "Viewer - Loading related files...";
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
+
+            var files = await getAllFiles();
+            await this.LoadImagesAsync(files, seekTo: null);
+
+            for (var i = 0; i < this.Images.Count; i++) {
+                if (this.Images[i].Name == passthrough.Name) {
+                    if (passthroughSuccessful) {
+                        this.SetCurrentImageIndex(i);
+                    } else {
+                        await this.SeekAsync(i, reload: true);
+                    }
+
+                    return;
+                }
+            }
+
+        }
+
+        public async Task OpenContainingFolderAsync(StorageFile file) {
+            if (!(await file.GetParentAsync() is StorageFolder parent)) {
+                /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
+                await this.LoadImagesAsync(new[] { file });
+                return;
+            }
+
+            await this.LoadViaPassthrough(file, async () => await parent.GetFilesAsync());
+
+            this.canSeek = false;
+            this.Title = "Viewer - Loading related files...";
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
+            var files = await parent.GetFilesAsync();
+
+            await this.LoadImagesAsync(files, seekTo: null);
+
+            for (var i = 0; i < this.Images.Count; i++) {
+                if (this.Images[i].Name == file.Name) {
+                    if (passthroughSuccessful) {
+                        this.SetCurrentImageIndex(i);
+                    } else {
+                        await this.SeekAsync(i, reload: true);
+                    }
+                }
             }
         }
 
@@ -139,31 +205,6 @@ namespace ImageViewer {
                 this.Images.RemoveAt(index);
                 await this.SeekAsync(index, reload: true);
                 return;
-            }
-        }
-
-        public async Task OpenContainingFolderAsync(StorageFile file) {
-            if (!(await file.GetParentAsync() is StorageFolder parent)) {
-                /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
-                await this.LoadImagesAsync(new[] { file });
-                return;
-            }
-
-            this.canSeek = false;
-            this.Title = "Viewer - Loading related files...";
-            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
-            var files = await parent.GetFilesAsync();
-
-            await this.LoadImagesAsync(files, seekTo: null);
-
-            for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i].Name == file.Name) {
-                    if (passthroughSuccessful) {
-                        this.SetCurrentImageIndex(i);
-                    } else {
-                        await this.SeekAsync(i, reload: true);
-                    }
-                }
             }
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
@@ -55,11 +56,20 @@ namespace ImageViewer {
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
-            if (e.Parameter is IEnumerable<StorageFile> files) {
-                if (files.Count() == 1) {
-                    await this.ViewModel.OpenContainingFolderAsync(files.First());
-                } else {
-                    await this.ViewModel.LoadImagesAsync(files);
+            if (e.Parameter is ProtocolActivatedArguments args) {
+                switch (args.Mode) {
+                    case ProtocolActivatedMode.Filenames:
+                        await this.ViewModel.LoadImagesAtPathsAsync(args.Filenames!);
+                        break;
+                    case ProtocolActivatedMode.Folder:
+                        var files = await args.Folder!.GetFilesAsync();
+                        await this.ViewModel.LoadImagesAsync(files);
+                        break;
+                    case ProtocolActivatedMode.File:
+                        await this.ViewModel.OpenContainingFolderAsync(args.File!);
+                        break;
+                    default:
+                        throw new ProgrammerError("unhandled switch case");
                 }
             }
         }

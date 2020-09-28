@@ -230,6 +230,10 @@
       <Project>{0e793585-a50b-40d0-9af1-70aa455e685d}</Project>
       <Name>ComicsViewer.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ComicsViewer.Uwp.Common\ComicsViewer.Uwp.Common.csproj">
+      <Project>{2F382E6A-E7DA-4C71-AD65-161488D57978}</Project>
+      <Name>ComicsViewer.Uwp.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

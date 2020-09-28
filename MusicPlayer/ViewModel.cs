@@ -10,6 +10,7 @@ using ComicsViewer.Common;
 using Windows.ApplicationModel.Core;
 using Windows.Media.Core;
 using Windows.Storage;
+using Windows.UI.Text;
 
 namespace MusicPlayer {
     public class ViewModel : ViewModelBase {
@@ -54,24 +55,62 @@ namespace MusicPlayer {
                 this.PlaylistItems.Clear();
             }
 
+            var newItems = new List<PlaylistItem>();
+
             var startIndex = 0;
             var currentIndex = 0;
             foreach (var file in items.Where(f => IsPlayableFile(f.Name))) {
-                this.PlaylistItems.Add(await PlaylistItem.FromFileAsync(file));
+                newItems.Add(await PlaylistItem.FromFileAsync(file));
 
                 if (file.Name == startAtName) {
                     startIndex = currentIndex;
                 }
+
                 currentIndex += 1;
             }
 
-            this.PlaylistItems.Sort((a, b) => NaturalOrder.Comparer.Compare(a.Name, b.Name));
+            newItems.Sort((a, b) => NaturalOrder.Comparer.Compare(a.Name, b.Name));
 
-            if (this.PlaylistItems.Count > 0) {
+            this.PlaylistItems.AddRange(newItems);
+
+            if (!append && this.PlaylistItems.Count > 0) {
                 await this.PlayAsync(this.PlaylistItems[startIndex]);
             }
 
             this.PlaylistChanged?.Invoke(this, this.PlaylistItems);
+        }
+
+        public async Task OpenFilesAtPathAsync(string[] filenames) {
+            if (filenames.Length == 0) {
+                return;
+            }
+
+            try {
+                var firstFile = await StorageFile.GetFileFromPathAsync(filenames[0]);
+                await this.OpenFilesAsync(new[] { firstFile });
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedAccessAsync();
+                return;
+            } catch (FileNotFoundException) {
+                await ExpectedExceptions.FileNotFoundAsync(filenames[0]);
+                return;
+            }
+
+            var subsequentFiles = new List<StorageFile>();
+
+            try {
+                for (var i = 1; i < filenames.Length; i++) {
+                    subsequentFiles.Add(await StorageFile.GetFileFromPathAsync(filenames[i]));
+                } 
+            } catch (UnauthorizedAccessException) {
+                await ExpectedExceptions.UnauthorizedAccessAsync();
+                return;
+            } catch (FileNotFoundException) {
+                await ExpectedExceptions.FileNotFoundAsync(filenames[0]);
+                return;
+            }
+
+            await this.OpenFilesAsync(subsequentFiles, append: true);
         }
 
         public async Task PlayAsync(PlaylistItem item) {

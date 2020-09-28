@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.DataTransfer;
@@ -46,61 +47,19 @@ namespace ImageViewer {
             if (args.Kind == ActivationKind.Protocol) {
                 var rootFrame = this.EnsureInitialized();
 
-                var eventArgs = args as ProtocolActivatedEventArgs;
-
-                if (eventArgs.Uri.AbsolutePath == "/path" && eventArgs.Data.TryGetValue("Path", out var p) && p is string path) {
-                    try {
-                        try {
-                            var s = await StorageFolder.GetFolderFromPathAsync(path);
-                            _ = rootFrame.Navigate(typeof(MainPage), await s.GetFilesAsync());
-                            return;
-                        } catch (ArgumentException) {
-                            /* fall through */
-                        } catch (FileNotFoundException) {
-                            /* fall through */
-                        }
-
-                        var f = await StorageFile.GetFileFromPathAsync(path);
-                        _ = rootFrame.Navigate(typeof(MainPage), new[] { f });
-                        Window.Current.Activate();
-                        return;
-                    } catch (Exception e) {
-                        await this.StopAppLaunch("An exception occured", e.ToString());
-                        return;
-                    }
-                }
-
-                if (eventArgs.Uri.AbsolutePath == "/filenames" && eventArgs.Data.TryGetValue("Filenames", out var o2) && o2 is string[] filenames) {
-                    var files = new List<StorageFile>();
-                    var notFound = new List<string>();
-
-                    foreach (var filename in filenames) {
-                        try {
-                            files.Add(await StorageFile.GetFileFromPathAsync(filename));
-                        } catch (FileNotFoundException) {
-                            notFound.Add(filename);
-                        } catch (UnauthorizedAccessException) {
-                            await this.StopAppLaunch(
-                                "Access denied",
-                                $"The application could not open the required files. Please ensure file system access is enabled in Settings."
-                            );
-                            return;
-                        }
-                    }
-
-                    _ = rootFrame.Navigate(typeof(MainPage), files);
-                    Window.Current.Activate();
+                if (!(args is ProtocolActivatedEventArgs eventArgs)) {
                     return;
                 }
 
+                var parsed = await Helper.ParseActivationArguments(eventArgs);
+
+                if (parsed.Result != ProtocolActivatedResult.Success) {
+                    await this.StopAppLaunch(parsed.Result.Description(), parsed.ErrorMessage ?? "An error occurred");
+                    return;
+                }
+
+                _ = rootFrame.Navigate(typeof(MainPage), parsed);
                 Window.Current.Activate();
-                await Task.Delay(100);
-                await this.StopAppLaunch(
-                    "Failed to parse launch uri",
-                    $"The application could not parse the launch uri.\n" +
-                        $"Url.AbsolutePath = {eventArgs.Uri.AbsolutePath}\n" +
-                        $"Data[FirstFileToken] = {(eventArgs.Data.TryGetValue("FirstFileToken", out var t) ? t : "<unassigned>")}"
-                );
             }
         }
 

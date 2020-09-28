@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.DataTransfer;
@@ -32,7 +33,7 @@ namespace MusicPlayer {
         /// </summary>
         public App() {
             this.InitializeComponent();
-            this.Suspending += OnSuspending;
+            this.Suspending += this.OnSuspending;
         }
 
         private async Task StopAppLaunch(string title, string message) {
@@ -53,72 +54,15 @@ namespace MusicPlayer {
                     return;
                 }
 
-                string? description = null;
+                var parsed = await Helper.ParseActivationArguments(eventArgs);
 
-                if (eventArgs.Data.TryGetValue("Description", out var o1) && o1 is string desc) {
-                    description = desc;
-                }
-
-                if (eventArgs.Uri.AbsolutePath == "/path" && eventArgs.Data.TryGetValue("Path", out var p) && p is string path) {
-                    try {
-                        try {
-                            var s = await StorageFolder.GetFolderFromPathAsync(path);
-                            _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFolder(s, description));
-                            return;
-                        } catch (ArgumentException) {
-                            /* fall through */
-                        } catch (FileNotFoundException) {
-                            /* fall through */
-                        }
-
-                        var f = await StorageFile.GetFileFromPathAsync(path);
-                        _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFirstFile(f, description));
-                        Window.Current.Activate();
-                        return;
-                    } catch (Exception e) {
-                        Window.Current.Activate();
-                        await Task.Delay(100);
-                        _ = new ContentDialog {
-                            Title = "An exception occured",
-                            Content = e.ToString(),
-                            CloseButtonText = "OK"
-                        }.ShowAsync();
-                    }
-                }
-
-                // TODO: we should consolidate code between ImageViewer and MusicPlayer. We will need a UWP-level shared code, separate from ComicsViewer.Common
-                if (eventArgs.Uri.AbsolutePath == "/filenames" && eventArgs.Data.TryGetValue("Filenames", out var o2) && o2 is string[] filenames) {
-                    var files = new List<StorageFile>();
-                    var notFound = new List<string>();
-
-                    foreach (var filename in filenames) {
-                        try {
-                            files.Add(await StorageFile.GetFileFromPathAsync(filename));
-                        } catch (FileNotFoundException) {
-                            notFound.Add(filename);
-                        } catch (UnauthorizedAccessException) {
-                            await this.StopAppLaunch(
-                                "Access denied",
-                                $"The application could not open the required files. Please ensure file system access is enabled in Settings."
-                            );
-                            return;
-                        }
-                    }
-
-                    _ = rootFrame.Navigate(typeof(MainPage), MainPageNavigationArgs.ForFiles(files, description));
-                    Window.Current.Activate();
+                if (parsed.Result != ProtocolActivatedResult.Success) {
+                    await this.StopAppLaunch(parsed.Result.Description(), parsed.ErrorMessage ?? "An error occurred");
                     return;
                 }
 
+                _ = rootFrame.Navigate(typeof(MainPage), parsed);
                 Window.Current.Activate();
-                await Task.Delay(100);
-                _ = new ContentDialog {
-                    Title = "Failed to parse launch uri",
-                    Content = $"The application could not parse the launch uri.\n" +
-                    $"Url.AbsolutePath = {eventArgs.Uri.AbsolutePath}\n" +
-                    $"Data[FirstFileToken] = {(eventArgs.Data.TryGetValue("FirstFileToken", out var t) ? t : "<unassigned>")}",
-                    CloseButtonText = "OK"
-                }.ShowAsync();
             }
         }
 

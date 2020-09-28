@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
@@ -47,22 +48,22 @@ namespace MusicPlayer {
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
-            if (e.Parameter is MainPageNavigationArgs args) {
+            if (e.Parameter is ProtocolActivatedArguments args) {
                 switch (args.Mode) {
-                    case MainPageNavigationMode.FirstFile:
-                        await this.ViewModel.OpenContainingFolderAsync(args.FirstFile!);
+                    case ProtocolActivatedMode.Filenames:
+                        await this.ViewModel.OpenFilesAtPathAsync(args.Filenames!);
                         break;
-                    case MainPageNavigationMode.Folder:
+                    case ProtocolActivatedMode.Folder:
                         await this.ViewModel.OpenFolderAsync(args.Folder!);
                         break;
-                    case MainPageNavigationMode.Files:
-                        await this.ViewModel.OpenFilesAsync(args.Files!);
+                    case ProtocolActivatedMode.File:
+                        await this.ViewModel.OpenContainingFolderAsync(args.File!);
                         break;
                     default:
                         throw new ProgrammerError("unhandled switch case");
                 }
 
-                this.ViewModel.CurrentDescription = args.Description; 
+                this.ViewModel.CurrentDescription = args.Description;
             }
 
             this.NavigationView.SelectedItem = this.NavigationView.MenuItems[0];
