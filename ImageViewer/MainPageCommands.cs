@@ -173,6 +173,28 @@ namespace ImageViewer {
             }
         }
 
+        private ICommand? _seekToImageCommand;
+        public ICommand SeekToImageCommand {
+            get {
+                if (this._seekToImageCommand == null) {
+                    this._seekToImageCommand = new RelayCommand(
+                        async val => {
+                            // 1-indexed
+                            this.SeekToImageTextBox.Text = (this.ViewModel.CurrentImageIndex + 1).ToString();
+                            this.SeekToImageTextBox.SelectAll();
+                            if (await this.SeekToImageDialog.ShowAsync() == ContentDialogResult.Primary
+                                    && int.TryParse(this.SeekToImageTextBox.Text, out var i)) {
+                                await this.ViewModel.SeekAsync(i - 1);
+                            }
+                        },
+                        val => this.ViewModel.canSeek
+                    );
+                }
+
+                return this._seekToImageCommand;
+            }
+        }
+
         private bool IsViewingOpenFile(object _) => this.ViewModel.CurrentImageIndex < this.ViewModel.Images.Count;
 
         private static int? TryParseInt(object o) {
