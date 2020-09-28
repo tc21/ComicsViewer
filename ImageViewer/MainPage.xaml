@@ -70,29 +70,29 @@
 
                         <MenuFlyoutItem Text="First image" Command="{x:Bind SeekCommand}" CommandParameter="0"
                                         KeyboardAcceleratorTextOverride="Ctrl+[">
-                            <!-- note: the override is required or else WinUI crashes looking up the string representation of VkOpenBracket -->
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkOpenBracket}"/>
+                                <KeyboardAccelerator Key="Left" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
                         <MenuFlyoutItem Text="Last image" Command="{x:Bind SeekCommand}" CommandParameter="-1"
                                         KeyboardAcceleratorTextOverride="Ctrl+]">
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkCloseBracket}" />
+                                <KeyboardAccelerator Key="Right" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
                     <MenuFlyoutSubItem Text="Zoom">
-                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="1.33"
+                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="0.75"
                                         KeyboardAcceleratorTextOverride="Ctrl+-">
                             <MenuFlyoutItem.KeyboardAccelerators>
+                                <!-- note: the override is required or else WinUI crashes looking up the string representation of VkMinus -->
                                 <KeyboardAccelerator Key="{x:Bind VkMinus}" Modifiers="Control" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="0.75"
+                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="1.33"
                                         KeyboardAcceleratorTextOverride="Ctrl+=">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="{x:Bind VkPlus}" Modifiers="Control" />

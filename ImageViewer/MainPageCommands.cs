@@ -214,8 +214,6 @@ namespace ImageViewer {
 
         private VirtualKey VkPlus => (VirtualKey)0xBB;
         private VirtualKey VkMinus => (VirtualKey)0xBD;
-        private VirtualKey VkOpenBracket => (VirtualKey)0xDB;
-        private VirtualKey VkCloseBracket => (VirtualKey)0xDD;
     }
 
     internal class RelayCommand : ICommand {
