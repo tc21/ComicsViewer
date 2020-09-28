@@ -146,7 +146,6 @@
     <Compile Include="Support\CommentedType.cs" />
     <Compile Include="Support\DesignData.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
-    <Compile Include="Support\FileApiInterop.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogNavigationArguments.cs" />
