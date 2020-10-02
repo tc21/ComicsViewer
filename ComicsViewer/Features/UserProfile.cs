@@ -91,25 +91,19 @@ namespace ComicsViewer.Features {
         public async Task<IEnumerable<ComicSubitem>> GetComicSubitemsAsync(Comic comic) {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
-            var allFiles = new List<StorageFile>();
             var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
 
             if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is ComicSubitem rootItem) {
                 subitems.Add(rootItem);
-                allFiles.AddRange(rootItem.Files);
             }
 
-            foreach (var folder in await comicFolder.GetFoldersAsync()) {
-                if (await this.ComicSubitemForFolderAsync(comic, folder) is ComicSubitem subitem) {
-                    subitems.Add(subitem);
+            var childrenSubitemTasks = (await comicFolder.GetFoldersAsync()).Select(f => this.ComicSubitemForFolderAsync(comic, f));
+            var childrenSubitems = (await Task.WhenAll(childrenSubitemTasks)).OfType<ComicSubitem>();
 
-                    if (!IsIgnoredPath(subitem.DisplayName)) {
-                        allFiles.AddRange(subitem.Files);
-                    }
-                }
-            }
+            subitems.AddRange(childrenSubitems);
 
-            if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer && allFiles.Count > 0) {
+            if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer && subitems.Count > 1) {
+                var allFiles = subitems.SelectMany(s => s.Files).ToList();
                 subitems.Insert(0, new ComicSubitem(comic, "(all items)", allFiles));
             }
 
