@@ -82,7 +82,14 @@ namespace ComicsViewer.ViewModels.Pages {
                             infoPivotText.Inlines.Add(text);
                             break;
                         case ExternalDescriptionType.Link:
-                            var link = new Hyperlink { NavigateUri = new Uri(description.Content) };
+                            var link = new Hyperlink();
+
+                            try {
+                                link.NavigateUri = new Uri(description.Content);
+                            } catch (UriFormatException) {
+                                // do nothing
+                            }
+
                             link.Inlines.Add(text);
                             infoPivotText.Inlines.Add(link);
                             break;

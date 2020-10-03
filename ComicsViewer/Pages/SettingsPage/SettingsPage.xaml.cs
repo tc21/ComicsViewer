@@ -49,7 +49,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.ViewModel.CreateProfileAsync(this.NewProfileTextBox.Text, 
+            await this.ViewModel.CreateProfileAsync(this.NewProfileTextBox.Text,
                 copyCurrent: this.NewProfileRadioButtons.SelectedItem == this.NewProfileCopyCurrentProfileRadioButton);
         }
 
@@ -115,5 +115,72 @@ namespace ComicsViewer.Pages {
 
             await this.MainViewModel.StartReloadCategoryTaskAsync(namedPath);
         }
+
+
+        private void ProfileDescriptionsDataGrid_CellEditEnded(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridCellEditEndedEventArgs e) {
+            this.SaveProfleDescriptionsButton.Visibility = Visibility.Visible;
+        }
+
+        private void AddProfileDescriptionsButton_Click(object sender, RoutedEventArgs e) {
+            this.ViewModel.AddEmptyProfileDescription();
+        }
+
+
+        private async void SaveProfileDescriptionsButton_Click(object sender, RoutedEventArgs e) {
+            await this.ViewModel.SaveProfileDescriptionsAsync();
+            this.SaveProfleDescriptionsButton.Visibility = Visibility.Collapsed;
+        }
+
+        #region External description display info
+
+        /* these classes recreate the structure of ExternalDescriptionSpecification to work with the default
+         * configurations of DataGrid */
+
+        private class ExternalDescriptionTypeInfo {
+            public string Name { get; set; }
+            public ExternalDescriptionType DescriptionType { get; set; }
+
+            public ExternalDescriptionTypeInfo(string name, ExternalDescriptionType descriptionType) {
+                this.Name = name;
+                this.DescriptionType = descriptionType;
+            }
+        }
+
+        private class ExternalDescriptionFileInfo {
+            public string Name { get; set; }
+            public ExternalFileType FileType { get; set; }
+
+            public ExternalDescriptionFileInfo(string name, ExternalFileType fileType) {
+                this.Name = name;
+                this.FileType = fileType;
+            }
+        }
+
+        private class ExternalDescriptionFilterInfo {
+            public string Name { get; set; }
+            public ExternalDescriptionFilterType FilterType { get; set; }
+
+            public ExternalDescriptionFilterInfo(string name, ExternalDescriptionFilterType filterType) {
+                this.Name = name;
+                this.FilterType = filterType;
+            }
+        }
+
+        private readonly List<ExternalDescriptionTypeInfo> ExternalDescriptionTypes = new List<ExternalDescriptionTypeInfo> {
+            new ExternalDescriptionTypeInfo("Text", ExternalDescriptionType.Text),
+            new ExternalDescriptionTypeInfo("Link", ExternalDescriptionType.Link)
+        };
+
+        private readonly List<ExternalDescriptionFileInfo> ExternalDescriptionFileTypes = new List<ExternalDescriptionFileInfo> {
+            new ExternalDescriptionFileInfo("Content", ExternalFileType.Content),
+            new ExternalDescriptionFileInfo("File name", ExternalFileType.FileName)
+        };
+
+        private readonly List<ExternalDescriptionFilterInfo> ExternalDescriptionFilterTypes = new List<ExternalDescriptionFilterInfo> {
+            new ExternalDescriptionFilterInfo("None", ExternalDescriptionFilterType.None),
+            new ExternalDescriptionFilterInfo("Regex replace", ExternalDescriptionFilterType.RegexReplace)
+        };
+
+        #endregion
     }
 }

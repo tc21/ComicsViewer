@@ -13,11 +13,16 @@ using Windows.Storage;
 
 namespace ComicsViewer.Features {
     public class ExternalDescriptionSpecification {
+        // The name of the file to read, or a pattern identifying the file
         public string FileNamePattern { get; set; } = "info.txt";
+        // Whether the result should be shown as plaintext, or a link
         public ExternalDescriptionType DescriptionType { get; set; }
+        // Whether the result should come from the name of the file, or the contents of the file
         public ExternalFileType FileType { get; set; }
-        public ExternalDescriptionFilter Filter { get; set; }
-            = new ExternalDescriptionFilter { FilterType = ExternalDescriptionFilterType.None };
+        // Whether to perform a regex replace on the result
+        public ExternalDescriptionFilterType FilterType { get; set; }
+        // If so, the regex replacement string
+        public string? FilterContent { get; set; }
 
         public async Task<ExternalDescription?> FetchFromFolderAsync(StorageFolder folder) {
             foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
@@ -28,9 +33,9 @@ namespace ComicsViewer.Features {
                         _ => throw new ProgrammerError("Unhandled switch case")
                     };
 
-                    var filteredContent = this.Filter.FilterType switch {
+                    var filteredContent = this.FilterType switch {
                         ExternalDescriptionFilterType.RegexReplace
-                            => Regex.Replace(content, this.FileNamePattern, this.Filter.Content),
+                            => Regex.Replace(content, this.FileNamePattern, this.FilterContent),
                         _ => content
                     };
 
@@ -47,6 +52,25 @@ namespace ComicsViewer.Features {
         private static async Task<string> ReadFileToEndAsync(StorageFile file) {
             using var stream = await file.OpenReadAsync();
             return await stream.ReadTextAsync(Encoding.UTF8);
+        }
+
+        public static List<EnumInfo<ExternalDescriptionType>> DescriptionTypeTypeNames = new List<EnumInfo<ExternalDescriptionType>> {
+            EnumInfo.New("Link", ExternalDescriptionType.Link),
+            EnumInfo.New("Text", ExternalDescriptionType.Text),
+        };
+    }
+
+    public struct EnumInfo<E> where E: Enum {
+        public string Name { get; set; }
+        public E DescriptionType { get; set; }
+    }
+
+    public static class EnumInfo {
+        public static EnumInfo<A> New<A>(string name, A value) where A : Enum {
+            return new EnumInfo<A> {
+                Name = name,
+                DescriptionType = value
+            };
         }
     }
 

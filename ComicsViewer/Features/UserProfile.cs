@@ -23,7 +23,6 @@ namespace ComicsViewer.Features {
         [JsonConverter(typeof(RootPathsJsonConverter))]
         public RootPaths RootPaths { get; set; } = new RootPaths();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
-        // TODO currently this has to be manually entered in *.profile.json. we will need a UI. 
         public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new List<ExternalDescriptionSpecification>();
 
         // generated properties
