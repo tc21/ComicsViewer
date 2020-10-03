@@ -30,11 +30,6 @@
                                 <Polygon Points="0,0 40,40 0,40" Fill="#EF386A" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
                                 <FontIcon Glyph="&#xEB52;" FontSize="14" Margin="4" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
                             </Grid>
-
-                            <Grid Visibility="{x:Bind IsDisliked, Mode=OneWay}">
-                                <Polygon Points="0,0 40,40 0,40" Fill="#939393" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
-                                <FontIcon Glyph="&#xF78A;" FontSize="16" Margin="3" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
-                            </Grid>
                         </Grid>
                     </Border>
                     <TextBlock Grid.Row="1" 
@@ -100,8 +95,6 @@
                 </uc:ComicsMenuFlyoutItem>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xEB51;"
                                          Command="{x:Bind ContextMenuCommands.LoveComicsCommand}"/>
-                <uc:ComicsMenuFlyoutItem FontIcon="&#xEA92;"
-                                         Command="{x:Bind ContextMenuCommands.DislikeComicsCommand}"/>
                 <MenuFlyoutSeparator/>
                 <uc:ComicsMenuFlyoutItem FontIcon="&#xE721;"
                                          Command="{x:Bind ContextMenuCommands.SearchSelectedCommand}">

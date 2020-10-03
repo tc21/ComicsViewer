@@ -24,7 +24,6 @@ namespace ComicsLibrary.SQL {
         private const string key_display_title = "display_title";
         private const string key_thumbnail_source = "thumbnail_source";
         private const string key_loved = "loved";
-        private const string key_disliked = "disliked";
         private const string key_active = "active";
         private const string key_date_added = "date_added";
 
@@ -69,7 +68,6 @@ namespace ComicsLibrary.SQL {
                 (key_title, comic.Title),
                 (key_author, comic.Author),
                 (key_category, comic.Category),
-                (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.ThumbnailSource),
                 (key_display_title, comic.DisplayTitle),
@@ -101,7 +99,6 @@ namespace ComicsLibrary.SQL {
                 (key_title, comic.Title),
                 (key_author, comic.Author),
                 (key_category, comic.Category),
-                (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.ThumbnailSource),
                 (key_display_title, comic.DisplayTitle),
@@ -267,7 +264,6 @@ namespace ComicsLibrary.SQL {
                 DisplayTitle = reader.GetStringOrNull(key_display_title),
                 ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                 Loved = reader.GetBoolean(key_loved),
-                Disliked = reader.GetBoolean(key_disliked),
                 Tags = tags,
                 DateAdded = reader.GetString(key_date_added)
             };
@@ -288,7 +284,6 @@ namespace ComicsLibrary.SQL {
                 {table_comics}.{key_display_title},
                 {table_comics}.{key_thumbnail_source},
                 {table_comics}.{key_loved},
-                {table_comics}.{key_disliked},
                 {table_comics}.{key_date_added},
                 group_concat({table_tags}.{key_tag_name}) AS {col_tag_list}
             FROM
@@ -305,7 +300,7 @@ namespace ComicsLibrary.SQL {
 
         private static readonly List<string> getComicQueryColumnNames = new List<string> {
             col_comic_id, key_path, key_title, key_author, key_category, key_display_title, key_thumbnail_source,
-            key_loved, key_disliked, key_date_added, col_tag_list
+            key_loved, key_date_added, col_tag_list
         };
 
         private Task<SqliteDictionaryReader> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {

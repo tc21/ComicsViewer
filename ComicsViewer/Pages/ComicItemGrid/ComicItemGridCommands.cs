@@ -164,7 +164,6 @@ namespace ComicsViewer.Pages {
         public ComicWorkItemGridCommand GenerateThumbnailCommand { get; }
         public ComicWorkItemGridCommand RedefineThumbnailCommand { get; }
         public ComicWorkItemGridCommand LoveComicsCommand { get; }
-        public ComicWorkItemGridCommand DislikeComicsCommand { get; }
         public ComicWorkItemGridCommand SearchAuthorCommand { get; }
 
         public ComicNavigtionItemGridCommand NavigateIntoCommand { get; }
@@ -246,10 +245,6 @@ namespace ComicsViewer.Pages {
             this.LoveComicsCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => e.Items.All(i => i.IsLoved) ? DescribeItem("No longer love", e.Count) : DescribeItem("Love", e.Count),
                 execute: async e => await e.ViewModel.ToggleLovedStatusForComicsAsync(e.Items));
-
-            this.DislikeComicsCommand = new ComicWorkItemGridCommand(parent,
-                getName: e => e.Items.All(i => i.IsLoved) ? DescribeItem("No longer dislike", e.Count) : DescribeItem("Dislike", e.Count),
-                execute: async e => await e.ViewModel.ToggleDislikedStatusForComicsAsync(e.Items));
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Show all items by {e.Items.First().Comic.Author}",

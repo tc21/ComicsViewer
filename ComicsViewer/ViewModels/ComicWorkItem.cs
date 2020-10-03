@@ -20,7 +20,6 @@ namespace ComicsViewer.ViewModels {
         public override string Title => this.Comic.DisplayTitle;
         public override string Subtitle => this.Comic.Author;
         public override bool IsLoved => this.Comic.Loved;
-        public override bool IsDisliked => this.Comic.Disliked;
 
         public override IEnumerable<Comic> ContainedComics() => new[] { this.Comic };
 

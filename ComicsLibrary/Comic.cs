@@ -36,7 +36,6 @@ namespace ComicsLibrary {
         public string DisplayTitle => this.Metadata.DisplayTitle ?? this.Title;
         public IReadOnlyCollection<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
         public bool Loved => this.Metadata.Loved;
-        public bool Disliked => this.Metadata.Disliked;
         public string DateAdded => this.Metadata.DateAdded.Substring(0, "1970-01-01".Length);
         public string? ThumbnailSource {
             get {
@@ -67,11 +66,10 @@ namespace ComicsLibrary {
         }
 
         public Comic WithMetadata(string? displayTitle = null, IEnumerable<string>? tags = null, bool? loved = null,
-                                  bool? disliked = null, string? thumbnailSource = null, string? dateAdded = null) {
+                                  string? thumbnailSource = null, string? dateAdded = null) {
             var metadata = new ComicMetadata {
                 DisplayTitle = displayTitle ?? this.DisplayTitle,
                 Loved = loved ?? this.Loved,
-                Disliked = disliked ?? this.Disliked,
                 ThumbnailSource = thumbnailSource ?? this.ThumbnailSource,
                 DateAdded = dateAdded ?? this.DateAdded
             };
@@ -88,7 +86,6 @@ namespace ComicsLibrary {
         public string? DisplayTitle { get; set; }
         public HashSet<string> Tags { get; set; } = new HashSet<string>();
         public bool Loved { get; set; } = false;
-        public bool Disliked { get; set; } = false;
         public string? ThumbnailSource { get; set; }
         public string DateAdded { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }

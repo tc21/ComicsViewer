@@ -16,10 +16,9 @@ namespace ComicsViewer.Features {
         private Func<Comic, bool>? _generatedFilter;
         private Func<Comic, bool>? _search;
         private bool _onlyShowLoved = false;
-        private bool _showDisliked = false;
 
-        public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0 
-            || this.selectedTags.Count != 0 || this._generatedFilter != null || this._onlyShowLoved || this.ShowDisliked;
+        public bool IsActive => this.selectedAuthors.Count != 0 || this.selectedCategories.Count != 0
+            || this.selectedTags.Count != 0 || this._generatedFilter != null || this._onlyShowLoved;
 
         public bool ContainsAuthor(string author) => this.selectedAuthors.Contains(author);
         public bool AddAuthor(string author) => this.AddTo(this.selectedAuthors, author);
@@ -74,18 +73,6 @@ namespace ComicsViewer.Features {
             }
         }
 
-        public bool ShowDisliked {
-            get => this._showDisliked;
-            set {
-                if (this._showDisliked == value) {
-                    return;
-                }
-
-                this._showDisliked = value;
-                this.SendNotification();
-            }
-        }
-
         public void Clear() {
             this.selectedAuthors.Clear();
             this.selectedCategories.Clear();
@@ -93,7 +80,6 @@ namespace ComicsViewer.Features {
             this._search = null;
             this._generatedFilter = null;
             this._onlyShowLoved = false;
-            this._showDisliked = false;
             this.SendNotification();
         }
 
@@ -143,10 +129,6 @@ namespace ComicsViewer.Features {
             }
 
             if (this._onlyShowLoved && !comic.Loved) {
-                return false;
-            }
-
-            if (!this._showDisliked && comic.Disliked) {
                 return false;
             }
 

@@ -21,7 +21,6 @@ namespace ComicsViewer.ViewModels {
         public abstract string Title { get; }
         public abstract string Subtitle { get; }
         public abstract bool IsLoved { get; }
-        public abstract bool IsDisliked { get; }
 
         public abstract IEnumerable<Comic> ContainedComics();
 

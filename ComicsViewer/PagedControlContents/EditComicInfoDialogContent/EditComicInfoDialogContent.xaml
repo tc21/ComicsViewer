@@ -52,17 +52,9 @@
         </Grid>
 
         <Grid Margin="0 12 0 0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-
             <CheckBox x:Name="ComicLovedCheckBox" 
                       Content="Loved" 
                       IsChecked="{x:Bind ViewModel.ComicLoved, Mode=OneWay}"/>
-            <CheckBox x:Name="ComicDislikedCheckBox" 
-                      Grid.Column="1" Content="Disliked"
-                      IsChecked="{x:Bind ViewModel.ComicDisliked, Mode=OneWay}"/>
         </Grid>
 
         <Grid Margin="0 12 0 0">

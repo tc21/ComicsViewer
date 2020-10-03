@@ -9,7 +9,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     x:Name="ThisPage"
-    d:RequestedTheme="Dark">
+    d:RequestedTheme="Dark"
+    d:Width="400"
+    d:Height="400">
     <Page.Resources>
         <DataTemplate x:Key="FilterItemListTemplate" x:DataType="support:CountedString">
             <Grid>
@@ -61,17 +63,9 @@
         </Grid>
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
             <CheckBox Grid.Column="0"
                       Content="Only show loved"
                       IsChecked="{x:Bind ViewModel.OnlyShowLovedChecked, Mode=TwoWay}" />
-            <CheckBox Grid.Column="1"
-                      Margin="12 4"
-                      Content="Show disliked"
-                      IsChecked="{x:Bind ViewModel.ShowDislikedChecked, Mode=TwoWay}" />
         </Grid>
 
         <uc:ExpandableChecklist x:Name="CategoryChecklist"

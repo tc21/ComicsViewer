@@ -50,8 +50,7 @@ namespace ComicsViewer.Pages {
             await this.ViewModel.SaveComicInfoAsync(
                 title: this.ComicTitleTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
-                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError(),
-                disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ProgrammerError()
+                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError()
             );
 
             this.PagedControlAccessor!.CloseContainer();

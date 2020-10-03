@@ -19,8 +19,7 @@ namespace ComicsViewer.Features {
             { "author", comic => comic.Author },
             { "category", comic => comic.Category },
             { "tag", comic => string.Join("|", comic.Tags) }, // We should just return a list, but we'll assume no one will actually use "|" for now...
-            { "loved", comic => comic.Loved.ToString() },
-            { "disliked", comic => comic.Disliked.ToString() },
+            { "loved", comic => comic.Loved.ToString() }
         };
 
         private static string DefaultSearchField(Comic comic) {

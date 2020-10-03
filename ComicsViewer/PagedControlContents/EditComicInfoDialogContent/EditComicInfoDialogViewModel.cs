@@ -26,19 +26,17 @@ namespace ComicsViewer.ViewModels.Pages {
         public string ComicAuthor => this.Comic.Author;
         public string ComicTags => string.Join(", ", this.Comic.Tags);
         public bool ComicLoved => this.Comic.Loved;
-        public bool ComicDisliked => this.Comic.Disliked;
 
         /* Category editing is currently disabled */
         public string ComicCategory => this.Comic.Category;
 
-        public async Task SaveComicInfoAsync(string title, string tags, bool loved, bool disliked) {
+        public async Task SaveComicInfoAsync(string title, string tags, bool loved) {
             var assignTags = (tags == this.ComicTags) ? null : StringConversions.CommaDelimitedList.Convert(tags);
 
             var modified = this.Comic.WithMetadata(
                 displayTitle: title.Trim(),
                 tags: assignTags,
-                loved: loved,
-                disliked: disliked
+                loved: loved
             );
 
             // we don't care about what happens after this, the program works even if you don't await this,

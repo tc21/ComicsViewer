@@ -38,13 +38,6 @@ namespace ComicsViewer.ViewModels.Pages {
                 this.OnPropertyChanged();
             }
         }
-        public bool ShowDislikedChecked {
-            get => this.Filter.ShowDisliked;
-            set {
-                this.Filter.ShowDisliked = value;
-                this.OnPropertyChanged();
-            }
-        }
 
         internal ComicItemGridViewModel ParentViewModel { get; }
         internal Filter Filter { get; }

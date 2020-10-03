@@ -20,7 +20,6 @@ namespace ComicsViewer.ViewModels {
         public override string Title { get; }
         public override string Subtitle => this.Comics.Count().PluralString("Item");
         public override bool IsLoved => false;
-        public override bool IsDisliked => false;
 
         public override IEnumerable<Comic> ContainedComics() => this.Comics;
 
