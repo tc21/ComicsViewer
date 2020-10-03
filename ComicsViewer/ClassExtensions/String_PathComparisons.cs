@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 #nullable enable
 
@@ -14,6 +15,14 @@ namespace ComicsViewer.ClassExtensions {
         /// </summary>
         public static bool IsChildOfDirectory(this string child, string parent) {
             return Path.GetFullPath(child).StartsWith(Path.GetFullPath(parent), StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsChildOf(this IStorageItem child, StorageFolder parent) {
+            return IsChildOfDirectory(child.Path, parent.Path);
+        }
+
+        public static bool IsChildOf(this IStorageItem child, string parentPath) {
+            return IsChildOfDirectory(child.Path, parentPath);
         }
 
         /// <summary>
@@ -36,6 +45,14 @@ namespace ComicsViewer.ClassExtensions {
             }
 
             return path.Substring(parent.Length + 1);
+        }
+
+        public static string RelativeTo(this IStorageItem child, StorageFolder parent) {
+            return GetPathRelativeTo(child.Path, parent.Path);
+        }
+
+        public static string RelativeTo(this IStorageItem child, string parentPath) {
+            return GetPathRelativeTo(child.Path, parentPath);
         }
     }
 }

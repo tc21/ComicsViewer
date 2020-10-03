@@ -1,30 +1,37 @@
 ﻿using ComicsLibrary.SQL.Migrations;
-using Microsoft.Data.Sqlite;
+using ComicsLibrary.SQL.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using TC.Database;
-using TC.Database.MicrosoftSqlite;
 
 namespace ComicsLibrary.SQL {
-    using SqliteManagedDatabaseConnection
-        = ManagedDatabaseConnection<SqliteDatabaseConnection, SqliteConnection, SqliteCommand, SqliteDataReader>;
+    public class ComicsManager {
+        public ComicsDatabaseConnection Connection { get; }
 
-    public class ComicsManager : ComicsReadOnlyManager {
-        public ComicsManager(SqliteDatabaseConnection databaseConnection) : base(databaseConnection) { }
+        public ComicsManager(SqliteDatabaseConnection databaseConnection) {
+            this.Connection = new ComicsDatabaseConnection(databaseConnection);
+        }
+
+        public async Task<IEnumerable<Comic>> GetAllComicsAsync() {
+            return await this.Connection.GetActiveComicsAsync();
+        }
+
+        public Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
+            return this.Connection.TryGetComicMetadataAsync(comic);
+        }
 
         /* called when a profile is first loaded */
-        public static ComicsManager MigratedComicsManager(SqliteDatabaseConnection connection) {
-            var manager = new SqliteManagedDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
-            manager.Migrate();
+        public static async Task<ComicsManager> MigratedComicsManagerAsync(SqliteDatabaseConnection connection) {
+            var manager = new ManagedSqliteDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
+            await manager.MigrateAsync();
             return new ComicsManager(connection);
         }
 
         /* called when a profile is created */
-        public static ComicsManager InitializeComicsManager(SqliteDatabaseConnection connection) {
-            var manager = new SqliteManagedDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
-            manager.Initialize();
+        public static async Task<ComicsManager> InitializeComicsManagerAsync(SqliteDatabaseConnection connection) {
+            var manager = new ManagedSqliteDatabaseConnection(connection, ComicsDatabaseMigrations.Migrations);
+            await manager.InitializeAsync();
             return new ComicsManager(connection);
         }
 

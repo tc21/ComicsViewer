@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using Windows.Storage;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 
 #nullable enable
 
@@ -112,15 +113,14 @@ namespace ComicsViewer.Support {
             List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 
             // If in a category folder: assume it's properly laid out
-            var matchingPaths = profile.RootPaths
-                .Where(pair => folder.Path.IsChildOfDirectory(pair.Path));
+            var matchingPaths = profile.RootPaths.Where(pair => folder.IsChildOf(pair.Path));
 
             if (matchingPaths.Any()) {
-                var bestMatch = matchingPaths.OrderBy(pair => folder.Path.GetPathRelativeTo(pair.Path).Length).First();
+                var bestMatch = matchingPaths.OrderBy(pair => folder.RelativeTo(pair.Path).Length).First();
          
                 // If in a category folder: assume it's properly laid out
                 var categoryName = bestMatch.Name;
-                var relativePath = folder.Path.GetPathRelativeTo(bestMatch.Path);
+                var relativePath = folder.RelativeTo(bestMatch.Path);
 
                 // 1. Importing a category
                 if (relativePath == "") {
@@ -163,7 +163,7 @@ namespace ComicsViewer.Support {
                 return;
             }
 
-            foreach (var subfolder in await folder.GetFoldersAsync()) {
+            foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
                 if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => subfolder.Name.StartsWith(prefix))) {
                     continue;
                 }
@@ -183,7 +183,7 @@ namespace ComicsViewer.Support {
         ) {
             var folder = await StorageFolder.GetFolderFromPathAsync(rootPath.Path);
 
-            foreach (var authorFolder in await folder.GetFoldersAsync()) {
+            foreach (var authorFolder in await folder.GetFoldersInNaturalOrderAsync()) {
                 if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => authorFolder.Name.StartsWith(prefix))) {
                     continue;
                 }
@@ -202,7 +202,7 @@ namespace ComicsViewer.Support {
             List<Comic> comics, UserProfile profile, StorageFolder folder, string category, string author, 
             CancellationToken cc, IProgress<int>? progress
         ) {
-            foreach (var comicFolder in await folder.GetFoldersAsync()) { 
+            foreach (var comicFolder in await folder.GetFoldersInNaturalOrderAsync()) { 
                 if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => comicFolder.Name.StartsWith(prefix))) {
                     continue;
                 }

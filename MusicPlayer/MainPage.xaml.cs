@@ -100,7 +100,7 @@ namespace MusicPlayer {
 
         private async void Player_Drop(object sender, DragEventArgs e) {
             if (e.DataView.Contains(StandardDataFormats.StorageItems)) {
-                var items = await e.DataView.GetStorageItemsAsync();
+                var items = (await e.DataView.GetStorageItemsAsync()).InNaturalOrder();
 
                 if (items.Count() == 1) {
                     var item = items.First();

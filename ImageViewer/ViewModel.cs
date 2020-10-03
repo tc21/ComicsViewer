@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Storage;
@@ -168,12 +169,12 @@ namespace ImageViewer {
                 return;
             }
 
-            await this.LoadViaPassthrough(file, async () => await parent.GetFilesAsync());
+            await this.LoadViaPassthrough(file, async () => await parent.GetFilesInNaturalOrderAsync());
 
             this.canSeek = false;
             this.Title = "Viewer - Loading related files...";
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
-            var files = await parent.GetFilesAsync();
+            var files = await parent.GetFilesInNaturalOrderAsync();
 
             await this.LoadImagesAsync(files, seekTo: null);
 

@@ -6,8 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TC.Database;
-using TC.Database.MicrosoftSqlite;
+using ComicsLibrary.SQL.Sqlite;
 
 #nullable enable
 
@@ -190,8 +189,10 @@ namespace ComicsLibrary.SQL {
 
         private Task AssociateTagAsync(int comicid, int tagid) {
             // I'm assuming you can't do an injection attack with an Int32
-            return this.connection.ExecuteNonQueryAsync(
-                $"INSERT INTO {table_tags_xref} ({key_xref_comic_id}, {key_xref_tag_id}) VALUES ({comicid}, {tagid})");
+            return this.connection.ExecuteInsertAsync(table_tags_xref, new Dictionary<string, object> {
+                [key_xref_comic_id] = comicid,
+                [key_xref_tag_id] = tagid,
+            });
         }
 
         /* selects for rows matching the constraint, but only returning the rowids */
@@ -247,7 +248,7 @@ namespace ComicsLibrary.SQL {
             return (constraintString, parameters);
         }
 
-        private Comic ReadComicFromRow(DictionaryReader<SqliteDataReader> reader) {
+        private Comic ReadComicFromRow(SqliteDictionaryReader reader) {
             var path = reader.GetString(key_path);
             var title = reader.GetString(key_title);
             var author = reader.GetString(key_author);
@@ -258,7 +259,7 @@ namespace ComicsLibrary.SQL {
             return comic;
         }
 
-        private ComicMetadata ReadComicMetadataFromRow(DictionaryReader<SqliteDataReader> reader) {
+        private ComicMetadata ReadComicMetadataFromRow(SqliteDictionaryReader reader) {
             var tagList = reader.GetStringOrNull(col_tag_list);
             var tags = new HashSet<string>(tagList == null ? new string[0] : tagList.Split(','));
 
@@ -307,7 +308,7 @@ namespace ComicsLibrary.SQL {
             key_loved, key_disliked, key_date_added, col_tag_list
         };
 
-        private Task<DictionaryReader<SqliteDataReader>> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
+        private Task<SqliteDictionaryReader> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
             var parameters = new Dictionary<string, object> { ["@constraint_value"] = constraintValue };
             var query = string.Format(getComicWithConstraintsQuery, constraintName);
 

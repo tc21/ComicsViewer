@@ -1,6 +1,8 @@
 ﻿using ComicsLibrary.SQL;
+using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TC.Database.MicrosoftSqlite;
 using Windows.Storage;
 using Windows.System;
 
@@ -32,7 +33,7 @@ namespace ComicsViewer.Features {
         }
 
         public static async Task LoadProfilesAsync(StorageFolder profileFolder) {
-            var files = await profileFolder.GetFilesAsync();
+            var files = await profileFolder.GetFilesInNaturalOrderAsync();
             foreach (var file in files) {
                 if (file.Name.EndsWith(ProfileFileNameExtension)) {
                     try {
@@ -90,7 +91,7 @@ namespace ComicsViewer.Features {
             _ = await Defaults.GetDatabaseFolderAsync();
             using var connection = new SqliteConnection($"Filename={profile.DatabaseFileName}");
             await connection.OpenAsync();
-            _ = ComicsManager.InitializeComicsManager(new SqliteDatabaseConnection(connection));
+            _ = await ComicsManager.InitializeComicsManagerAsync(new SqliteDatabaseConnection(connection));
 
             return profile;
         }

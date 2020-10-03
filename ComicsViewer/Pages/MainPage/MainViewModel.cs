@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.SQL;
+using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
@@ -18,7 +19,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TC.Database.MicrosoftSqlite;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.UI.Popups;
@@ -139,7 +139,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var dbconnection = new SqliteDatabaseConnection(connection);
 
             if (migrate) {
-                return ComicsManager.MigratedComicsManager(dbconnection);
+                return await ComicsManager.MigratedComicsManagerAsync(dbconnection);
             }
 
             return new ComicsManager(dbconnection);

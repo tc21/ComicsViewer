@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Uwp.Common;
 using Microsoft.Toolkit.Uwp.UI.Animations.Behaviors;
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,7 @@ namespace ComicsViewer.Features {
 
         // Profile helper methods
         public async Task<IEnumerable<StorageFile>> GetTopLevelFilesForFolderAsync(StorageFolder folder) {
-            var files = await folder.GetFilesAsync();
+            var files = await folder.GetFilesInNaturalOrderAsync();
             return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
         }
 
@@ -72,7 +73,7 @@ namespace ComicsViewer.Features {
                 return file;
             }
 
-            var subfolders = await folder.GetFoldersAsync();
+            var subfolders = await folder.GetFoldersInNaturalOrderAsync();
             foreach (var subfolder in subfolders) {
                 foreach (var file in await this.GetTopLevelFilesForFolderAsync(subfolder)) {
                     return file;
@@ -97,7 +98,7 @@ namespace ComicsViewer.Features {
                 subitems.Add(rootItem);
             }
 
-            var childrenSubitemTasks = (await comicFolder.GetFoldersAsync()).Select(f => this.ComicSubitemForFolderAsync(comic, f));
+            var childrenSubitemTasks = (await comicFolder.GetFoldersInNaturalOrderAsync()).Select(f => this.ComicSubitemForFolderAsync(comic, f));
             var childrenSubitems = (await Task.WhenAll(childrenSubitemTasks)).OfType<ComicSubitem>();
 
             subitems.AddRange(childrenSubitems);

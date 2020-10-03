@@ -1,4 +1,5 @@
 ﻿using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Microsoft.Toolkit.Uwp.Helpers;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace ComicsViewer.Features {
             = new ExternalDescriptionFilter { FilterType = ExternalDescriptionFilterType.None };
 
         public async Task<ExternalDescription?> FetchFromFolderAsync(StorageFolder folder) {
-            foreach (var file in await folder.GetFilesAsync()) {
+            foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
                 if (Regex.IsMatch(file.Name, this.FileNamePattern)) {
                     var content = this.FileType switch {
                         ExternalFileType.FileName => file.Name,

@@ -367,10 +367,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\files\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj">
-      <Project>{9e3c594c-77b1-4645-b5fc-a3f4b4ef1239}</Project>
-      <Name>TCSupport</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ComicsLibrary\ComicsLibrary.csproj">
       <Project>{5dff8285-b9fe-4e29-aad9-bd3326bbab7a}</Project>
       <Name>ComicsLibrary</Name>

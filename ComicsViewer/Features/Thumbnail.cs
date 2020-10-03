@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Uwp.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -107,7 +108,7 @@ namespace ComicsViewer.Features {
 
             // we can allow for customization in the future
             var maxFiles = 5;
-            foreach (var file in await folder.GetFilesAsync()) {
+            foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
                 if (IsValidThumbnailFile(file.Name)) {
                     files.Add(file);
 
@@ -117,7 +118,7 @@ namespace ComicsViewer.Features {
                 }
             }
 
-            foreach (var subfolder in await folder.GetFoldersAsync()) {
+            foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
                 foreach (var file in await GetPossibleThumbnailFilesAsync(subfolder)) {
                     files.Add(file);
                 }
