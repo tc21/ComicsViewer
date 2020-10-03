@@ -42,7 +42,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RefreshComicItems() {
-            this.SetComicItems(this.MakeComicItems(this._comics));
+            this.SetComicItems(this.MakeComicItems(this._comics), this._comics.Count());
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {

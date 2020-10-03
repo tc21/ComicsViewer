@@ -87,7 +87,7 @@
                                 Expanding="Checklist_Expanding"/>
 
         <StackPanel Orientation="Horizontal" Margin="12 4">
-            <TextBlock Text="{x:Bind ViewModel.ParentViewModel.VisibleItemCount, Mode=OneWay}"
+            <TextBlock Text="{x:Bind ViewModel.ParentViewModel.TotalItemCount, Mode=OneWay}"
                        Style="{StaticResource DimmedTextStyle}"/>
             <TextBlock Text=" item(s) visible"
                        Style="{StaticResource DimmedTextStyle}"/>

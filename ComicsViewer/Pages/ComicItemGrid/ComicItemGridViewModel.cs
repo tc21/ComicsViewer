@@ -48,10 +48,13 @@ namespace ComicsViewer.ViewModels.Pages {
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
         private IEnumerator<ComicItem>? comicItemSource;
 
-        private protected void SetComicItems(IEnumerable<ComicItem> items) {
+        private protected void SetComicItems(IEnumerable<ComicItem> items, int itemCount) {
             this.ComicItems.Clear();
             this.comicItemSource = items.GetEnumerator();
             this.RequestComicItems();
+
+            this.TotalItemCount = itemCount;
+            this.OnPropertyChanged(nameof(this.TotalItemCount));
         }
 
         public void RequestComicItems() {
@@ -77,6 +80,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public string ProfileName => this.MainViewModel.Profile.Name;
         public int VisibleItemCount => this.ComicItems.Count;
+        public int TotalItemCount { get; private set; }
         internal readonly MainViewModel MainViewModel;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle

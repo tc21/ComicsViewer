@@ -46,7 +46,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 ComicItem.NavigationItem(property.Name, view.PropertyView(property.Name))
             );
 
-            this.SetComicItems(items);
+            this.SetComicItems(items, view.Count);
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
