@@ -38,8 +38,6 @@ namespace ComicsLibrary.Collections {
         public void Sort(ComicSortSelector sortSelector) {
             this.sortSelector = sortSelector;
             SortComics(this.sortedComics, sortSelector);
-            // TODO we might make a "Sorted" enum, so that children can ignore this event,
-            // but you can't change the sort of an invisible grid anyway
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.Refresh));
         }
 

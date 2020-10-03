@@ -265,7 +265,6 @@ namespace ComicsViewer {
             this.TaskProgressButton.ContextFlyout.ShowAt(this.TaskProgressButton);
         }
 
-        // TODO this is spaghetti
         private void MainGrid_PointerPressed(object sender, PointerRoutedEventArgs e) {
             if (e.Pointer.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse) {
                 var properties = e.GetCurrentPoint(this.MainGrid).Properties;

@@ -5,8 +5,6 @@ using System.Runtime.InteropServices;
 
 #nullable enable
 
-/* todo: should ComicsViewer.Common be a library instead of just "shared code?" */
-
 namespace ComicsViewer.Common {
     /// <summary>
     /// The view model from which every view model inherits. Because every Page needs its own viewmodel, 
