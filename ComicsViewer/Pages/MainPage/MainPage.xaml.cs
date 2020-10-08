@@ -1,5 +1,4 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Features;
+﻿using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.ViewModels.Pages;
 using System;
@@ -268,12 +267,11 @@ namespace ComicsViewer {
         }
 
         private void MainGrid_PointerPressed(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
-                return;
-            }
-
             var properties = e.GetCurrentPoint(this.MainGrid).Properties;
-            if (!properties.IsXButton1Pressed) {
+
+            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
+                    || !properties.IsXButton1Pressed
+                    || this.ViewModel.NavigationLevel <= 0) {
                 return;
             }
 

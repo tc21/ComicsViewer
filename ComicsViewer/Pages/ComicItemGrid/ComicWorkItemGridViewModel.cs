@@ -44,7 +44,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
-            foreach (var comic in comics.ToList()) {
+            foreach (var comic in comics) {
                 var item = new ComicWorkItem(comic, trackChangesFrom: this.comics);
                 item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
                 yield return item;
@@ -115,25 +115,27 @@ namespace ComicsViewer.ViewModels.Pages {
         /* The ComicItem.RequestingRefresh event is used for items to request themselves be reloaded or removed. 
          * This will most likely be moved to ...WorkItemViewModel when the new ComicPropertiesView events are implemented */
         private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
-            if (this.ComicItems.Contains(sender)) {
-                switch (type) {
-                    case ComicWorkItem.RequestingRefreshType.Reload:
-                        var index = this.ComicItems.IndexOf(sender);
-                        this.ComicItems.RemoveAt(index);
-                        this.ComicItems.Insert(index, sender);
-                        break;
-                    case ComicWorkItem.RequestingRefreshType.Remove:
-                        sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-                        _ = this.ComicItems.Remove(sender);
+            if (!this.ComicItems.Contains(sender)) {
+                return;
+            }
 
-                        if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
-                            this.MainViewModel.NavigateOut();
-                        }
+            switch (type) {
+                case ComicWorkItem.RequestingRefreshType.Reload:
+                    var index = this.ComicItems.IndexOf(sender);
+                    this.ComicItems.RemoveAt(index);
+                    this.ComicItems.Insert(index, sender);
+                    break;
+                case ComicWorkItem.RequestingRefreshType.Remove:
+                    sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
+                    _ = this.ComicItems.Remove(sender);
 
-                        break;
-                    default:
-                        throw new ProgrammerError("Unhandled switch case");
-                }
+                    if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
+                        this.MainViewModel.NavigateOut();
+                    }
+
+                    break;
+                default:
+                    throw new ProgrammerError("Unhandled switch case");
             }
         }
 
