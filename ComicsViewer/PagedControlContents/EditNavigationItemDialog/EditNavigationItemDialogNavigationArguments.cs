@@ -1,10 +1,4 @@
-﻿using ComicsViewer.Support;
-using ComicsViewer.ViewModels.Pages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ComicsViewer.ViewModels.Pages;
 
 #nullable enable
 

@@ -17,8 +17,8 @@
         </Grid.RowDefinitions>
 
         <Pivot x:Name="Pivot" Margin="0 12">
-            <PivotItem Header="Open" x:Name="OpenPivotItem" >
-                <StackPanel x:Name="OpenComicsContainer">
+            <PivotItem Header="Open">
+                <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" MaxWidth="400"/>

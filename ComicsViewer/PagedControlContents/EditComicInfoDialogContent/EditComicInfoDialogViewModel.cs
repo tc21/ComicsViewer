@@ -1,11 +1,7 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.ClassExtensions;
 using ComicsViewer.Support;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using ComicsViewer.Common;
 
 #nullable enable
 
@@ -31,7 +27,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public string ComicCategory => this.Comic.Category;
 
         public async Task SaveComicInfoAsync(string title, string tags, bool loved) {
-            var assignTags = (tags == this.ComicTags) ? null : StringConversions.CommaDelimitedList.Convert(tags);
+            var assignTags = tags == this.ComicTags ? null : StringConversions.CommaDelimitedList.Convert(tags);
 
             var modified = this.Comic.WithMetadata(
                 displayTitle: title.Trim(),

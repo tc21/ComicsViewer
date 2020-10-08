@@ -1,8 +1,6 @@
 ﻿using ComicsLibrary.SQL.Migrations;
 using ComicsLibrary.SQL.Sqlite;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ComicsLibrary.SQL {
@@ -17,7 +15,7 @@ namespace ComicsLibrary.SQL {
             return await this.Connection.GetActiveComicsAsync();
         }
 
-        public Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
+        private Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
             return this.Connection.TryGetComicMetadataAsync(comic);
         }
 
@@ -71,7 +69,7 @@ namespace ComicsLibrary.SQL {
 
             foreach (var comic in comics) {
                 var metadata = await this.TryGetMetadataAsync(comic);
-                if (metadata is ComicMetadata m) {
+                if (metadata is { } m) {
                     result.Add(comic.With(metadata: m));
                 } else {
                     result.Add(comic);

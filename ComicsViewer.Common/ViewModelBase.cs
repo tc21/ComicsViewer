@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 #nullable enable
 
@@ -11,8 +9,9 @@ namespace ComicsViewer.Common {
     /// all containing the same application state, we do that in this class, and make every view model inherit from this.
     /// </summary>
     public class ViewModelBase : INotifyPropertyChanged {
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        public void OnPropertyChanged([CallerMemberName] string propertyName = "") {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "") {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }

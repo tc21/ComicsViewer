@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ComicsViewer.Common;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -47,8 +42,8 @@ namespace ComicsViewer.Controls {
     }
 
     public class PagedControlNavigationArguments {
-        public IPagedControl Container;
-        public object Parameter;
+        public readonly IPagedControl Container;
+        public readonly object Parameter;
 
         public PagedControlNavigationArguments(IPagedControl container, object parameter) {
             this.Parameter = parameter;
@@ -77,7 +72,7 @@ namespace ComicsViewer.Controls {
     public class PagedControlAccessor {
         private readonly IPagedControl container;
 
-        public PagedControlAccessor(IPagedControl container) {
+        private PagedControlAccessor(IPagedControl container) {
             this.container = container;
         }
 

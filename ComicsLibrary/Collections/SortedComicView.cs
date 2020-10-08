@@ -1,7 +1,6 @@
 ﻿using ComicsLibrary.Sorting;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 #nullable enable
 
@@ -14,7 +13,10 @@ namespace ComicsLibrary.Collections {
         private readonly List<Comic> sortedComics;
         private ComicSortSelector sortSelector;
 
-        internal SortedComicView(
+        /// <summary>
+        /// A convenience constructor, for a pre-populated comicAccessor field
+        /// </summary>
+        private SortedComicView(
             ComicView trackChangesFrom,
             Dictionary<string, Comic> comicAccessor,
             List<Comic> sortedComics,
@@ -31,7 +33,7 @@ namespace ComicsLibrary.Collections {
             ComicSortSelector sortSelector
         ) : this(trackChangesFrom, comicAccessor: new Dictionary<string, Comic>(), sortedComics: new List<Comic>(), sortSelector) {
             foreach (var comic in comics) {
-                this.AddComic(comic);
+                this.Instance_AddComic(comic);
             }
         }
 
@@ -61,7 +63,7 @@ namespace ComicsLibrary.Collections {
             return new SortedComicView(this, this.comicAccessor, sorted, sortSelector);
         }
 
-        private protected override void AddComic(Comic comic) {
+        private void Instance_AddComic(Comic comic) {
             if (this.Contains(comic)) {
                 throw new ArgumentException("comic already exists in this collection");
             }
@@ -79,6 +81,10 @@ namespace ComicsLibrary.Collections {
 
             this.sortedComics.Insert(index, comic);
             this.comicAccessor[comic.UniqueIdentifier] = comic;
+        }
+
+        private protected override void AddComic(Comic comic) {
+            this.Instance_AddComic(comic);
         }
 
         private protected override void RemoveComic(Comic comic) {

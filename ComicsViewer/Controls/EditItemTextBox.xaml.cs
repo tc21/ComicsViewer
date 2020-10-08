@@ -1,32 +1,23 @@
 ﻿using ComicsViewer.Support;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace ComicsViewer.Controls {
-    public sealed partial class EditItemTextBox : UserControl, INotifyPropertyChanged {
+    public sealed partial class EditItemTextBox : INotifyPropertyChanged {
         public EditItemTextBox() {
             this.InitializeComponent();
         }
 
-        public void Reset() {
+        private void Reset() {
             this.IsEditing = false;
             this.IsContentModified = false;
             this.IsContentValid = true;
@@ -35,7 +26,7 @@ namespace ComicsViewer.Controls {
             this.UneditedTextBox.Text = this.GetText();
         }
 
-        public async Task Save() {
+        private async Task Save() {
             this.IsEnabled = false;
 
             if (this.SaveItemValue != null) {
@@ -45,12 +36,6 @@ namespace ComicsViewer.Controls {
             }
 
             this.IsEnabled = true;
-        }
-
-        public void RegisterHandlers(Func<string> get, Action<string> save, Func<string, ValidateResult>? validate = null) {
-            this.GetItemValue = get;
-            this.SaveItemValue = save;
-            this.ValidateWithReason = validate;
         }
 
         public void RegisterHandlers(Func<string> get, Func<string, Task> saveAsync, Func<string, ValidateResult>? validate = null) {
@@ -86,7 +71,7 @@ namespace ComicsViewer.Controls {
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(string), typeof(EditItemTextBox), new PropertyMetadata(null));
 
-        private bool saveButtonSet = false;
+        private bool saveButtonSet;
         public ButtonBase? SaveButton {
             get => this.GetValue(SaveButtonProperty) as ButtonBase;
             set {
@@ -182,7 +167,7 @@ namespace ComicsViewer.Controls {
 
         #region Other properties
 
-        private bool _isEditing = false;
+        private bool _isEditing;
         private bool IsEditing {
             get => this._isEditing;
             set {
@@ -193,7 +178,7 @@ namespace ComicsViewer.Controls {
         }
 
         private bool _isContentModified;
-        public bool IsContentModified {
+        private bool IsContentModified {
             get => this._isContentModified;
             set {
                 this._isContentModified = value;
@@ -203,7 +188,7 @@ namespace ComicsViewer.Controls {
         }
 
         private bool _isContentValid;
-        public bool IsContentValid {
+        private bool IsContentValid {
             get => this._isContentValid;
             set {
                 this._isContentValid = value;
@@ -214,7 +199,7 @@ namespace ComicsViewer.Controls {
         private string? _errorText;
         public string? ErrorText {
             get => this._errorText ?? this.WarningText;
-            set { 
+            private set { 
                 this._errorText = value;
                 this.OnPropertyChanged();
                 this.OnPropertyChanged(nameof(this.IsErrorIndicatorVisible));
@@ -230,7 +215,7 @@ namespace ComicsViewer.Controls {
         private bool IsUneditedTextBlockVisible => !this.IsEditTextBoxVisible;
         private bool IsHeaderVisible => this.Header != null;
         private bool IsErrorIndicatorVisible => this.IsContentModified && this.ErrorText != null;
-        private IconElement? TextBoxQueryIcon => (this.IsContentModified || this.RequiresInteraction) ? this.refreshIcon : null;
+        private IconElement? TextBoxQueryIcon => this.IsContentModified || this.RequiresInteraction ? this.refreshIcon : null;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string propertyName = "") {
@@ -250,16 +235,18 @@ namespace ComicsViewer.Controls {
         #region Event handlers
 
         private void TextBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
-            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                this.IsContentModified = true;
+            if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) {
+                return;
+            }
 
-                if (this.ValidateWithReason?.Invoke(sender.Text) is ValidateResult result) {
-                    this.IsContentValid = result;
-                    this.ErrorText = result.Comment;
-                } else {
-                    this.IsContentValid = true;
-                    this.ErrorText = null;
-                }
+            this.IsContentModified = true;
+
+            if (this.ValidateWithReason?.Invoke(sender.Text) is { } result) {
+                this.IsContentValid = result;
+                this.ErrorText = result.Comment;
+            } else {
+                this.IsContentValid = true;
+                this.ErrorText = null;
             }
         }
 

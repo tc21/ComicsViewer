@@ -2,17 +2,11 @@
 using ComicsViewer.Uwp.Common;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
-using Windows.Storage.FileProperties;
-using Windows.Storage.Search;
-using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
@@ -26,11 +20,11 @@ namespace ComicsViewer.Features {
          *  deleted, since thumbnails are designed to be "temp files". (TODO: actually make them temporary...) */
 
         public static string ThumbnailPath(Comic comic) {
-            return Path.Combine(Defaults.ThumbnailFolderPath, $"{comic.UniqueIdentifier}.thumbnail.jpg");
+            return Path.Combine(Defaults.ApplicationDataFolder.Path, "Thumbnails", $"{comic.UniqueIdentifier}.thumbnail.jpg");
         }
 
         public static async Task<bool> GenerateThumbnailAsync(Comic comic, UserProfile profile, bool replace = false) {
-            if (!(await TryGetThumbnailSourceAsync(comic) is StorageFile imageFile)) {
+            if (!(await TryGetThumbnailSourceAsync(comic) is { } imageFile)) {
                 return false;
             }
 
@@ -71,16 +65,16 @@ namespace ComicsViewer.Features {
             return true;
         }
 
-        public static async Task<SoftwareBitmap> GetSoftwareBitmapAsync(StorageFile file) {
+        private static async Task<SoftwareBitmap> GetSoftwareBitmapAsync(StorageFile file) {
             using var inStream = await file.OpenAsync(FileAccessMode.Read);
             var decoder = await BitmapDecoder.CreateAsync(inStream);
             return await decoder.GetSoftwareBitmapAsync();
         }
 
         private static async Task<StorageFile?> TryGetThumbnailSourceAsync(Comic comic) {
-            if (comic.ThumbnailSource is string path) {
+            if (comic.ThumbnailSource is { } path) {
                 try {
-                    if (await StorageFile.GetFileFromPathAsync(path) is StorageFile file) {
+                    if (await StorageFile.GetFileFromPathAsync(path) is { } file) {
                         return file;
                     }
                 } catch (UnauthorizedAccessException) {
@@ -96,11 +90,7 @@ namespace ComicsViewer.Features {
 
         private static async Task<StorageFile?> TryGetFirstValidThumbnailFileAsync(StorageFolder folder) {
             var files = await GetPossibleThumbnailFilesAsync(folder);
-            if (files.Count() == 0) {
-                return null;
-            }
-
-            return files.First();
+            return files.FirstOrDefault();
         }
 
         public static async Task<IEnumerable<StorageFile>> GetPossibleThumbnailFilesAsync(StorageFolder folder) {
@@ -109,19 +99,19 @@ namespace ComicsViewer.Features {
             // we can allow for customization in the future
             var maxFiles = 5;
             foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
-                if (IsValidThumbnailFile(file.Name)) {
-                    files.Add(file);
+                if (!IsValidThumbnailFile(file.Name)) {
+                    continue;
+                }
 
-                    if (--maxFiles <= 0) {
-                        break;
-                    }
+                files.Add(file);
+
+                if (--maxFiles <= 0) {
+                    break;
                 }
             }
 
             foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
-                foreach (var file in await GetPossibleThumbnailFilesAsync(subfolder)) {
-                    files.Add(file);
-                }
+                files.AddRange(await GetPossibleThumbnailFilesAsync(subfolder));
             }
 
             return files;
@@ -132,12 +122,8 @@ namespace ComicsViewer.Features {
                     return false;
                 }
 
-                return UserProfile.ImageFileExtensions.Any(ext => filename.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+                return UserProfile.IsImage(filename);
             }
         }
-    }
-
-    public enum GenerateThumbnailStatus {
-        Success, Failed, Existing
     }
 }

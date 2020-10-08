@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Input;
+using ComicsViewer.Common;
 
 #nullable enable
 
@@ -79,7 +77,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             if (e.ChangeType == ProfileChangeType.ProfileChanged) {
-                this.SetProfile(e.NewProile);
+                this.SetProfile(e.NewProfile);
             }
         }
 

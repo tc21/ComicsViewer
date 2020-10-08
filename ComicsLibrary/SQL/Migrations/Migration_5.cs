@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ComicsLibrary.SQL.Migrations {
+﻿namespace ComicsLibrary.SQL.Migrations {
     internal class Migration_5 : ComicsDatabaseMigration {
         public Migration_5() : base(
             version: 5,
@@ -14,8 +10,8 @@ CREATE TABLE __application_name (
 INSERT INTO __application_name (name)
     VALUES ('ComicsViewer (UWP)');
 ",
-            beforeMigrate: manager => _ = manager.Connection == null ? throw new Exception() : 0,
-            afterMigrate: manager => _ = manager.Connection == null ? throw new Exception() : 0
+            beforeMigrate: manager => {},
+            afterMigrate: manager => {}
         ) { }
     }
 }

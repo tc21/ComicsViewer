@@ -3,26 +3,14 @@ using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace ComicsViewer.Controls {
-    public sealed partial class ExpandableChecklist : UserControl {
+    public sealed partial class ExpandableChecklist {
         public ExpandableChecklist() {
             this.InitializeComponent();
 
@@ -41,6 +29,11 @@ namespace ComicsViewer.Controls {
             set {
                 this.SetValue(ItemsSourceProperty, value);
                 // We allow setting selectedItems before ItemsSource, so we check for it here
+                if (value == null) {
+                    this.ItemList.ItemsSource = null;
+                    return;
+                }
+
                 this.itemListItemsSource = value.Select(e => new CountedStringCheckBoxItem(e, this._selectedItems.Contains(e))).ToList();
                 this.ItemList.ItemsSource = this.itemListItemsSource;
             }
@@ -66,7 +59,6 @@ namespace ComicsViewer.Controls {
 
         private HashSet<CountedString> _selectedItems = new HashSet<CountedString>();
         public IEnumerable<CountedString> SelectedItems {
-            get => this._selectedItems;
             set {
                 var oldSelectedItems = this._selectedItems;
                 this._selectedItems = new HashSet<CountedString>(value);
@@ -75,13 +67,7 @@ namespace ComicsViewer.Controls {
                     item.IsChecked = this._selectedItems.Contains(item.Item);
                 }
 
-                var addedItems = new List<CountedString>();
-
-                foreach (var item in this._selectedItems) {
-                    if (!oldSelectedItems.Contains(item)) {
-                        addedItems.Add(item);
-                    }
-                }
+                var addedItems = this._selectedItems.Where(item => !oldSelectedItems.Contains(item)).ToList();
 
                 // We use this set in place since we don't need it anymore
                 _ = oldSelectedItems.RemoveWhere(this._selectedItems.Contains);

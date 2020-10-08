@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ComicsViewer.Common;
 
 namespace ComicsLibrary.Collections {
@@ -13,19 +11,15 @@ namespace ComicsLibrary.Collections {
         private protected abstract void RemoveComic(Comic comics);
         private protected abstract void RefreshComics(IEnumerable<Comic> comics);
 
-        private readonly ComicView? parent;
+        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) { }
 
-        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) {
-            this.parent = trackChangesFrom;
-        }
-
-        private protected virtual void AddComics(IEnumerable<Comic> comics) {
+        private protected void AddComics(IEnumerable<Comic> comics) {
             foreach (var comic in comics) {
                 this.AddComic(comic);
             }
         }
 
-        private protected virtual void RemoveComics(IEnumerable<Comic> comics) {
+        private protected void RemoveComics(IEnumerable<Comic> comics) {
             foreach (var comic in comics) {
                 this.RemoveComic(comic);
             }
@@ -44,7 +38,7 @@ namespace ComicsLibrary.Collections {
                     // do nothing; propagate
                     break;
                 default:
-                    throw new ProgrammerError($"{nameof(MutableComicView)}.{nameof(ParentComicView_ViewChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(MutableComicView)}.{nameof(this.ParentComicView_ViewChanged)}: unhandled switch case");
             }
 
             this.OnComicChanged(e);

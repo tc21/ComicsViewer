@@ -4,7 +4,7 @@
     xmlns:local="using:ComicsViewer.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    x:Name="userControl"
+    x:Name="UserControl"
     x:Class="ComicsViewer.Controls.ExpandableChecklist"
     mc:Ignorable="d"
     d:DesignHeight="300"
@@ -18,7 +18,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid x:Name="MainGrid">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />
@@ -28,7 +28,7 @@
             <VisualStateGroup>
                 <!-- We have made the "unset" state identical to collapsed. -->
                 <VisualState x:Name="Collapsed">
-                    <Storyboard x:Name="CollapsingStoryboard">
+                    <Storyboard>
                         <DoubleAnimation Duration="0:0:0.16" Storyboard.TargetName="IndicatorIcon"
                           Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0"/>
                         <DoubleAnimation Duration="0:0:0.16" Storyboard.TargetName="ItemList" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" To="0"/>
@@ -38,7 +38,7 @@
                     </Storyboard>
                 </VisualState>
                 <VisualState x:Name="Expanded">
-                    <Storyboard x:Name="ExpandingStoryboard">
+                    <Storyboard>
                         <DoubleAnimation Duration="0:0:0.16" Storyboard.TargetName="IndicatorIcon"
                           Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="90"/>
                         <DoubleAnimation Duration="0:0:0.16" Storyboard.TargetName="ItemList"       Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" To="1"/>
@@ -58,7 +58,7 @@
                       HorizontalContentAlignment="Stretch"
                       Checked="HeaderToggleButton_Checked"
                       Unchecked="HeaderToggleButton_Unchecked">
-            <Grid Grid.Row="0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -99,7 +99,7 @@
         </ToggleButton>
 
         <ItemsControl x:Name="ItemList" Grid.Row="1"
-                      ItemsSource="{Binding ItemsSource, ElementName=userControl}"
+                      ItemsSource="{Binding ItemsSource, ElementName=UserControl}"
                       RenderTransformOrigin="0.5 0">
             <ItemsControl.RenderTransform>
                 <CompositeTransform ScaleY="0"/>
@@ -121,7 +121,6 @@
                                       Unchecked="ChecklistItem_Unchecked"/>
                             <TextBlock Grid.Column="1" 
                                        Text="{x:Bind Item.Count}"
-                                       VerticalAlignment="Center"
                                        Style="{StaticResource DimmedTextStyle}"
                                        Margin="12 0"/>
                         </Grid>

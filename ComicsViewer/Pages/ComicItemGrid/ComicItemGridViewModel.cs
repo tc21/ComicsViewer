@@ -1,24 +1,16 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Support;
+﻿using ComicsViewer.Support;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.UI.Popups;
 using ComicsLibrary.Collections;
-using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -86,16 +78,10 @@ namespace ComicsViewer.ViewModels.Pages {
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         internal readonly NavigationTag NavigationTag;
 
-        // for debug purposes
-        private protected static int debug_count = 0;
-        private protected readonly int debug_this_count = ++debug_count;
-
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
         private protected ComicItemGridViewModel(MainViewModel appViewModel) {
-            Debug.WriteLine($"VM{this.debug_this_count} created");
-
             this.MainViewModel = appViewModel;
             this.NavigationTag = appViewModel.ActiveNavigationTag;
 
@@ -107,10 +93,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
 
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
-        }
-
-        ~ComicItemGridViewModel() {
-            Debug.WriteLine($"VM{this.debug_this_count} destroyed");
         }
 
         public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {

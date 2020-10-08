@@ -3,27 +3,14 @@ using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels.Pages;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel.DataTransfer;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicInfoFlyoutContent : Page, IPagedControlContent {
+    public sealed partial class ComicInfoFlyoutContent : IPagedControlContent {
         public ComicInfoFlyoutContent() {
             this.InitializeComponent();
         }
@@ -35,14 +22,17 @@ namespace ComicsViewer.Pages {
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
-            var (controller, args) = PagedControlAccessor.FromNavigationArguments<ComicInfoFlyoutNavigationArguments>(e.Parameter);
+            var (controller, args) = PagedControlAccessor.FromNavigationArguments<ComicInfoFlyoutNavigationArguments>(
+                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+            );
+
             this.PagedControlAccessor = controller;
 
             this.EditInfoCallback = args.EditInfoCallback;
             this._viewModel = new ComicInfoFlyoutViewModel(args.ParentViewModel, args.ComicItem);
 
-            if (!(await this.ViewModel.LoadDescriptionsAsync(this.InfoPivotText))) {
-                _ = this.Pivot.Items.Remove(this.InfoPivotItem);
+            if (!await this.ViewModel.LoadDescriptionsAsync(this.InfoPivotText)) {
+                _ = this.Pivot.Items!.Remove(this.InfoPivotItem);
             }
         }
 

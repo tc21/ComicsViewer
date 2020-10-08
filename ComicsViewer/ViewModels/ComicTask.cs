@@ -11,9 +11,9 @@ using Windows.UI.Xaml;
 namespace ComicsViewer.ViewModels {
     public class ComicTask : ViewModelBase {
         public string Name { get; }
-        public string Status { get; private set; } = "initialzed";
-        public bool IsCancelled { get; private set; } = false;
-        public bool IsCompleted { get; private set; } = false;
+        public string Status { get; private set; } = "initialized";
+        public bool IsCancelled { get; private set; }
+        public bool IsCompleted { get; private set; }
         public bool IsFaulted => this.StoredException != null;
         public Exception? StoredException { get; private set; }
 
@@ -97,14 +97,6 @@ namespace ComicsViewer.ViewModels {
 
 
             return true;
-        }
-
-        public void ThrowStoredException() {
-            if (this.StoredException == null) {
-                throw new ArgumentException();
-            }
-
-            throw this.StoredException;
         }
 
         public event Action<ComicTask, object?> TaskCompleted = delegate { };

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 
-using DWORD = System.UInt32;
+// ReSharper disable All since we're using Win32 stuff
+
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 #nullable enable
@@ -8,14 +9,14 @@ using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 namespace ComicsViewer.Uwp.Common.Win32Interop {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     internal struct WIN32_FIND_DATA {
-        public DWORD dwFileAttributes;
+        public uint dwFileAttributes;
         public FILETIME ftCreationTime;
         public FILETIME ftLastAccessTime;
         public FILETIME ftLastWriteTime;
-        public DWORD nFileSizeHigh;
-        public DWORD nFileSizeLow;
-        public DWORD dwReserved0;
-        public DWORD dwReserved1;
+        public uint nFileSizeHigh;
+        public uint nFileSizeLow;
+        public uint dwReserved0;
+        public uint dwReserved1;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
         public string cFileName;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)]
@@ -24,11 +25,11 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     internal struct WIN32_FILE_ATTRIBUTE_DATA {
-        public DWORD dwFileAttributes;
+        public uint dwFileAttributes;
         public FILETIME ftCreationTime;
         public FILETIME ftLastAccessTime;
         public FILETIME ftLastWriteTime;
-        public DWORD nFileSizeHigh;
-        public DWORD nFileSizeLow;
+        public uint nFileSizeHigh;
+        public uint nFileSizeLow;
     }
 }

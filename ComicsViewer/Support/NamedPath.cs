@@ -2,6 +2,7 @@
 
 namespace ComicsViewer.Support {
     public class NamedPath {
+        // todo: when we adopt c#9, we should switch this over to the new record class
         public string Name { get; set; } = "";
         public string Path { get; set; } = "";
 

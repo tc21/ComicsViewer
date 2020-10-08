@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 namespace ComicsViewer.Support {
-    public struct CountedString {
+    public readonly struct CountedString {
         public string Name { get; }
         public int Count { get; }
 

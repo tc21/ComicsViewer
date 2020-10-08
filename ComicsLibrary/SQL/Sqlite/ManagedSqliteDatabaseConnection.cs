@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ComicsLibrary.SQL.Sqlite {
@@ -73,7 +70,7 @@ namespace ComicsLibrary.SQL.Sqlite {
                 await migration.MigrateAsync(this.connection);
 
                 if (migration.Version != this.ConnectionVersion) {
-                    throw new Exception($"Migration failed for unknown reasons");
+                    throw new Exception("Migration failed for unknown reasons");
                 }
             }
         }

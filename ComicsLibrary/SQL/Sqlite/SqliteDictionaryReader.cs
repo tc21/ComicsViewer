@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
@@ -11,10 +9,10 @@ namespace ComicsLibrary.SQL.Sqlite {
     public class SqliteDictionaryReader : IReadOnlyDictionary<string, object>, IDisposable {
         private readonly SqliteCommand owner;
 
-        protected readonly SqliteDataReader reader;
-        protected readonly Dictionary<string, int> keys = new Dictionary<string, int>();
+        private readonly SqliteDataReader reader;
+        private readonly Dictionary<string, int> keys;
 
-        protected SqliteDictionaryReader(SqliteDataReader reader, IEnumerable<string> keys, SqliteCommand owner) {
+        private SqliteDictionaryReader(SqliteDataReader reader, IEnumerable<string> keys, SqliteCommand owner) {
             this.owner = owner;
 
             var currentIndex = 0;
@@ -26,14 +24,13 @@ namespace ComicsLibrary.SQL.Sqlite {
         public bool HasRows => this.reader.HasRows;
         public int FieldCount => this.reader.FieldCount;
 
-        public bool Read() => this.reader.Read();
         public Task<bool> ReadAsync() => this.reader.ReadAsync();
-        public void Close() => this.reader.Close();
 
         public static Task<SqliteDictionaryReader> ExecuteSelectAsync(
             SqliteDatabaseConnection connection, string table, IEnumerable<string> keys, string? restOfQuery = null,
              IDictionary<string, object>? parameters = null
         ) {
+            keys = keys.ToList();
             restOfQuery ??= "";
             return ExecuteReaderAsync(connection, $"SELECT {string.Join(", ", keys)} FROM {table} {restOfQuery}", keys, parameters);
         }
@@ -48,20 +45,16 @@ namespace ComicsLibrary.SQL.Sqlite {
         }
         private T? GetValueOrNull<T>(string key, Func<int, T> getExistingValue) where T : struct {
             var col = this.keys[key];
-            if (this.reader.IsDBNull(col)) {
-                return null;
-            }
-
-            return getExistingValue(col);
+            return this.reader.IsDBNull(col)
+                ? (T?) null
+                : getExistingValue(col);
         }
 
         private T? GetObjectOrNull<T>(string key, Func<int, T> getExistingValue) where T : class {
             var col = this.keys[key];
-            if (this.reader.IsDBNull(col)) {
-                return null;
-            }
-
-            return getExistingValue(col);
+            return this.reader.IsDBNull(col)
+                ? null
+                : getExistingValue(col);
         }
 
         /* we're only supporting SQLite's native data types + int32 and bool */

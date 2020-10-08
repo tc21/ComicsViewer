@@ -1,11 +1,7 @@
 ﻿using ComicsLibrary;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -14,7 +10,7 @@ namespace ComicsViewer.Features {
         /* Note: This can be optimized a lot by relying on the cached data in ComicStore. We'll see if it comes to it */
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
-        private static readonly Dictionary<string, Func<Comic, string>> searchFields = new Dictionary<string, Func<Comic, string>> {
+        private static readonly Dictionary<string, Func<Comic, string>> SearchFields = new Dictionary<string, Func<Comic, string>> {
             { "title", comic => comic.DisplayTitle },
             { "author", comic => comic.Author },
             { "category", comic => comic.Category },
@@ -46,13 +42,13 @@ namespace ComicsViewer.Features {
 
                 var lower = key.ToLower();
 
-                if (!searchFields.ContainsKey(lower)) {
+                if (!SearchFields.ContainsKey(lower)) {
                     // Encountering non-existent token
                     return null;
                 }
                 
 
-                requiredSearches.Add(comic => searchFields[lower](comic).Contains(value, StringComparison.OrdinalIgnoreCase));
+                requiredSearches.Add(comic => SearchFields[lower](comic).Contains(value, StringComparison.OrdinalIgnoreCase));
             }
 
             return comic => requiredSearches.All(search => search(comic));
@@ -80,37 +76,39 @@ namespace ComicsViewer.Features {
             }
 
             foreach (var token in tokens) {
-                if (token.key != "" && !searchFields.ContainsKey(token.key.ToLower())) {
+                if (token.key != "" && !SearchFields.ContainsKey(token.key.ToLower())) {
                     // Invalid tag name
-                    return from key in searchFields.Keys
+                    return from key in SearchFields.Keys
                            orderby Similarity(key, token.key)
                            select Decompile(Replacing(tokens, token, (key, token.value)));
                 }
             }
 
             foreach (var token in tokens) {
-                if (token.key == "") {
-                    // key == null indicates raw string 
-                    var tagNameSuggestions =
-                        (from key in searchFields.Keys 
-                         orderby key
-                         select Decompile(Replacing(tokens, token, (key, token.value)))).ToList();
-
-                    var index = tokens.IndexOf(token);
-                    
-                    if (index > 0) {
-                        var (key, value) = tokens[index - 1];
-                        tokens[index - 1] = (key, $"{value} {token.value}");
-                        tokens.RemoveAt(index);
-                    } else if (tokens.Count > (index + 1) && tokens[index + 1].key == "") {
-                        tokens[index] = (token.key, $"{token.value} {tokens[index + 1].value}");
-                        tokens.RemoveAt(index + 1);
-                    }
-
-                    tagNameSuggestions.Insert(0, Decompile(tokens));
-
-                    return tagNameSuggestions;
+                if (token.key != "") {
+                    continue;
                 }
+
+                // key == "" indicates raw string 
+                var tagNameSuggestions =
+                    (from key in SearchFields.Keys 
+                        orderby key
+                        select Decompile(Replacing(tokens, token, (key, token.value)))).ToList();
+
+                var index = tokens.IndexOf(token);
+                    
+                if (index > 0) {
+                    var (key, value) = tokens[index - 1];
+                    tokens[index - 1] = (key, $"{value} {token.value}");
+                    tokens.RemoveAt(index);
+                } else if (tokens.Count > (index + 1) && tokens[index + 1].key == "") {
+                    tokens[index] = (token.key, $"{token.value} {tokens[index + 1].value}");
+                    tokens.RemoveAt(index + 1);
+                }
+
+                tagNameSuggestions.Insert(0, Decompile(tokens));
+
+                return tagNameSuggestions;
             }
 
             return new string[0];
@@ -136,7 +134,7 @@ namespace ComicsViewer.Features {
             }
 
             static string Quote(string str) {
-                if (": ".Any(c => str.Contains(c))) {
+                if (": ".Any(str.Contains)) {
                     return $"\"{str}\"";
                 }
 
@@ -172,7 +170,7 @@ namespace ComicsViewer.Features {
                         LevenshteinDistance(a.Substring(1), b)
                     ),
                     LevenshteinDistance(a.Substring(1), b.Substring(1))
-                );;
+                );
             }
         }
 
@@ -193,46 +191,42 @@ namespace ComicsViewer.Features {
             for (; parserIndex < searchTerm.Length; parserIndex++) {
                 var character = searchTerm[parserIndex];
 
-                if (parserMode == "string") {
-                    if (character == '"') {
-                        parserMode = "string-end";
-                    } else {
-                        parserCache += character;
+                switch (parserMode) {
+                    case "string": {
+                        if (character == '"') {
+                            parserMode = "string-end";
+                        } else {
+                            parserCache += character;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-
-                if (parserMode == "string-end" && !": ".Contains(character)) {
-                    return ReturnValueOnError("Cannot mix quoted and non-quoted strings");
-                }
-
-                if (character == '"') {
-                    if (parserCache != "") {
+                    case "string-end" when !": ".Contains(character):
                         return ReturnValueOnError("Cannot mix quoted and non-quoted strings");
-                    }
-
-                    parserMode = "string";
-                    continue;
                 }
 
-                if (character == ':') {
-                    if (parserMode == "argument") {
+                switch (character) {
+                    case '"' when parserCache != "":
+                        return ReturnValueOnError("Cannot mix quoted and non-quoted strings");
+                    case '"':
+                        parserMode = "string";
+                        continue;
+                    case ':' when parserMode == "argument":
                         return ReturnValueOnError("Argument indicator ':' cannot appear twice in an argument");
+                    case ':':
+                        lastToken = parserCache;
+                        parserCache = "";
+                        parserMode = "argument";
+                        continue;
+                    case ' ': {
+                        if (parserCache != "") {
+                            PushCompletedToken();
+                        }
+                        continue;
                     }
-                    lastToken = parserCache;
-                    parserCache = "";
-                    parserMode = "argument";
-                    continue;
+                    default:
+                        parserCache += character;
+                        break;
                 }
-
-                if (character == ' ') {
-                    if (parserCache != "") {
-                        PushCompletedToken();
-                    }
-                    continue;
-                }
-
-                parserCache += character;
             }
 
             if (parserCache != "") {

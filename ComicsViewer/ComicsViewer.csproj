@@ -144,7 +144,6 @@
     <Compile Include="Pages\ComicItemGrid\ComicWorkItemGridViewModel.cs" />
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\CommentedType.cs" />
-    <Compile Include="Support\DesignData.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Support\NamedPath.cs" />
@@ -220,7 +219,6 @@
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
     <Compile Include="Support\CountedString.cs" />
     <Compile Include="Support\FilterViewAuxiliaryInfo.cs" />
-    <Compile Include="ViewModels\ViewModelBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

@@ -1,9 +1,4 @@
-﻿using ComicsViewer.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ComicsViewer.Common;
 
 #nullable enable
 
@@ -24,7 +19,7 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        public CheckBoxItem(T name, bool isChecked = false) {
+        protected CheckBoxItem(T name, bool isChecked = false) {
             this.Item = name;
             this._isChecked = isChecked;
         }

@@ -1,13 +1,15 @@
-﻿using ComicsLibrary.SQL.Sqlite;
-using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using ComicsLibrary.SQL.Sqlite;
 
-namespace ComicsLibrary.SQL {
+namespace ComicsLibrary.SQL.Migrations {
     internal class ComicsDatabaseMigration : SqliteDatabaseMigration {
-        public ComicsDatabaseMigration
-            (int version, string? sql, Action<ComicsManager>? beforeMigrate = null, Action<ComicsManager>? afterMigrate = null)
-          : base(version, sql, conn => beforeMigrate?.Invoke(new ComicsManager(conn)), conn => afterMigrate?.Invoke(new ComicsManager(conn))) { }
+        protected ComicsDatabaseMigration(
+            int version, string? sql, Action<ComicsManager>? beforeMigrate = null, Action<ComicsManager>? afterMigrate = null
+        ) : base(
+            version, 
+            sql, 
+            conn => beforeMigrate?.Invoke(new ComicsManager(conn)), 
+            conn => afterMigrate?.Invoke(new ComicsManager(conn))
+        ) { }
     }
 }

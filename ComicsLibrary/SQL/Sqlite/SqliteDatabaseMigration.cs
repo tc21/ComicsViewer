@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ComicsLibrary.SQL.Sqlite {
@@ -11,7 +8,7 @@ namespace ComicsLibrary.SQL.Sqlite {
         private readonly Action<SqliteDatabaseConnection>? beforeMigrate;
         private readonly Action<SqliteDatabaseConnection>? afterMigrate;
 
-        public SqliteDatabaseMigration(
+        protected SqliteDatabaseMigration(
             int version, string? command, 
             Action<SqliteDatabaseConnection>? beforeMigrate = null, 
             Action<SqliteDatabaseConnection>? afterMigrate = null

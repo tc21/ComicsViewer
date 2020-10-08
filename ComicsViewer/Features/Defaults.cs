@@ -1,12 +1,10 @@
 ﻿using ComicsLibrary.Sorting;
 using ComicsViewer.Support;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -23,10 +21,9 @@ namespace ComicsViewer.Features {
 
             if (SettingsContainer.Values.TryGetValue(key, out var stored) && stored is T value) {
                 return value;
-            } else {
-                Debug.WriteLine($"Warning: {nameof(Get)} retrieved an invalid stored value and is returning a default");
             }
 
+            Debug.WriteLine($"Warning: {nameof(this.Get)} retrieved an invalid stored value and is returning a default");
             return this.GetDefault<T>(key);
         }
 
@@ -35,17 +32,13 @@ namespace ComicsViewer.Features {
             this.ValidateCollectionType(collectionName, typeof(T));
             this.ValidateCollectionItem<T>(collectionName, keyName);
 
-            if (SettingsContainer.Containers.TryGetValue(collectionName, out var container)) {
-                if (container.Values.TryGetValue(keyName, out var stored)) {
-                    if (stored is T value) {
-                        return value;
-                    } else {
-                        Debug.WriteLine($"Warning: {nameof(GetCollectionItem)} retrieved an invalid stored value and is returning a default");
-                        return this.GetCollectionItemDefault<T>(collectionName, keyName);
-                    }
-                }
+            if (SettingsContainer.Containers.TryGetValue(collectionName, out var container)
+                    && container.Values.TryGetValue(keyName, out var stored)
+                    && stored is T value) {
+                return value;
             }
 
+            Debug.WriteLine($"Warning: {nameof(this.GetCollectionItem)} retrieved an invalid stored value and is returning a default");
             return this.GetCollectionItemDefault<T>(collectionName, keyName);
         }
 
@@ -62,7 +55,7 @@ namespace ComicsViewer.Features {
             container.Values[keyName] = value;
         }
 
-        public T GetDefault<T>(string key) {
+        private T GetDefault<T>(string key) {
             this.ValidateValueType(key, typeof(T));
             return (T)this.defaults[key].Value;
         }
@@ -73,9 +66,9 @@ namespace ComicsViewer.Features {
             var defaults = (IDictionary<string, T>)this.defaults[collectionName].Value;
             if (defaults.TryGetValue(keyName, out var value)) {
                 return value;
-            } else {
-                throw new ArgumentException($"Could not found key {keyName} in collection {collectionName}");
             }
+
+            throw new ArgumentException($"Could not found key {keyName} in collection {collectionName}");
         }
 
         // This constructor is not type-checked at all so be diligent
@@ -108,7 +101,7 @@ namespace ComicsViewer.Features {
             }
         }
 
-        public enum DefaultSettingType {
+        private enum DefaultSettingType {
             Value, Collection
         }
 
@@ -118,7 +111,7 @@ namespace ComicsViewer.Features {
             }
 
             if (this.defaults[key].SettingType != DefaultSettingType.Value) {
-                throw new ArgumentException($"Invalid setting type (expected Value, actually Collection)");
+                throw new ArgumentException("Invalid setting type (expected Value, actually Collection)");
             }
 
             if (this.defaults[key].ItemType != type) {
@@ -132,7 +125,7 @@ namespace ComicsViewer.Features {
             }
 
             if (this.defaults[key].SettingType != DefaultSettingType.Collection) {
-                throw new ArgumentException($"Invalid setting type (expected Collection, actually Value)");
+                throw new ArgumentException("Invalid setting type (expected Collection, actually Value)");
             }
 
             if (this.defaults[key].ItemType != type) {
@@ -151,7 +144,7 @@ namespace ComicsViewer.Features {
 
 
     public static class Defaults {
-        private static readonly Dictionary<string, object> defaultSettings = new Dictionary<string, object> {
+        private static readonly Dictionary<string, object> DefaultSettings = new Dictionary<string, object> {
             ["LastProfile"] = "",
             ["SortSelections"] = new Dictionary<string, int>() {
                 [NavigationTag.Comics.ToTagName()] = (int)ComicSortSelector.Author,
@@ -164,32 +157,31 @@ namespace ComicsViewer.Features {
             ["SavedSearches"] = new DefaultDictionary<string, string>(() => ""),
         };
 
-        private static readonly DefaultSettingsAccessor defaultSettingsAccessor = new DefaultSettingsAccessor(defaultSettings);
+        private static readonly DefaultSettingsAccessor DefaultSettingsAccessor = new DefaultSettingsAccessor(DefaultSettings);
 
         public static class SettingsAccessor {
             public static string LastProfile {
-                get => defaultSettingsAccessor.Get<string>("LastProfile");
-                set => defaultSettingsAccessor.Set("LastProfile", value);
+                get => DefaultSettingsAccessor.Get<string>("LastProfile");
+                set => DefaultSettingsAccessor.Set("LastProfile", value);
             }
 
             public static int DefaultSortSelection(NavigationTag tag)
-                => defaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", tag.ToTagName());
+                => DefaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", tag.ToTagName());
 
             public static int GetLastSortSelection(NavigationTag tag)
-                => defaultSettingsAccessor.GetCollectionItem<int>("SortSelections", tag.ToTagName());
+                => DefaultSettingsAccessor.GetCollectionItem<int>("SortSelections", tag.ToTagName());
 
             public static void SetLastSortSelection(NavigationTag tag, int value)
-                => defaultSettingsAccessor.SetCollectionItem("SortSelections", tag.ToTagName(), value);
+                => DefaultSettingsAccessor.SetCollectionItem("SortSelections", tag.ToTagName(), value);
 
             public static List<string> GetSavedSearches(string profileName)
-                => defaultSettingsAccessor.GetCollectionItem<string>("SavedSearches", profileName).Split('|').ToList();
+                => DefaultSettingsAccessor.GetCollectionItem<string>("SavedSearches", profileName).Split('|').ToList();
 
             public static void SetSavedSearches(string profileName, IEnumerable<string> searches)
-                => defaultSettingsAccessor.SetCollectionItem("SavedSearches", profileName, string.Join('|', searches.Take(4)));
+                => DefaultSettingsAccessor.SetCollectionItem("SavedSearches", profileName, string.Join('|', searches.Take(4)));
         }
 
-        private static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
-        public static StorageFolder TempFolder => ApplicationData.Current.TemporaryFolder;
+        public static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
 
         private static async Task<StorageFolder> GetApplicationDataFolderAsync(string name) {
             try {
@@ -203,16 +195,8 @@ namespace ComicsViewer.Features {
         public static async Task<StorageFolder> GetDatabaseFolderAsync() => await GetApplicationDataFolderAsync("Databases");
         public static async Task<StorageFolder> GetThumbnailFolderAsync() => await GetApplicationDataFolderAsync("Thumbnails");
 
-        public static string ProfileFolderPath => Path.Combine(ApplicationDataFolder.Path, "Profiles");
-        public static string DatabaseFolderPath => Path.Combine(ApplicationDataFolder.Path, "Databases");
-        public static string ThumbnailFolderPath => Path.Combine(ApplicationDataFolder.Path, "Thumbnails");
-
         public static string DatabaseFileNameForProfile(UserProfile profile) {
-            return Path.Combine(DatabaseFolderPath, $"{profile.Name}.library.db");
-        }
-
-        public static async Task<StorageFile> CreateTempFileAsync(string desiredName) {
-            return await TempFolder.CreateFileAsync(desiredName, CreationCollisionOption.GenerateUniqueName);
+            return Path.Combine(ApplicationDataFolder.Path, "Databases", $"{profile.Name}.library.db");
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using ComicsViewer.ClassExtensions;
-using ComicsViewer.Common;
+﻿using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
@@ -7,9 +6,7 @@ using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Xaml.Controls;
@@ -21,7 +18,7 @@ using Windows.UI.Xaml.Input;
 namespace ComicsViewer.Pages {
     using ComicItemGridCommand = ComicItemGridCommand<ComicItemGridViewModel, ComicItem>;
     using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
-    using ComicNavigtionItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
+    using ComicNavigationItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
 
     public partial class ComicItemGrid {
         /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 
@@ -42,19 +39,19 @@ namespace ComicsViewer.Pages {
         #region Supporting classes
 
         // This class defined within ComicItemGrid to have access to VisibleComicsGrid
-        public class CommandArgs<T, X> where T : ComicItemGridViewModel where X : ComicItem {
+        public class CommandArgs<T, TItem> where T : ComicItemGridViewModel where TItem : ComicItem {
             public ComicItemGrid Grid { get; }
             public T ViewModel => (T)this.Grid.ViewModel;
             public MainViewModel MainViewModel => this.Grid.MainViewModel;
             public int Count => this.Grid.VisibleComicsGrid.SelectedItems.Count;
-            public IEnumerable<X> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<X>();
+            public IEnumerable<TItem> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<TItem>();
             public bool IsWorkItems => this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
             public bool IsNavItems => !this.IsWorkItems;
             public int ComicCount => this.Items.SelectMany(i => i.ContainedComics()).Count();
 
             public CommandArgs(ComicItemGrid grid) {
                 if (!(grid.ViewModel is T)) {
-                    throw new ProgrammerError($"A wrong {nameof(CommandArgs<T, X>)} was created: incorrect view model type");
+                    throw new ProgrammerError($"A wrong {nameof(CommandArgs<T, TItem>)} was created: incorrect view model type");
                 }
 
                 this.Grid = grid;
@@ -76,25 +73,29 @@ namespace ComicsViewer.Pages {
             }
 
             // Update dynamic text when opening flyout
-            _ = UpdateFlyoutItems(this.ComicItemGridContextFlyout.Items);
+            _ = UpdateFlyoutItems(this.ComicItemGridContextFlyout.Items!);
 
             static bool UpdateFlyoutItems(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
                 var anyItemsEnabled = false;
 
                 foreach (var item in flyoutItems) {
-                    if (item is MenuFlyoutSubItem subitem) {
-                        subitem.Visibility = UpdateFlyoutItems(subitem.Items) ?
-                            Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
-                        continue;
-                    }
+                    switch (item) {
+                        case MenuFlyoutSubItem subitem:
+                            subitem.Visibility = UpdateFlyoutItems(subitem.Items!)
+                                ? Windows.UI.Xaml.Visibility.Visible
+                                : Windows.UI.Xaml.Visibility.Collapsed;
 
-                    if (item is ComicsMenuFlyoutItem flyoutItem && flyoutItem.Command is IManuallyManagedCommand command) {
-                        if (command.CanExecute()) {
-                            flyoutItem.Text = command.GetName();
-                            flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Visible;
-                            anyItemsEnabled = true;
-                        } else {
-                            flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                            continue;
+                        case ComicsMenuFlyoutItem flyoutItem when flyoutItem.Command is IManuallyManagedCommand command: {
+                            if (command.CanExecute()) {
+                                flyoutItem.Text = command.GetName();
+                                flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                                anyItemsEnabled = true;
+                            } else {
+                                flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -112,23 +113,23 @@ namespace ComicsViewer.Pages {
     }
 
     // Note: we are experimenting with removing CanExecuteRequested to enable keyboard shortcuts.
-    public class ComicItemGridCommand<T, X> : XamlUICommand, IManuallyManagedCommand where T : ComicItemGridViewModel where X : ComicItem {
+    public class ComicItemGridCommand<T, TItem> : XamlUICommand, IManuallyManagedCommand where T : ComicItemGridViewModel where TItem : ComicItem {
         public Func<string> GetName { get; }
         public Func<bool> CanExecute { get; }
 
         public ComicItemGridCommand(
             ComicItemGrid grid,
-            Func<ComicItemGrid.CommandArgs<T, X>, string> getName,
-            Action<ComicItemGrid.CommandArgs<T, X>> execute, 
-            Func<ComicItemGrid.CommandArgs<T, X>, bool>? canExecute = null
+            Func<ComicItemGrid.CommandArgs<T, TItem>, string> getName,
+            Action<ComicItemGrid.CommandArgs<T, TItem>> execute, 
+            Func<ComicItemGrid.CommandArgs<T, TItem>, bool>? canExecute = null
         ) {
-            this.GetName = () => getName(new ComicItemGrid.CommandArgs<T, X>(grid));
+            this.GetName = () => getName(new ComicItemGrid.CommandArgs<T, TItem>(grid));
             this.CanExecute = () => {
                 if (!(grid.ViewModel is T)) {
                     return false;
                 }
 
-                var args = new ComicItemGrid.CommandArgs<T, X>(grid);
+                var args = new ComicItemGrid.CommandArgs<T, TItem>(grid);
                 if (args.Count == 0) {
                     return false;
                 }
@@ -138,7 +139,7 @@ namespace ComicsViewer.Pages {
 
             this.ExecuteRequested += (sender, args) => {
                 if (this.CanExecute()) {
-                    execute(new ComicItemGrid.CommandArgs<T, X>(grid));
+                    execute(new ComicItemGrid.CommandArgs<T, TItem>(grid));
                 }
             };
         }
@@ -146,8 +147,8 @@ namespace ComicsViewer.Pages {
         public ComicItemGridCommand(
             ComicItemGrid grid,
             string name,
-            Action<ComicItemGrid.CommandArgs<T, X>> execute,
-            Func<ComicItemGrid.CommandArgs<T, X>, bool>? canExecute = null
+            Action<ComicItemGrid.CommandArgs<T, TItem>> execute,
+            Func<ComicItemGrid.CommandArgs<T, TItem>, bool>? canExecute = null
         ) : this(grid, (_) => name, execute, canExecute) { }
     }
 
@@ -166,7 +167,7 @@ namespace ComicsViewer.Pages {
         public ComicWorkItemGridCommand LoveComicsCommand { get; }
         public ComicWorkItemGridCommand SearchAuthorCommand { get; }
 
-        public ComicNavigtionItemGridCommand NavigateIntoCommand { get; }
+        public ComicNavigationItemGridCommand NavigateIntoCommand { get; }
 
         private static string DescribeItem(string action, int count)
             => count == 1 ? action : $"{action} {count} items";
@@ -189,10 +190,12 @@ namespace ComicsViewer.Pages {
             this.RemoveItemCommand = new ComicItemGridCommand(parent,
                 getName: e => DescribeItem("Remove", e.ComicCount),
                 execute: async e => {
-                    if ((await e.Grid.ShowConfirmRemoveItemDialogAsync()) == ContentDialogResult.Primary) {
-                        var comics = e.Items.SelectMany(item => item.ContainedComics()).ToList();
-                        await e.MainViewModel.RemoveComicsAsync(comics);
+                    if (await e.Grid.ShowConfirmRemoveItemDialogAsync() != ContentDialogResult.Primary) {
+                        return;
                     }
+
+                    var comics = e.Items.SelectMany(item => item.ContainedComics()).ToList();
+                    await e.MainViewModel.RemoveComicsAsync(comics);
                 }
             );
 
@@ -267,7 +270,7 @@ namespace ComicsViewer.Pages {
 
 
             // Navigates into the selected navigation item
-            this.NavigateIntoCommand = new ComicNavigtionItemGridCommand(parent,
+            this.NavigateIntoCommand = new ComicNavigationItemGridCommand(parent,
                 name: "Navigate into",
                 execute: e => e.ViewModel.NavigateIntoItem(e.Items.First()),
                 canExecute: e => e.Count == 1

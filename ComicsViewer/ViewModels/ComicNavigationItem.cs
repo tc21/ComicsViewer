@@ -3,12 +3,9 @@ using ComicsLibrary.Collections;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
-using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
@@ -24,7 +21,7 @@ namespace ComicsViewer.ViewModels {
         public override IEnumerable<Comic> ContainedComics() => this.Comics;
 
         public ComicNavigationItem(string name, ComicView comics) {
-            if (comics.Count() == 0) {
+            if (!comics.Any()) {
                 throw new ProgrammerError("ComicNavigationItem should not receive an empty ComicView in its constructor.");
             }
 

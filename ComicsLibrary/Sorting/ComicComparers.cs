@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -17,13 +18,14 @@ namespace ComicsLibrary.Sorting {
             public int Compare(Comic x, Comic y) => CompareComic(x, y);
 
             public static int CompareComic(Comic x, Comic y) {
-                return x.DisplayTitle.ToLowerInvariant().CompareTo(y.DisplayTitle.ToLowerInvariant());
+                return string.Compare(x.DisplayTitle.ToLowerInvariant(), y.DisplayTitle.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase);
             }
         }
 
         private class AuthorComparer : IComparer<Comic> {
             public static int CompareComic(Comic x, Comic y) {
-                var result = x.Author.ToLowerInvariant().CompareTo(y.Author.ToLowerInvariant());
+                var result = string.Compare(x.Author.ToLowerInvariant(), y.Author.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase);
+
                 if (result != 0) {
                     return result;
                 }
@@ -35,8 +37,9 @@ namespace ComicsLibrary.Sorting {
         }
 
         private class DateAddedComparer : IComparer<Comic> {
-            public static int CompareComic(Comic x, Comic y) {
-                var result = -(x.DateAdded.CompareTo(y.DateAdded));
+            private static int CompareComic(Comic x, Comic y) {
+                var result = -string.Compare(x.DateAdded, y.DateAdded, StringComparison.OrdinalIgnoreCase);
+
                 if (result != 0) {
                     return result;
                 }
@@ -52,7 +55,8 @@ namespace ComicsLibrary.Sorting {
                 ComicSortSelector.Title => new TitleComparer(),
                 ComicSortSelector.Author => new AuthorComparer(),
                 ComicSortSelector.DateAdded => new DateAddedComparer(),
-                _ => throw new ProgrammerError($"{nameof(ComicComparers)}.{nameof(Make)}: unexpected sort selector"),
+                ComicSortSelector.Random => throw new ProgrammerError($"{nameof(ComicComparers)}.{nameof(Make)}: Random is not allowed here"),
+                _ => throw new ProgrammerError($"{nameof(ComicComparers)}.{nameof(Make)}: unexpected sort selector")
             };
         }
     }

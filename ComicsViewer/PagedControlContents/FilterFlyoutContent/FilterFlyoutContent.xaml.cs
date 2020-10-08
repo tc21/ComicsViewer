@@ -3,19 +3,8 @@ using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels.Pages;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -24,7 +13,7 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class FilterFlyoutContent : Page, IPagedControlContent {
+    public sealed partial class FilterFlyoutContent : IPagedControlContent {
         public FilterFlyoutContent() {
             this.InitializeComponent();
         }
@@ -32,10 +21,14 @@ namespace ComicsViewer.Pages {
         private FilterFlyoutViewModel? _viewModel;
         private FilterFlyoutViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
 
-        public PagedControlAccessor? PagedControlAccessor => throw new NotImplementedException();
+        public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            var (_, args) = PagedControlAccessor.FromNavigationArguments<FilterFlyoutNavigationArguments>(e.Parameter);
+            var (accessor, args) = PagedControlAccessor.FromNavigationArguments<FilterFlyoutNavigationArguments>(
+                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+            );
+
+            this.PagedControlAccessor = accessor;
 
             if (args.Filter == null || args.AuxiliaryInfo == null || args.ParentViewModel == null) {
                 throw new ProgrammerError("args cannot be null");

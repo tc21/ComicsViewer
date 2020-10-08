@@ -6,16 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -24,7 +16,7 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class SettingsPage : Page {
+    public sealed partial class SettingsPage {
         public SettingsPage() {
             this.InitializeComponent();
         }
@@ -136,9 +128,14 @@ namespace ComicsViewer.Pages {
         /* these classes recreate the structure of ExternalDescriptionSpecification to work with the default
          * configurations of DataGrid */
 
+        // These are used for UI in SettingsPage via Binding and DisplayMemberPath, here we disable ReSharper's warnings
+        // ReSharper disable CollectionNeverQueried.Local
+        // ReSharper disable UnusedAutoPropertyAccessor.Local
+        // ReSharper disable MemberCanBeMadeStatic.Local
+
         private class ExternalDescriptionTypeInfo {
-            public string Name { get; set; }
-            public ExternalDescriptionType DescriptionType { get; set; }
+            public string Name { get; }
+            public ExternalDescriptionType DescriptionType { get; }
 
             public ExternalDescriptionTypeInfo(string name, ExternalDescriptionType descriptionType) {
                 this.Name = name;
@@ -147,8 +144,8 @@ namespace ComicsViewer.Pages {
         }
 
         private class ExternalDescriptionFileInfo {
-            public string Name { get; set; }
-            public ExternalFileType FileType { get; set; }
+            public string Name { get; }
+            public ExternalFileType FileType { get; }
 
             public ExternalDescriptionFileInfo(string name, ExternalFileType fileType) {
                 this.Name = name;
@@ -157,8 +154,8 @@ namespace ComicsViewer.Pages {
         }
 
         private class ExternalDescriptionFilterInfo {
-            public string Name { get; set; }
-            public ExternalDescriptionFilterType FilterType { get; set; }
+            public string Name { get; }
+            public ExternalDescriptionFilterType FilterType { get; }
 
             public ExternalDescriptionFilterInfo(string name, ExternalDescriptionFilterType filterType) {
                 this.Name = name;
@@ -166,20 +163,25 @@ namespace ComicsViewer.Pages {
             }
         }
 
-        private readonly List<ExternalDescriptionTypeInfo> ExternalDescriptionTypes = new List<ExternalDescriptionTypeInfo> {
+        private List<ExternalDescriptionTypeInfo> ExternalDescriptionTypes => new List<ExternalDescriptionTypeInfo> {
             new ExternalDescriptionTypeInfo("Text", ExternalDescriptionType.Text),
             new ExternalDescriptionTypeInfo("Link", ExternalDescriptionType.Link)
         };
 
-        private readonly List<ExternalDescriptionFileInfo> ExternalDescriptionFileTypes = new List<ExternalDescriptionFileInfo> {
+        private List<ExternalDescriptionFileInfo> ExternalDescriptionFileTypes => new List<ExternalDescriptionFileInfo> {
             new ExternalDescriptionFileInfo("Content", ExternalFileType.Content),
             new ExternalDescriptionFileInfo("File name", ExternalFileType.FileName)
         };
 
-        private readonly List<ExternalDescriptionFilterInfo> ExternalDescriptionFilterTypes = new List<ExternalDescriptionFilterInfo> {
+        private List<ExternalDescriptionFilterInfo> ExternalDescriptionFilterTypes => new List<ExternalDescriptionFilterInfo> {
             new ExternalDescriptionFilterInfo("None", ExternalDescriptionFilterType.None),
             new ExternalDescriptionFilterInfo("Regex replace", ExternalDescriptionFilterType.RegexReplace)
         };
+
+        // ReSharper restore CollectionNeverQueried.Local
+        // ReSharper restore UnusedAutoPropertyAccessor.Local
+        // ReSharper restore MemberCanBeMadeStatic.Local
+
 
         #endregion
     }

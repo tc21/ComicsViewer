@@ -1,11 +1,9 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Uwp.Common;
-using Microsoft.Toolkit.Uwp.UI.Animations.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -16,6 +14,10 @@ using Windows.Storage;
 namespace ComicsViewer.Features {
     public class UserProfile {
         // fields to be serialized
+
+        // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+        // ReSharper disable MemberCanBePrivate.Global
+
         public string Name { get; set; } = string.Empty;
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
@@ -25,6 +27,9 @@ namespace ComicsViewer.Features {
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
         public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new List<ExternalDescriptionSpecification>();
 
+        // ReSharper restore AutoPropertyCanBeMadeGetOnly.Global
+        // ReSharper restore MemberCanBePrivate.Global
+
         // generated properties
         [JsonIgnore]
         public string DatabaseFileName => Defaults.DatabaseFileNameForProfile(this);
@@ -33,10 +38,14 @@ namespace ComicsViewer.Features {
         public static readonly string[] ImageFileExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
         // Although it's probably best practice to allow the user to configure this, I've never needed to do so yet,
         // and considering I'm the only user
-        public static readonly string[] IgnoredFilenamePrefixes = { "~", "(" };
+        private static readonly string[] IgnoredFilenamePrefixes = { "~", "(" };
 
-        public static bool IsIgnoredPath(string path) {
-            return IgnoredFilenamePrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        public static bool IsImage(string path) {
+            return ImageFileExtensions.Any(ext => path.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool IsIgnoredFolder(StorageFolder folder) {
+            return IgnoredFilenamePrefixes.Any(prefix => folder.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
         }
 
         public UserProfile() { }
@@ -59,7 +68,7 @@ namespace ComicsViewer.Features {
         }
 
         // Profile helper methods
-        public async Task<IEnumerable<StorageFile>> GetTopLevelFilesForFolderAsync(StorageFolder folder) {
+        private async Task<IEnumerable<StorageFile>> GetTopLevelFilesForFolderAsync(StorageFolder folder) {
             var files = await folder.GetFilesInNaturalOrderAsync();
             return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
         }
@@ -67,7 +76,7 @@ namespace ComicsViewer.Features {
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        public async Task<StorageFile?> GetFirstFileForComicAsync(StorageFolder folder) {
+        private async Task<StorageFile?> GetFirstFileForComicAsync(StorageFolder folder) {
             foreach (var file in await this.GetTopLevelFilesForFolderAsync(folder)) {
                 return file;
             }
@@ -93,7 +102,7 @@ namespace ComicsViewer.Features {
             var subitems = new List<ComicSubitem>();
             var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
 
-            if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is ComicSubitem rootItem) {
+            if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is { } rootItem) {
                 subitems.Add(rootItem);
             }
 
@@ -111,7 +120,7 @@ namespace ComicsViewer.Features {
         }
 
         private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, string? displayName = null) {
-            var files = await this.GetTopLevelFilesForFolderAsync(folder);
+            var files = (await this.GetTopLevelFilesForFolderAsync(folder)).ToList();
 
             if (!files.Any()) {
                 return null;

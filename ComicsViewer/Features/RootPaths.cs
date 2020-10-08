@@ -16,10 +16,12 @@ namespace ComicsViewer.Features {
         private readonly Dictionary<string, string> paths = new Dictionary<string, string>();
 
         public RootPaths(IEnumerable<NamedPath>? paths = null) {
-            if (paths != null) {
-                foreach (var path in paths) {
-                    this.Add(path);
-                }
+            if (paths == null) {
+                return;
+            }
+
+            foreach (var path in paths) {
+                this.Add(path);
             }
         }
 
@@ -37,7 +39,7 @@ namespace ComicsViewer.Features {
             }
 
             // again, we can't really prevent this warning in this version of .net
-            value = null;
+            value = null!;
             return false;
         }
 
@@ -58,8 +60,8 @@ namespace ComicsViewer.Features {
         }
 
         public IEnumerator<NamedPath> GetEnumerator() {
-            foreach (var item in this.paths) {
-                yield return new NamedPath { Name = item.Key, Path = item.Value };
+            foreach (var (key, value) in this.paths) {
+                yield return new NamedPath { Name = key, Path = value };
             }
         }
 

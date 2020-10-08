@@ -1,11 +1,5 @@
-﻿using ComicsViewer.Common;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
-using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 
 #nullable enable
@@ -29,7 +23,7 @@ namespace MusicPlayer {
             );
         }
 
-        public static async Task IntendedBehaviorAsync(string message, string title = "An operation was unsuccessful", bool cancelled = true) {
+        private static async Task IntendedBehaviorAsync(string message, string title = "An operation was unsuccessful", bool cancelled = true) {
             if (cancelled) {
                 message += "\n(Note: the operation that caused this error has been cancelled.)";
             }

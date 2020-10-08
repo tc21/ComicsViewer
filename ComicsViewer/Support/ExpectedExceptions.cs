@@ -1,12 +1,8 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Common;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 
 #nullable enable

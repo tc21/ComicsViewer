@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -34,17 +32,17 @@ namespace ComicsViewer.Support {
                 var split = str.Split(this.separator, StringSplitOptions.RemoveEmptyEntries);
                 if (this.canTrimWhitespace) {
                     return split.Select(s => s.Trim());
-                } else {
-                    return split;
                 }
+
+                return split;
             }
 
             public override string ConvertToString(IEnumerable<string> value) {
                 if (this.canTrimWhitespace) {
                     return string.Join($"{this.separator} ", value);
-                } else {
-                    return string.Join(this.separator, value);
                 }
+
+                return string.Join(this.separator, value);
             }
 
             public override ValidateResult CanConvert(string str) => true;

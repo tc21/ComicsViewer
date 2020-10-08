@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ComicsViewer.Common;
+﻿using ComicsViewer.Common;
 
 namespace ComicsViewer.Support {
-
     public static class NavigationTags {
         public static NavigationTag FromTagName(string tagName) {
             return tagName switch {
@@ -15,7 +9,7 @@ namespace ComicsViewer.Support {
                 "categories" => NavigationTag.Category,
                 "tags" => NavigationTag.Tags,
                 "default" => NavigationTag.Detail,
-                _ => throw new NotImplementedException(),
+                _ => throw new ProgrammerError("unhandled switch case")
             };
         }
     }
@@ -48,7 +42,7 @@ namespace ComicsViewer.Support {
         }
 
         public static bool IsWorkItemNavigationTag(this NavigationTag tag) {
-            return (tag == NavigationTag.Comics || tag == NavigationTag.Detail);
+            return tag == NavigationTag.Comics || tag == NavigationTag.Detail;
         }
     }
 }

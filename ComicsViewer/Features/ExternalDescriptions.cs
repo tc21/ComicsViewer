@@ -2,8 +2,6 @@
 using ComicsViewer.Uwp.Common;
 using Microsoft.Toolkit.Uwp.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,7 +11,14 @@ using Windows.Storage;
 
 namespace ComicsViewer.Features {
     public class ExternalDescriptionSpecification {
+
+        // ReSharper disable MemberCanBePrivate.Global
+        // ReSharper disable UnusedAutoPropertyAccessor.Global
+
+        // The following items are used during serialization/deserialization, and shouldn't be marked as unused
+
         // The name of the file to read, or a pattern identifying the file
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public string FileNamePattern { get; set; } = "info.txt";
         // Whether the result should be shown as plaintext, or a link
         public ExternalDescriptionType DescriptionType { get; set; }
@@ -24,26 +29,32 @@ namespace ComicsViewer.Features {
         // If so, the regex replacement string
         public string? FilterContent { get; set; }
 
+        // ReSharper restore MemberCanBePrivate.Global
+        // ReSharper restore UnusedAutoPropertyAccessor.Global
+
         public async Task<ExternalDescription?> FetchFromFolderAsync(StorageFolder folder) {
             foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
-                if (Regex.IsMatch(file.Name, this.FileNamePattern)) {
-                    var content = this.FileType switch {
-                        ExternalFileType.FileName => file.Name,
-                        ExternalFileType.Content => await ReadFileToEndAsync(file),
-                        _ => throw new ProgrammerError("Unhandled switch case")
-                    };
-
-                    var filteredContent = this.FilterType switch {
-                        ExternalDescriptionFilterType.RegexReplace
-                            => Regex.Replace(content, this.FileNamePattern, this.FilterContent),
-                        _ => content
-                    };
-
-                    return new ExternalDescription {
-                        Content = filteredContent,
-                        DescriptionType = this.DescriptionType
-                    };
+                if (!Regex.IsMatch(file.Name, this.FileNamePattern)) {
+                    continue;
                 }
+
+                var content = this.FileType switch {
+                    ExternalFileType.FileName => file.Name,
+                    ExternalFileType.Content => await ReadFileToEndAsync(file),
+                    _ => throw new ProgrammerError("Unhandled switch case")
+                };
+
+                var filteredContent = this.FilterType switch {
+                    ExternalDescriptionFilterType.RegexReplace
+                        // Programatically, we must ensure FilterContent is not null when FilterType is RegexReplace
+                        => Regex.Replace(content, this.FileNamePattern, this.FilterContent!),
+                    _ => content
+                };
+
+                return new ExternalDescription {
+                    Content = filteredContent,
+                    DescriptionType = this.DescriptionType
+                };
             }
 
             return null;
@@ -53,35 +64,11 @@ namespace ComicsViewer.Features {
             using var stream = await file.OpenReadAsync();
             return await stream.ReadTextAsync(Encoding.UTF8);
         }
-
-        public static List<EnumInfo<ExternalDescriptionType>> DescriptionTypeTypeNames = new List<EnumInfo<ExternalDescriptionType>> {
-            EnumInfo.New("Link", ExternalDescriptionType.Link),
-            EnumInfo.New("Text", ExternalDescriptionType.Text),
-        };
-    }
-
-    public struct EnumInfo<E> where E: Enum {
-        public string Name { get; set; }
-        public E DescriptionType { get; set; }
-    }
-
-    public static class EnumInfo {
-        public static EnumInfo<A> New<A>(string name, A value) where A : Enum {
-            return new EnumInfo<A> {
-                Name = name,
-                DescriptionType = value
-            };
-        }
     }
 
     public class ExternalDescription {
         public string Content { get; set; } = "";
         public ExternalDescriptionType DescriptionType { get; set; }
-    }
-
-    public class ExternalDescriptionFilter {
-        public ExternalDescriptionFilterType FilterType { get; set; }
-        public string Content { get; set; } = "";
     }
 
     public enum ExternalDescriptionFilterType {

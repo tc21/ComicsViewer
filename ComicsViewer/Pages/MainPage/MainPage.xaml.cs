@@ -3,7 +3,6 @@ using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.ViewModels.Pages;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -15,9 +14,6 @@ using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using MUXC = Microsoft.UI.Xaml.Controls;
 using ComicsViewer.Support;
-using System.Threading.Tasks;
-using System.IO;
-using Windows.Storage;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -26,7 +22,7 @@ namespace ComicsViewer {
     /* Note: MainPage does not have its own view model because how simple its logic is. In the future when we complicate 
      * its logic, we may want a separate view model class. (This also means we are allowed to communicate a little with 
      * the models here) */
-    public sealed partial class MainPage : Page {
+    public sealed partial class MainPage {
         //private ComicStore comicStore = ComicStore.EmptyComicStore;
         private ComicItemGrid? activeContent;
 
@@ -86,10 +82,10 @@ namespace ComicsViewer {
                 * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
                 * page */
             this.SearchBox.Text = "";
-            this.ProfileNavigationViewItem.Content = e.NewProile.Name;
+            this.ProfileNavigationViewItem.Content = e.NewProfile.Name;
             this.ProfileNavigationViewItem.MenuItems.Clear();
             foreach (var existingProfile in ProfileManager.LoadedProfiles) {
-                if (existingProfile != e.NewProile.Name) {
+                if (existingProfile != e.NewProfile.Name) {
                     this.ProfileNavigationViewItem.MenuItems.Add(existingProfile);
                 }
             }
@@ -104,7 +100,7 @@ namespace ComicsViewer {
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
             switch (e.NavigationType) {
                 case NavigationType.Back:
-                    if (!(e.Tag is NavigationTag tag)) {
+                    if (!(e.Tag is { } tag)) {
                         throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target tag type");
                     }
 
@@ -157,11 +153,13 @@ namespace ComicsViewer {
 
             if (args.IsSettingsInvoked) {
                 // Don't navigate to settings twice
-                if (!(this.ContentFrame.Content is SettingsPage)) {
-                    this.ViewModel.NavigationLevel = 2;
-                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
-                    _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel, this.ViewModel.Profile));
+                if (this.ContentFrame.Content is SettingsPage) {
+                    return;
                 }
+
+                this.ViewModel.NavigationLevel = 2;
+                this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
+                _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel, this.ViewModel.Profile));
                 return;
             }
             
@@ -172,7 +170,7 @@ namespace ComicsViewer {
              * I don't like it cause it seems hacky, but whatever for now
              */
             if (args.InvokedItemContainer.Tag == null) {
-                var profileName = args.InvokedItemContainer.Content.ToString();
+                var profileName = args.InvokedItemContainer.Content!.ToString();
                 await this.ViewModel.SetProfileAsync(profileName);
                 return;
             }
@@ -203,14 +201,16 @@ namespace ComicsViewer {
         }
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
-            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                var suggestions = Search.GetSearchSuggestions(sender.Text, this.ViewModel.Profile.Name).ToList();
-                while (suggestions.Count > 4) {
-                    suggestions.RemoveAt(4);
-                }
-
-                sender.ItemsSource = suggestions;
+            if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) {
+                return;
             }
+
+            var suggestions = Search.GetSearchSuggestions(sender.Text, this.ViewModel.Profile.Name).ToList();
+            while (suggestions.Count > 4) {
+                suggestions.RemoveAt(4);
+            }
+
+            sender.ItemsSource = suggestions;
         }
 
         private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args) {
@@ -218,12 +218,14 @@ namespace ComicsViewer {
         }
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
-            if (Search.Compile(sender.Text) is Func<Comic, bool> search) {
-                this.ViewModel.SubmitSearch(search, sender.Text);
-
-                // remove focus from the search box (partially to indicate that the search succeeded)
-                _ = this.activeContent?.Focus(FocusState.Pointer);
+            if (!(Search.Compile(sender.Text) is { } search)) {
+                return;
             }
+
+            this.ViewModel.SubmitSearch(search, sender.Text);
+
+            // remove focus from the search box (partially to indicate that the search succeeded)
+            _ = this.activeContent?.Focus(FocusState.Pointer);
         }
 
 
@@ -266,13 +268,17 @@ namespace ComicsViewer {
         }
 
         private void MainGrid_PointerPressed(object sender, PointerRoutedEventArgs e) {
-            if (e.Pointer.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse) {
-                var properties = e.GetCurrentPoint(this.MainGrid).Properties;
-                if (properties.IsXButton1Pressed) {
-                    this.ViewModel.NavigateOut(of: this.activeContent);
-                    this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
-                }
+            if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse) {
+                return;
             }
+
+            var properties = e.GetCurrentPoint(this.MainGrid).Properties;
+            if (!properties.IsXButton1Pressed) {
+                return;
+            }
+
+            this.ViewModel.NavigateOut(of: this.activeContent);
+            this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
         }
     }
 }

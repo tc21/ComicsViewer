@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ComicsViewer.Support {
     public abstract class DeferredNotify {
         // Based on Microsoft.Toolkit.Uwp.UI.AdvancedCollectionView
-        private bool deferNotifications = false;
+        private bool deferNotifications;
 
         protected abstract void DoNotify();
 
@@ -21,7 +17,7 @@ namespace ComicsViewer.Support {
             return new NotificationDeferrer(this);
         }
 
-        public class NotificationDeferrer : IDisposable {
+        private class NotificationDeferrer : IDisposable {
             private readonly DeferredNotify obj;
 
             public NotificationDeferrer(DeferredNotify obj) {

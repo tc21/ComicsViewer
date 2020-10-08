@@ -19,7 +19,7 @@ namespace ComicsViewer.Uwp.Common {
             return InNaturalOrder(await item.GetItemsAsync());
         }
 
-        public static IReadOnlyList<R> InNaturalOrder<R>(this IEnumerable<R> list) where R: IStorageItem {
+        public static IReadOnlyList<T> InNaturalOrder<T>(this IEnumerable<T> list) where T: IStorageItem {
             var items = list.ToList();
             items.Sort((left, right) => NaturalOrder.Comparer.Compare(left.Name, right.Name));
             return items;

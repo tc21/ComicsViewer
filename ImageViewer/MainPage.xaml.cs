@@ -1,26 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
 using Windows.Storage;
 using Windows.UI.Core;
-using Windows.UI.Input;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -29,8 +20,8 @@ namespace ImageViewer {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page {
-        private readonly ViewModel ViewModel = new ViewModel();
+    public sealed partial class MainPage {
+        private ViewModel ViewModel { get; } = new ViewModel();
 
         public MainPage() {
             this.InitializeComponent();
@@ -85,16 +76,17 @@ namespace ImageViewer {
         }
 
         private async void Page_PointerWheelChanged(object sender, PointerRoutedEventArgs e) {
-            if (e.KeyModifiers == Windows.System.VirtualKeyModifiers.None) {
-                if (e.GetCurrentPoint(this).Properties.MouseWheelDelta > 0) { // This means scrolled up
-                    await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex - 1);
-                } else {
-                    await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + 1);
-                }
-
-                e.Handled = true;
+            if (e.KeyModifiers != Windows.System.VirtualKeyModifiers.None) {
                 return;
             }
+
+            if (e.GetCurrentPoint(this).Properties.MouseWheelDelta > 0) { // This means scrolled up
+                await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex - 1);
+            } else {
+                await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + 1);
+            }
+
+            e.Handled = true;
         }
 
         #region Dropping
@@ -128,16 +120,16 @@ namespace ImageViewer {
 
         #region Zooming
 
-        public void ResetZoom() {
+        private void ResetZoom() {
             // For some reason, you have to wait a while before calling ChangeView
-            _ = new Timer(async _ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            _ = new Timer(async __ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 _ = this.ImageContainer.ChangeView(0, 0, 1))
             , null, 10, Timeout.Infinite);
         }
 
-        public void ZoomImage(double scale) {
+        private void ZoomImage(double scale) {
             // For some reason, you have to wait a while before calling ChangeView
-            _ = new Timer(async _ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+            _ = new Timer(async __ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
                 /* Although ChangeView automatically constrains zooms to MaxZoomFactor, we need the accurate value for our calculations below.
                  * We don't need to do this for MinZoomFactor, because the image is already forced to be centered in that case. */
                 var zoomTo = this.ImageContainer.ZoomFactor * (float)scale;
@@ -192,11 +184,11 @@ namespace ImageViewer {
         /* we need to handle mouse events differently to get panning on drag. */
         private Point? dragStart;
         private Point? offsetsAtDragStart;
-        bool actuallyDragged = false;
+        private bool actuallyDragged;
 
         private void ImageContainer_PointerPressed(object sender, PointerRoutedEventArgs e) {
             if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
-                    || !(e.GetCurrentPoint(this.ImageContainer) is PointerPoint point)
+                    || !(e.GetCurrentPoint(this.ImageContainer) is { } point)
                     || !point.Properties.IsLeftButtonPressed
                     ) {
                 return;
@@ -227,26 +219,28 @@ namespace ImageViewer {
                 return;
             }
 
-            if (this.dragStart is Point dragStart) {
-                if (!(this.offsetsAtDragStart is Point startingOffsets)) {
-                    throw new ProgrammerError("This should be set in MouseDown!");
-                }
-
-                var offsets = new Point(
-                    dragStart.X - e.GetCurrentPoint(this.ImageContainer).Position.X,
-                    dragStart.Y - e.GetCurrentPoint(this.ImageContainer).Position.Y
-                );
-
-                if (!this.actuallyDragged) {
-                    if (Math.Abs(offsets.X) < 5 && Math.Abs(offsets.Y) < 5) {
-                        return;
-                    }
-                }
-
-                this.actuallyDragged = true;
-
-                _ = this.ImageContainer.ChangeView(startingOffsets.X + offsets.X, startingOffsets.Y + offsets.Y, null, true);
+            if (!(this.dragStart is { } dragStart)) {
+                return;
             }
+
+            if (!(this.offsetsAtDragStart is { } startingOffsets)) {
+                throw new ProgrammerError("This should be set in MouseDown!");
+            }
+
+            var offsets = new Point(
+                dragStart.X - e.GetCurrentPoint(this.ImageContainer).Position.X,
+                dragStart.Y - e.GetCurrentPoint(this.ImageContainer).Position.Y
+            );
+
+            if (!this.actuallyDragged) {
+                if (Math.Abs(offsets.X) < 5 && Math.Abs(offsets.Y) < 5) {
+                    return;
+                }
+            }
+
+            this.actuallyDragged = true;
+
+            _ = this.ImageContainer.ChangeView(startingOffsets.X + offsets.X, startingOffsets.Y + offsets.Y, null, true);
         }
 
         #endregion
@@ -268,17 +262,22 @@ namespace ImageViewer {
 
         private void MainPage_ResizeCompleted(CoreWindow sender, object args) {
             this.resizing = false;
-            if (this.ViewModel.DecodeImageHeight != null) {
-                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
+
+            if (this.ViewModel.DecodeImageHeight == null) {
+                return;
             }
+
+            var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
         }
 
         private void ImageContainer_SizeChanged(object sender, SizeChangedEventArgs e) {
-            if (!this.resizing && this.ViewModel.DecodeImageHeight != null) {
-                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
+            if (this.resizing || this.ViewModel.DecodeImageHeight == null) {
+                return;
             }
+
+            var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
         }
     }
 }

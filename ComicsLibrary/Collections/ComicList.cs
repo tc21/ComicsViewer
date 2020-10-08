@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ComicsLibrary.Collections {
     /// <summary>
@@ -34,27 +33,32 @@ namespace ComicsLibrary.Collections {
         }
 
         public void Add(IEnumerable<Comic> comics) {
-            this.AddComics(comics);
-            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
+            var add = comics.ToList();
+            this.AddComics(add);
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: add));
         }
 
         public void Remove(IEnumerable<Comic> comics) {
-            this.RemoveComics(comics);
-            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
+            var remove = comics.ToList();
+            this.RemoveComics(remove);
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: remove));
         }
 
         public void Add(Comic comic) => this.Add(new[] { comic });
 
-        public void Remove(Comic comic) => this.Remove(new[] { comic });
+        // commented out because it's not used: reenable when needed
+        // public void Remove(Comic comic) => this.Remove(new[] { comic });
 
         // you should pass in the new list of comics
         public void Modify(IEnumerable<Comic> comics) {
-            var removed = comics.Select(c => this.GetStored(c)).ToList();
+            var modify = comics.ToList();
 
-            this.RemoveComics(comics);
-            this.AddComics(comics);
+            var removed = modify.Select(this.GetStored).ToList();
 
-            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics, remove: removed));
+            this.RemoveComics(modify);
+            this.AddComics(modify);
+
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: modify, remove: removed));
         }
 
         public void Refresh(IEnumerable<Comic> comics) {
@@ -64,7 +68,7 @@ namespace ComicsLibrary.Collections {
 
         public override bool Contains(Comic comic) => this.comics.ContainsKey(comic.UniqueIdentifier);
         public override Comic GetStored(Comic comic) => this.comics[comic.UniqueIdentifier];
-        public override int Count() => this.comics.Count();
+        public override int Count() => this.comics.Count;
         public override IEnumerator<Comic> GetEnumerator() => this.comics.Values.GetEnumerator();
     }
 }
