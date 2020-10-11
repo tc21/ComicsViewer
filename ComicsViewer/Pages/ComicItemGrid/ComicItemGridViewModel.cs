@@ -1,24 +1,16 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Support;
+﻿using ComicsViewer.Support;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.UI.Popups;
 using ComicsLibrary.Collections;
-using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -48,10 +40,13 @@ namespace ComicsViewer.ViewModels.Pages {
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
         private IEnumerator<ComicItem>? comicItemSource;
 
-        private protected void SetComicItems(IEnumerable<ComicItem> items) {
+        private protected void SetComicItems(IEnumerable<ComicItem> items, int itemCount) {
             this.ComicItems.Clear();
             this.comicItemSource = items.GetEnumerator();
             this.RequestComicItems();
+
+            this.TotalItemCount = itemCount;
+            this.OnPropertyChanged(nameof(this.TotalItemCount));
         }
 
         public void RequestComicItems() {
@@ -77,21 +72,16 @@ namespace ComicsViewer.ViewModels.Pages {
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public string ProfileName => this.MainViewModel.Profile.Name;
         public int VisibleItemCount => this.ComicItems.Count;
+        public int TotalItemCount { get; private set; }
         internal readonly MainViewModel MainViewModel;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         internal readonly NavigationTag NavigationTag;
 
-        // for debug purposes
-        private protected static int debug_count = 0;
-        private protected readonly int debug_this_count = ++debug_count;
-
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
         private protected ComicItemGridViewModel(MainViewModel appViewModel) {
-            Debug.WriteLine($"VM{this.debug_this_count} created");
-
             this.MainViewModel = appViewModel;
             this.NavigationTag = appViewModel.ActiveNavigationTag;
 
@@ -103,10 +93,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.ProfileChanged += this.MainViewModel_ProfileChanged;
 
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
-        }
-
-        ~ComicItemGridViewModel() {
-            Debug.WriteLine($"VM{this.debug_this_count} destroyed");
         }
 
         public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {
@@ -160,7 +146,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task TryRedefineThumbnailAsync(ComicWorkItem comicItem, StorageFile file) {
-            var comic = comicItem.Comic.WithMetadata(thumbnailSource: file.Path.GetPathRelativeTo(comicItem.Comic.Path));
+            var comic = comicItem.Comic.WithMetadata(thumbnailSource: file.RelativeTo(comicItem.Comic.Path));
 
             var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(comic, file, this.MainViewModel.Profile, replace: true);
             if (success) {

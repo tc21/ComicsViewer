@@ -5,12 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using Windows.Storage;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 
 #nullable enable
 
@@ -61,7 +60,7 @@ namespace ComicsViewer.Support {
         }
 
         /* Used to automatically update only one category */
-        public async static Task<IEnumerable<Comic>> FromRootPathAsync(
+        public static async Task<IEnumerable<Comic>> FromRootPathAsync(
             UserProfile profile, NamedPath category, CancellationToken cc, IProgress<int>? progress = null
         ) {
             if (!profile.RootPaths.Contains(category)) {
@@ -105,22 +104,22 @@ namespace ComicsViewer.Support {
                 }
 
                 return invalidComics;
-            });
+            }, cc
+            );
         }
 
         private static async Task FinishFromImportedFolderAsync(
-            List<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
+            ICollection<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
 
             // If in a category folder: assume it's properly laid out
-            var matchingPaths = profile.RootPaths
-                .Where(pair => folder.Path.IsChildOfDirectory(pair.Path));
+            var matchingPaths = profile.RootPaths.Where(pair => folder.IsChildOf(pair.Path)).ToList();
 
             if (matchingPaths.Any()) {
-                var bestMatch = matchingPaths.OrderBy(pair => folder.Path.GetPathRelativeTo(pair.Path).Length).First();
+                var bestMatch = matchingPaths.OrderBy(pair => folder.RelativeTo(pair.Path).Length).First();
          
                 // If in a category folder: assume it's properly laid out
                 var categoryName = bestMatch.Name;
-                var relativePath = folder.Path.GetPathRelativeTo(bestMatch.Path);
+                var relativePath = folder.RelativeTo(bestMatch.Path);
 
                 // 1. Importing a category
                 if (relativePath == "") {
@@ -131,21 +130,20 @@ namespace ComicsViewer.Support {
                 var names = relativePath.Split(Path.DirectorySeparatorChar);
                 var authorName = names[0];
 
-                // 2. Importing an author
-                if (names.Length == 1) {
-                    await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
-                    return;
+                switch (names.Length) {
+                    case 1:
+                        // Importing an author
+                        await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
+                        return;
+                    case 2:
+                        // Importing a work
+                        var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
+                        comics.Add(comic);
+                        progress?.Report(comics.Count);
+                        return;
+                    // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
                 }
 
-                // 3. Importing a work
-                if (names.Length == 2) {
-                    var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
-                    comics.Add(comic);
-                    progress?.Report(comics.Count);
-                    return;
-                }
-
-                // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
             }
 
             // Assume we received a comic folder
@@ -163,8 +161,8 @@ namespace ComicsViewer.Support {
                 return;
             }
 
-            foreach (var subfolder in await folder.GetFoldersAsync()) {
-                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => subfolder.Name.StartsWith(prefix))) {
+            foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
+                if (UserProfile.IsIgnoredFolder(subfolder)) {
                     continue;
                 }
 
@@ -174,17 +172,15 @@ namespace ComicsViewer.Support {
                     return;
                 }
             }
-
-            return;
         }
 
         private static async Task FinishFromRootPathAsync(
-            List<Comic> comics, UserProfile profile, NamedPath rootPath, CancellationToken cc, IProgress<int>? progress
+            ICollection<Comic> comics, UserProfile profile, NamedPath rootPath, CancellationToken cc, IProgress<int>? progress
         ) {
             var folder = await StorageFolder.GetFolderFromPathAsync(rootPath.Path);
 
-            foreach (var authorFolder in await folder.GetFoldersAsync()) {
-                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => authorFolder.Name.StartsWith(prefix))) {
+            foreach (var authorFolder in await folder.GetFoldersInNaturalOrderAsync()) {
+                if (UserProfile.IsIgnoredFolder(authorFolder)) {
                     continue;
                 }
 
@@ -194,16 +190,14 @@ namespace ComicsViewer.Support {
                     return;
                 }
             }
-
-            return;
         }
 
         private static async Task FinishFromAuthorFolderAsync(
-            List<Comic> comics, UserProfile profile, StorageFolder folder, string category, string author, 
+            ICollection<Comic> comics, UserProfile profile, StorageFolder folder, string category, string author, 
             CancellationToken cc, IProgress<int>? progress
         ) {
-            foreach (var comicFolder in await folder.GetFoldersAsync()) { 
-                if (UserProfile.IgnoredFilenamePrefixes.Any(prefix => comicFolder.Name.StartsWith(prefix))) {
+            foreach (var comicFolder in await folder.GetFoldersInNaturalOrderAsync()) { 
+                if (UserProfile.IsIgnoredFolder(comicFolder)) {
                     continue;
                 }
 
@@ -217,8 +211,6 @@ namespace ComicsViewer.Support {
                     return;
                 }
             }
-
-            return;
         }
     }
 }

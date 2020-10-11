@@ -1,30 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Media.Core;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace MusicPlayer {
-    public sealed partial class MainPage : Page {
-        private readonly ViewModel ViewModel = new ViewModel();
+    public sealed partial class MainPage {
+        private ViewModel ViewModel { get; } = new ViewModel();
 
         public MainPage() {
             this.InitializeComponent();
@@ -79,7 +71,7 @@ namespace MusicPlayer {
             sender.MediaEnded -= this.MediaPlayer_MediaEnded;
             sender.Pause();
 
-            if (this.ViewModel.Next() is PlaylistItem item) {
+            if (this.ViewModel.Next() is { } item) {
                 await this.ViewModel.PlayAsync(item);
             }
         }
@@ -99,24 +91,26 @@ namespace MusicPlayer {
         }
 
         private async void Player_Drop(object sender, DragEventArgs e) {
-            if (e.DataView.Contains(StandardDataFormats.StorageItems)) {
-                var items = await e.DataView.GetStorageItemsAsync();
-
-                if (items.Count() == 1) {
-                    var item = items.First();
-                    if (item.IsOfType(StorageItemTypes.File)) {
-                        await this.ViewModel.OpenContainingFolderAsync((StorageFile)item);
-                    } else {
-                        await this.ViewModel.OpenFolderAsync((StorageFolder)item);
-                    }
-                } else {
-                    await this.ViewModel.OpenFilesAsync(items.OfType<StorageFile>());
-                }
-
-                this.NavigationView.SelectedItem = this.NavigationView.MenuItems[0];
-                var navArgs = new PlaylistPageNavigationArguments(this.ViewModel.PlaylistItems, this.ViewModel);
-                _ = this.NavigationViewContent.Navigate(typeof(PlaylistPage), navArgs);
+            if (!e.DataView.Contains(StandardDataFormats.StorageItems)) {
+                return;
             }
+
+            var items = (await e.DataView.GetStorageItemsAsync()).InNaturalOrder();
+
+            if (items.Count == 1) {
+                var item = items.First();
+                if (item.IsOfType(StorageItemTypes.File)) {
+                    await this.ViewModel.OpenContainingFolderAsync((StorageFile)item);
+                } else {
+                    await this.ViewModel.OpenFolderAsync((StorageFolder)item);
+                }
+            } else {
+                await this.ViewModel.OpenFilesAsync(items.OfType<StorageFile>());
+            }
+
+            this.NavigationView.SelectedItem = this.NavigationView.MenuItems[0];
+            var navArgs = new PlaylistPageNavigationArguments(this.ViewModel.PlaylistItems, this.ViewModel);
+            _ = this.NavigationViewContent.Navigate(typeof(PlaylistPage), navArgs);
         }
 
         private void NavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args) {

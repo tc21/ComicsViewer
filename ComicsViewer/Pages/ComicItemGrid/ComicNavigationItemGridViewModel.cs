@@ -1,14 +1,8 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
-using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Support;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -18,9 +12,6 @@ namespace ComicsViewer.ViewModels.Pages {
         private ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
 
         private readonly ComicView comics;
-        // This is set during the constructor, but not by the constructor. We use this "hack" to mark the semantic difference.
-        private OneTimeComicPropertiesView? _comicProperties;
-        public OneTimeComicPropertiesView ComicProperties => this._comicProperties ?? throw new ProgrammerError("ComicProperties must be initialized");
 
         public ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
             : base(appViewModel)
@@ -40,13 +31,12 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private protected override void SortOrderChanged() {
             var view = this.GetOneTimeSortedProperties();
-            this._comicProperties = view;
 
             var items = view.Select(property => 
-                ComicItem.NavigationItem(property.Name, view.PropertyView(property.Name))
+                new ComicNavigationItem(property.Name, view.PropertyView(property.Name))
             );
 
-            this.SetComicItems(items);
+            this.SetComicItems(items, view.Count);
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
@@ -66,8 +56,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
-            Debug.WriteLine($"VM{this.debug_this_count} {nameof(Comics_ComicsChanged)} called for view model {this.NavigationTag}");
-
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                 case ComicChangeType.Refresh:
@@ -78,7 +66,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
 
                 default:
-                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(Comics_ComicsChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Comics_ComicsChanged)}: unhandled switch case");
             }
         }
 

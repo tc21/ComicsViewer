@@ -9,19 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
-using Windows.Storage.Search;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -30,7 +21,7 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MoveFilesDialogContent : Page, IPagedControlContent {
+    public sealed partial class MoveFilesDialogContent : IPagedControlContent {
 
         public MoveFilesDialogContent() {
             this.InitializeComponent();
@@ -39,7 +30,9 @@ namespace ComicsViewer.Pages {
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            var (accessor, args) = PagedControlAccessor.FromNavigationArguments<MoveFilesDialogNavigationArguments>(e.Parameter);
+            var (accessor, args) = PagedControlAccessor.FromNavigationArguments<MoveFilesDialogNavigationArguments>(
+                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+            );
             this.PagedControlAccessor = accessor;
             this._comics = args.Comics.ToList();
             this._parentViewModel = args.ParentViewModel;
@@ -70,7 +63,7 @@ namespace ComicsViewer.Pages {
                 async (cc, p) => {
                     var progress = 0;
                     // We should probably try to catch FileNotFound and UnauthorizedAccess here
-                    var rootFolder = await StorageFolder.GetFolderFromPathAsync(category.Path);
+                    _ = await StorageFolder.GetFolderFromPathAsync(category.Path);
 
                     foreach (var comic in this.Comics) {
                         if (comic.Category != category.Name) {
@@ -89,7 +82,7 @@ namespace ComicsViewer.Pages {
 
                             IO.MoveDirectory(comic.Path, targetPath);
 
-                            if (IO.GetDirectoryContents(originalAuthorPath).Count() == 0) {
+                            if (!IO.GetDirectoryContents(originalAuthorPath).Any()) {
                                 IO.RemoveDirectory(originalAuthorPath);
                             }
 

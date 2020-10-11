@@ -36,6 +36,7 @@
         </ItemsControl>
 
         <TextBlock Margin="12 12 0 0" Text="Edit Categories"/>
+
         <controls:DataGrid Margin="12 12 0 0" 
                            ItemsSource="{x:Bind ViewModel.RootPaths}" 
                            AutoGenerateColumns="False"
@@ -62,6 +63,42 @@
                     Click="SaveProfileCategoriesButton_Click" Visibility="Collapsed"/>
             <Button Margin="12 12 0 0" Content="Reload All Categories" Click="ReloadAllCategoriesButton_Click"/>
         </StackPanel>
+        
+        <TextBlock Margin="12 12 0 0" Text="Description Files"/>
+        
+        <controls:DataGrid Margin="12 12 0 0"
+                           ItemsSource="{x:Bind ViewModel.ExternalDescriptions}"
+                           AutoGenerateColumns="False"
+                           CellEditEnded="ProfileDescriptionsDataGrid_CellEditEnded">
+            <controls:DataGrid.Columns>
+                <controls:DataGridTextColumn Header="Pattern" Binding="{Binding FileNamePattern}"/>
+                <controls:DataGridComboBoxColumn Header="Description mode" 
+                                                 Binding="{Binding DescriptionType}"  
+                                                 ItemsSource="{x:Bind ExternalDescriptionTypes}"
+                                                 DisplayMemberPath="Name"/>
+                <controls:DataGridComboBoxColumn Header="File mode" 
+                                                 Binding="{Binding FileType}"  
+                                                 ItemsSource="{x:Bind ExternalDescriptionFileTypes}"
+                                                 DisplayMemberPath="Name"/>
+                <controls:DataGridComboBoxColumn Header="Filter mode" 
+                                                 Binding="{Binding FilterType}"  
+                                                 ItemsSource="{x:Bind ExternalDescriptionFilterTypes}"
+                                                 DisplayMemberPath="Name"/>
+                <controls:DataGridTextColumn Header="Filter content" Binding="{Binding FilterContent}"/>
+                <!--
+                <controls:DataGridComboBoxColumn Header="File mode" Binding="{Binding FileType}" Tag="file_type"/>
+                <controls:DataGridComboBoxColumn Header="Filter type" Binding="{Binding Filter.FilterType}" Tag="filter_type"/>
+                <controls:DataGridTextColumn Header="Filter content" Binding="{Binding Filter.Content}" Tag="filter_content"/>
+                -->
+            </controls:DataGrid.Columns>
+        </controls:DataGrid>
+        <StackPanel Orientation="Horizontal">
+            <Button Margin="12 12 0 0" Content="Add Description" Click="AddProfileDescriptionsButton_Click"/>
+            <Button x:Name="SaveProfleDescriptionsButton" 
+                    Margin="12 12 0 0" 
+                    Content="Save Changes" 
+                    Click="SaveProfileDescriptionsButton_Click" Visibility="Collapsed"/>
+        </StackPanel>
 
         <TextBlock Text="App Settings" Margin="0 12 0 0" Style="{StaticResource SubtitleTextBlockStyle}"/>
         
@@ -74,7 +111,9 @@
                        Title="Are you sure you want to reload these items?"
                        PrimaryButtonText="Reload"
                        CloseButtonText="Cancel"
-                       DefaultButton="Close">
+                       DefaultButton="Close"
+                       d:Visibility="Collapsed"
+                       >
             <StackPanel>
                 <TextBlock TextWrapping="Wrap">
                     This can take a long time if a category has a large; folder. If you are only adding a small amount
@@ -90,7 +129,9 @@
                        Title="New Profile"
                        PrimaryButtonText="Create Profile"
                        CloseButtonText="Cancel"
-                       DefaultButton="Close">
+                       DefaultButton="Close"
+                       d:Visibility="Collapsed"
+                       >
             <StackPanel>
                 <muxc:RadioButtons x:Name="NewProfileRadioButtons" 
                                    Header="Create a new profile based on:" 

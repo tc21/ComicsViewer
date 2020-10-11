@@ -1,18 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
+﻿using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -33,7 +19,7 @@ namespace ComicsViewer.Pages {
      * Note: Currently SecondLevelContainers never reload. We could just not do part 2 and part 5's "except" for second level grids.
      * But just in case we want to in the future, I want to make it obvious that they should have the exact same implementation.
      */
-    public sealed partial class ComicItemGridTopLevelContainer : Page, IComicItemGridContainer {
+    public sealed partial class ComicItemGridTopLevelContainer : IComicItemGridContainer {
         public ComicItemGrid? Grid { get; private set; }
 
         public ComicItemGridTopLevelContainer() {
@@ -41,7 +27,7 @@ namespace ComicsViewer.Pages {
         }
 
         private void Frame_Navigated(object sender, NavigationEventArgs e) {
-            this.Grid = (ComicItemGrid)this.Frame.Content;
+            this.Grid = (ComicItemGrid)this.Frame.Content!;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {

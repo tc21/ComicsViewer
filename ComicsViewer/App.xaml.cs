@@ -1,39 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-#pragma warning disable
+#nullable enable
 
-namespace ComicsViewer
-{
+namespace ComicsViewer {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    sealed partial class App : Application
-    {
+    sealed partial class App {
 
         /*
          * Bugs:
+         * 
+         * TODOs:
          *
-         * TODOS:
-         *   4. Supporting opening stuff properly, rathor than telling Windows to open the first file
-         *      (see https://stackoverflow.com/a/44006005 or https://docs.microsoft.com/en-us/windows/uwp/winrt-components/brokered-windows-runtime-components-for-side-loaded-windows-store-apps)
-         *   5. We will likely have to rely on the above two links to enable Python-based extensions.
+         * Notes:
+         *   4. WinUI 3.0
          *   9. When clicking the 'X' button in the search box, we should refilter the visible comics, instead of requiring
-         *      the user to click on the search button again.
+         *      the user to click on the search button again. (This is impossible)
          *
          *
          * Feature Requests:
@@ -42,8 +30,6 @@ namespace ComicsViewer
          *   6. Assign "related works", allowing any two works to be related in the database and to show up in each other's
          *      single-click flyout (see also major proposal "subworks")
          *   7. Add the ability to save filters into a list of bookmarks
-         *   8. Figure out how to implement DisplayAuthor
-         *   9. Add the ability to rename profiles, categories, and a comic's folder name.
          *  12. User-definable playlists that can be added or deleted at any time (unlike tags, which are difficult to
          *      add/remove en masse and are intended to be permanent, playlists are intended to be temporary). 
          *
@@ -140,10 +126,9 @@ namespace ComicsViewer
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
-        public App()
-        {
+        public App() {
             this.InitializeComponent();
-            this.Suspending += OnSuspending;
+            this.Suspending += this.OnSuspending;
         }
 
         /// <summary>
@@ -151,36 +136,29 @@ namespace ComicsViewer
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
-        {
-            Frame rootFrame = Window.Current.Content as Frame;
-
+        protected override void OnLaunched(LaunchActivatedEventArgs e) {
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
-            if (rootFrame == null)
-            {
+            if (!(Window.Current.Content is Frame rootFrame)) {
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 
-                rootFrame.NavigationFailed += OnNavigationFailed;
+                rootFrame.NavigationFailed += this.OnNavigationFailed;
 
-                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                {
-                    //TODO: Load state from previously suspended application
+                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated) {
+                    // Load state from previously suspended application
                 }
 
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
 
-            if (e.PrelaunchActivated == false)
-            {
-                if (rootFrame.Content == null)
-                {
+            if (e.PrelaunchActivated == false) {
+                if (rootFrame.Content == null) {
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
@@ -192,8 +170,7 @@ namespace ComicsViewer
         /// </summary>
         /// <param name="sender">The Frame which failed navigation</param>
         /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
+        void OnNavigationFailed(object sender, NavigationFailedEventArgs e) {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
@@ -204,10 +181,9 @@ namespace ComicsViewer
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
-        {
+        private void OnSuspending(object sender, SuspendingEventArgs e) {
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Save application state and stop any background activity
+            // Save application state and stop any background activity
             deferral.Complete();
         }
     }

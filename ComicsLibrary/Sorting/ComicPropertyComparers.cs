@@ -2,7 +2,6 @@
 using ComicsViewer.Common;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ComicsLibrary.Sorting {
     public enum ComicPropertySortSelector {
@@ -10,23 +9,23 @@ namespace ComicsLibrary.Sorting {
     }
 
     public static partial class SortSelectorNames {
-        public static readonly string[] ComicPropertySortSelectorNames = new[] { "Name", "Item Count", "Random" };
+        public static readonly string[] ComicPropertySortSelectorNames = { "Name", "Item Count", "Random" };
     }
 
-    public class ComicPropertyComparers {
+    public static class ComicPropertyComparers {
         private class NameComparer : IComparer<ComicProperty> {
             public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);
 
             public static int CompareProperty(ComicProperty x, ComicProperty y) {
-                return x.Name.ToLowerInvariant().CompareTo(y.Name.ToLowerInvariant());
+                return string.Compare(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant(), StringComparison.Ordinal);
             }
         }
 
         private class ItemCountComparer : IComparer<ComicProperty> {
             public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);
 
-            public static int CompareProperty(ComicProperty x, ComicProperty y) {
-                var result = -(x.Comics.Count.CompareTo(y.Comics.Count));
+            private static int CompareProperty(ComicProperty x, ComicProperty y) {
+                var result = -x.Comics.Count.CompareTo(y.Comics.Count);
                 if (result != 0) {
                     return result;
                 }
@@ -39,7 +38,10 @@ namespace ComicsLibrary.Sorting {
             return sortSelector switch {
                 ComicPropertySortSelector.Name => new NameComparer(),
                 ComicPropertySortSelector.ItemCount => new ItemCountComparer(),
-                _ => throw new ProgrammerError($"{nameof(ComicPropertyComparers)}.{nameof(Make)}: unexpected sort selector"),
+                ComicPropertySortSelector.Random => throw new ProgrammerError(
+                    $"{nameof(ComicPropertyComparers)}.{nameof(Make)}: Random not allowed here"
+                ),
+                _ => throw new ProgrammerError($"{nameof(ComicPropertyComparers)}.{nameof(Make)}: unexpected sort selector")
             };
         }
     }

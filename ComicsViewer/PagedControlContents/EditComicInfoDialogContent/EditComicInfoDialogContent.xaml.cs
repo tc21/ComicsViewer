@@ -1,23 +1,11 @@
 ﻿using ComicsViewer.Features;
 using ComicsViewer.Controls;
-using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
-using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using ComicsViewer.Common;
 
@@ -27,7 +15,7 @@ namespace ComicsViewer.Pages {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class EditComicInfoDialogContent : Page, IPagedControlContent {
+    public sealed partial class EditComicInfoDialogContent : IPagedControlContent {
         public EditComicInfoDialogContent() {
             this.InitializeComponent();
         }
@@ -40,7 +28,8 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             var (controller, args) = 
-                PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(e.Parameter);
+                PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(
+                    e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null"));
             this.PagedControlAccessor = controller;
 
             this._viewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
@@ -50,8 +39,7 @@ namespace ComicsViewer.Pages {
             await this.ViewModel.SaveComicInfoAsync(
                 title: this.ComicTitleTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
-                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError(),
-                disliked: this.ComicDislikedCheckBox.IsChecked ?? throw new ProgrammerError()
+                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError()
             );
 
             this.PagedControlAccessor!.CloseContainer();
@@ -72,8 +60,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            if (!items[0].IsOfType(StorageItemTypes.File) ||
-                    !UserProfile.ImageFileExtensions.Any(ext => items[0].Name.EndsWith(ext, StringComparison.OrdinalIgnoreCase))) {
+            if (!items[0].IsOfType(StorageItemTypes.File) || !UserProfile.IsImage(items[0].Name)) {
                 _ = await new ContentDialog { Content = "Please select an image as the new thumbnail.", Title = "Invalid thumbnail file" }.ShowAsync();
                 return;
             }

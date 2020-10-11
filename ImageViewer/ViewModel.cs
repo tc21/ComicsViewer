@@ -1,25 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
+using ComicsViewer.Uwp.Common;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
-using Windows.Storage.Streams;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
 namespace ImageViewer {
     public class ViewModel : ViewModelBase {
-        public static readonly string[] ImageExtensions = {
+        private static readonly string[] ImageExtensions = {
             ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
             ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
         };
@@ -51,7 +45,7 @@ namespace ImageViewer {
         private string _title = "Viewer";
         public string Title {
             get => this._title;
-            set {
+            private set {
                 this._title = value;
                 this.OnPropertyChanged();
             }
@@ -74,7 +68,7 @@ namespace ImageViewer {
         private BitmapSource? _currentImageSource;
         public BitmapSource? CurrentImageSource {
             get => this._currentImageSource;
-            set {
+            private set {
                 this._currentImageSource = value;
                 this.OnPropertyChanged();
             }
@@ -83,7 +77,7 @@ namespace ImageViewer {
         private string? _currentImageMetadata;
         public string? CurrentImageMetadata {
             get => this._currentImageMetadata ?? "No metadata loaded.";
-            set {
+            private set {
                 this._currentImageMetadata = value;
                 this.OnPropertyChanged();
             }
@@ -105,16 +99,16 @@ namespace ImageViewer {
         }
 
         public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false) {
-            this.canSeek = false;
+            this.CanSeek = false;
 
             if (!append) {
                 this.Images.Clear();
             }
 
             this.Images.AddRange(files.Where(f => IsImage(f.Path)));
-            this.canSeek = true;
+            this.CanSeek = true;
 
-            if (seekTo is int index) {
+            if (seekTo is { } index) {
                 if (append) {
                     throw new ArgumentException("For the moment, you must not seek when appending");
                 }
@@ -126,6 +120,8 @@ namespace ImageViewer {
         }
 
         public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths) {
+            paths = paths.ToList();
+
             if (!paths.Any()) {
                 return;
             }
@@ -140,8 +136,8 @@ namespace ImageViewer {
             }
         }
 
-        private async Task LoadViaPassthrough<I>(StorageFile passthrough, Func<Task<I>> getAllFiles) where I : IEnumerable<StorageFile> {
-            this.canSeek = false;
+        private async Task LoadViaPassthrough<T>(StorageFile passthrough, Func<Task<T>> getAllFiles) where T : IEnumerable<StorageFile> {
+            this.CanSeek = false;
             this.Title = "Viewer - Loading related files...";
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
 
@@ -149,49 +145,53 @@ namespace ImageViewer {
             await this.LoadImagesAsync(files, seekTo: null);
 
             for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i].Name == passthrough.Name) {
-                    if (passthroughSuccessful) {
-                        this.SetCurrentImageIndex(i);
-                    } else {
-                        await this.SeekAsync(i, reload: true);
-                    }
-
-                    return;
+                if (this.Images[i].Name != passthrough.Name) {
+                    continue;
                 }
+
+                if (passthroughSuccessful) {
+                    this.SetCurrentImageIndex(i);
+                } else {
+                    await this.SeekAsync(i, reload: true);
+                }
+
+                return;
             }
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
-            if (!(await file.GetParentAsync() is StorageFolder parent)) {
+            if (!(await file.GetParentAsync() is { } parent)) {
                 /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
                 await this.LoadImagesAsync(new[] { file });
                 return;
             }
 
-            await this.LoadViaPassthrough(file, async () => await parent.GetFilesAsync());
+            await this.LoadViaPassthrough(file, async () => await parent.GetFilesInNaturalOrderAsync());
 
-            this.canSeek = false;
+            this.CanSeek = false;
             this.Title = "Viewer - Loading related files...";
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
-            var files = await parent.GetFilesAsync();
+            var files = await parent.GetFilesInNaturalOrderAsync();
 
             await this.LoadImagesAsync(files, seekTo: null);
 
             for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i].Name == file.Name) {
-                    if (passthroughSuccessful) {
-                        this.SetCurrentImageIndex(i);
-                    } else {
-                        await this.SeekAsync(i, reload: true);
-                    }
+                if (this.Images[i].Name != file.Name) {
+                    continue;
+                }
+
+                if (passthroughSuccessful) {
+                    this.SetCurrentImageIndex(i);
+                } else {
+                    await this.SeekAsync(i, reload: true);
                 }
             }
         }
 
-        public bool canSeek;
+        public bool CanSeek { get; private set; }
 
         public async Task SeekAsync(int index, bool reload = false) {
-            if (!this.canSeek) {
+            if (!this.CanSeek) {
                 return;
             }
 
@@ -212,7 +212,6 @@ namespace ImageViewer {
             if (!await this.UpdateBitmapSourceAsync(this.Images[index])) {
                 this.Images.RemoveAt(index);
                 await this.SeekAsync(index, reload: true);
-                return;
             }
         }
 
@@ -237,7 +236,7 @@ namespace ImageViewer {
             var image = new BitmapImage();
 
             using (var stream = await file.OpenReadAsync()) {
-                if (decodePixelHeight is int height) {
+                if (decodePixelHeight is { } height) {
                     image.DecodePixelHeight = height;
                 }
 
@@ -274,7 +273,7 @@ namespace ImageViewer {
 
             this.updatingBitmapSource = false;
 
-            if (this.queuedFile is StorageFile f) {
+            if (this.queuedFile is { } f) {
                 this.queuedFile = null;
                 _ = await this.UpdateBitmapSourceAsync(f);
                 // we can't really notify that another image is invalid yet
@@ -331,7 +330,7 @@ namespace ImageViewer {
                 }
 
                 if (info.Any()) {
-                    description += $"\nMetadata: Taken " + string.Join(' ', info);
+                    description += "\nMetadata: Taken " + string.Join(' ', info);
                 }
             }
 
@@ -342,7 +341,7 @@ namespace ImageViewer {
             return ImageExtensions.Contains(Path.GetExtension(path).ToLower());
         }
 
-        private static readonly string[] FilesizeUnits = new[] { "bytes", "KB", "MB", "GB" };
+        private static readonly string[] FilesizeUnits = { "bytes", "KB", "MB", "GB" };
         private const int FilesizeBase = 1024;  // Windows does 1024-based counting, so we'll do the same.
         private static string FormatFileSize(double size) {
             foreach (var unit in FilesizeUnits) {

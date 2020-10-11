@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.Graphics.Display;
 using Windows.System;
-using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml.Controls;
 
@@ -18,18 +14,16 @@ namespace ImageViewer {
         private ICommand? seekRelativeCommand;
         public ICommand SeekRelativeCommand {
             get {
-                if (this.seekRelativeCommand == null) {
-                    this.seekRelativeCommand = new RelayCommand(
-                        async o => await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + (int)TryParseInt(o)!),
-                        o => {
-                            if (TryParseInt(o) is int i) {
-                                return (i > -this.ViewModel.Images.Count && i < this.ViewModel.Images.Count);
-                            }
-
-                            return false;
+                this.seekRelativeCommand ??= new RelayCommand(
+                    async o => await this.ViewModel.SeekAsync(this.ViewModel.CurrentImageIndex + (int)TryParseInt(o)!),
+                    o => {
+                        if (TryParseInt(o) is { } i) {
+                            return i > -this.ViewModel.Images.Count && i < this.ViewModel.Images.Count;
                         }
-                    );
-                }
+
+                        return false;
+                    }
+                );
 
                 return this.seekRelativeCommand;
             }
@@ -38,21 +32,20 @@ namespace ImageViewer {
         private ICommand? seekCommand;
         public ICommand SeekCommand {
             get {
-                if (this.seekCommand == null) {
-                    this.seekCommand = new RelayCommand(
-                        async o => await this.ViewModel.SeekAsync((int)TryParseInt(o)!),
-                        o => {
-                            if (TryParseInt(o) is int target) {
-                                // see ActualIndex(): it is designed to only work if target > -Images.Count
-                                // we could have made it work with any number, but you're probably doing something wrong if it
-                                // goes out of this range
-                                return (target > -this.ViewModel.Images.Count && target < this.ViewModel.Images.Count);
-                            }
-
-                            return false;
+                this.seekCommand ??= new RelayCommand(
+                    async o => await this.ViewModel.SeekAsync((int)TryParseInt(o)!),
+                    o => {
+                        if (TryParseInt(o) is { } target) {
+                            // see ActualIndex(): it is designed to only work if target > -Images.Count
+                            // we could have made it work with any number, but you're probably doing something wrong if it
+                            // goes out of this range
+                            return target > -this.ViewModel.Images.Count && target < this.ViewModel.Images.Count;
                         }
-                    );
-                }
+
+                        return false;
+                    }
+                );
+                
 
                 return this.seekCommand;
             }
@@ -61,12 +54,10 @@ namespace ImageViewer {
         private ICommand? showInExplorerCommand;
         public ICommand ShowInExplorerCommand {
             get {
-                if (this.showInExplorerCommand == null) {
-                    this.showInExplorerCommand = new RelayCommand(
-                        async o => await Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(this.ViewModel.CurrentImagePath)),
-                        this.IsViewingOpenFile
-                    );
-                }
+                this.showInExplorerCommand ??= new RelayCommand(
+                    async o => await Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(this.ViewModel.CurrentImagePath)),
+                    this.IsViewingOpenFile
+                );
 
                 return this.showInExplorerCommand;
             }
@@ -75,11 +66,9 @@ namespace ImageViewer {
         private ICommand? _toggleImageInfoCommand;
         public ICommand ToggleImageInfoCommand {
             get {
-                if (this._toggleImageInfoCommand == null) {
-                    this._toggleImageInfoCommand = new RelayCommand(
-                        o => this.ViewModel.IsMetadataVisible = !this.ViewModel.IsMetadataVisible
-                    );
-                }
+                this._toggleImageInfoCommand ??= new RelayCommand(
+                    o => this.ViewModel.IsMetadataVisible = !this.ViewModel.IsMetadataVisible
+                );
 
                 return this._toggleImageInfoCommand;
             }
@@ -88,27 +77,25 @@ namespace ImageViewer {
         private ICommand? deleteCommand;
         public ICommand DeleteCommand {
             get {
-                if (this.deleteCommand == null) {
-                    this.deleteCommand = new RelayCommand(
-                        async _ => {
-                            // this doesn't work currently because the image is still loaded and the file handle is still held!
-                            var response = await new ContentDialog {
-                                Title = "Confirm file deletion",
-                                Content = "Are you sure you want to move this file to the Recycle Bin?",
-                                CloseButtonText = "No",
-                                PrimaryButtonText = "Yes",
-                                DefaultButton = ContentDialogButton.Close
-                            }.ShowAsync();
+                this.deleteCommand ??= new RelayCommand(
+                    async _ => {
+                        // this doesn't work currently because the image is still loaded and the file handle is still held!
+                        var response = await new ContentDialog {
+                            Title = "Confirm file deletion",
+                            Content = "Are you sure you want to move this file to the Recycle Bin?",
+                            CloseButtonText = "No",
+                            PrimaryButtonText = "Yes",
+                            DefaultButton = ContentDialogButton.Close
+                        }.ShowAsync();
 
-                            if (response == ContentDialogResult.Primary) {
-                                // This is not null because IsViewingOpenFile is only true when it isn't null.
-                                var currentImage = this.ViewModel.CurrentImagePath!;
-                                await this.ViewModel.DeleteCurrentImageAsync();
-                            }
-                        },
-                        this.IsViewingOpenFile
-                    );
-                }
+                        if (response != ContentDialogResult.Primary) {
+                            return;
+                        }
+
+                        await this.ViewModel.DeleteCurrentImageAsync();
+                    },
+                    this.IsViewingOpenFile
+                );
 
                 return this.deleteCommand;
             }
@@ -117,11 +104,9 @@ namespace ImageViewer {
         private ICommand? closeWindowCommand;
         public ICommand CloseWindowCommand {
             get {
-                if (this.closeWindowCommand == null) {
-                    this.closeWindowCommand = new RelayCommand(
-                        async _ => await ApplicationView.GetForCurrentView().TryConsolidateAsync()
-                    );
-                }
+                this.closeWindowCommand ??= new RelayCommand(
+                    async _ => await ApplicationView.GetForCurrentView().TryConsolidateAsync()
+                );
 
                 return this.closeWindowCommand;
             }
@@ -130,12 +115,10 @@ namespace ImageViewer {
         private ICommand? zoomCommand;
         public ICommand ZoomCommand {
             get {
-                if (this.zoomCommand == null) {
-                    this.zoomCommand = new RelayCommand(
-                        val => this.ZoomImage(double.Parse((string)val))
-                    );
-                }
-
+                this.zoomCommand ??= new RelayCommand(
+                    val => this.ZoomImage(double.Parse((string)val))
+                );
+                
                 return this.zoomCommand;
             }
         }
@@ -143,12 +126,10 @@ namespace ImageViewer {
         private ICommand? resetZoomCommand;
         public ICommand ResetZoomCommand {
             get {
-                if (this.resetZoomCommand == null) {
-                    this.resetZoomCommand = new RelayCommand(
-                        val => this.ResetZoom()
-                    );
-                }
-
+                this.resetZoomCommand ??= new RelayCommand(
+                    val => this.ResetZoom()
+                );
+                
                 return this.resetZoomCommand;
             }
         }
@@ -156,20 +137,38 @@ namespace ImageViewer {
         private ICommand? _toggleScalingCommand;
         public ICommand ToggleScalingCommand {
             get {
-                if (this._toggleScalingCommand == null) {
-                    this._toggleScalingCommand = new RelayCommand(
-                        val => {
-                            if (this.ViewModel.DecodeImageHeight == null) {
-                                var resolutonScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-                                this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutonScale);
-                            } else {
-                                this.ViewModel.DecodeImageHeight = null;
-                            }
+                this._toggleScalingCommand ??= new RelayCommand(
+                    val => {
+                        if (this.ViewModel.DecodeImageHeight == null) {
+                            var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
+                            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
+                        } else {
+                            this.ViewModel.DecodeImageHeight = null;
                         }
-                    );
-                }
+                    }
+                );
 
                 return this._toggleScalingCommand;
+            }
+        }
+
+        private ICommand? _seekToImageCommand;
+        public ICommand SeekToImageCommand {
+            get {
+                this._seekToImageCommand ??= new RelayCommand(
+                    async val => {
+                        // 1-indexed
+                        this.SeekToImageTextBox.Text = (this.ViewModel.CurrentImageIndex + 1).ToString();
+                        this.SeekToImageTextBox.SelectAll();
+                        if (await this.SeekToImageDialog.ShowAsync() == ContentDialogResult.Primary
+                                && int.TryParse(this.SeekToImageTextBox.Text, out var i)) {
+                            await this.ViewModel.SeekAsync(i - 1);
+                        }
+                    },
+                    val => this.ViewModel.CanSeek
+                );
+
+                return this._seekToImageCommand;
             }
         }
 
@@ -178,12 +177,17 @@ namespace ImageViewer {
         private static int? TryParseInt(object o) {
             int? i = null;
 
-            if (o is int i_) {
-                i = i_;
-            } else if (o is string s) {
-                var success = int.TryParse(s, out var i__);
-                if (success) {
-                    i = i__;
+            switch (o) {
+                case int i1:
+                    i = i1;
+                    break;
+                case string s: {
+                    var success = int.TryParse(s, out var i2);
+                    if (success) {
+                        i = i2;
+                    }
+
+                    break;
                 }
             }
 
@@ -192,8 +196,6 @@ namespace ImageViewer {
 
         private VirtualKey VkPlus => (VirtualKey)0xBB;
         private VirtualKey VkMinus => (VirtualKey)0xBD;
-        private VirtualKey VkOpenBracket => (VirtualKey)0xDB;
-        private VirtualKey VkCloseBracket => (VirtualKey)0xDD;
     }
 
     internal class RelayCommand : ICommand {

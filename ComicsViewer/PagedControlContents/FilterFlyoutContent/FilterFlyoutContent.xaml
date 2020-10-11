@@ -7,21 +7,26 @@
     xmlns:uc="using:ComicsViewer.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:Microsoft.Toolkit.Uwp.UI.Converters"
     mc:Ignorable="d"
     x:Name="ThisPage"
-    d:RequestedTheme="Dark">
+    d:RequestedTheme="Dark"
+    d:Width="400"
+    d:Height="400">
     <Page.Resources>
+
+        <converters:StringFormatConverter x:Key="StringFormatConverter"/>
+
         <DataTemplate x:Key="FilterItemListTemplate" x:DataType="support:CountedString">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Path=Name}"/>
+                <TextBlock Text="{x:Bind Name}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="(" Foreground="{ThemeResource SystemBaseMediumColor}"/>
-                    <TextBlock Text="{x:Bind Path=Count}" Foreground="{ThemeResource SystemBaseMediumColor}"/>
-                    <TextBlock Text=")" Foreground="{ThemeResource SystemBaseMediumColor}"/>
+                    <TextBlock Text="{x:Bind Count, Converter={StaticResource StringFormatConverter}, ConverterParameter='(\{0\})'}" 
+                               Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"/>
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -43,8 +48,7 @@
     </Page.Resources>
 
     <StackPanel MaxHeight="{Binding ElementName=ThisPage, Path=ActualHeight}">
-        <Grid Grid.Row="0" 
-              Margin="12 4 12 12" 
+        <Grid Margin="12 4 12 12" 
               Visibility="{x:Bind ViewModel.GeneratedFilterEnabled, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
@@ -60,43 +64,33 @@
                     Click="ClearCustomFilterButton_Click"/>
         </Grid>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
+        <Grid>
             <CheckBox Grid.Column="0"
                       Content="Only show loved"
                       IsChecked="{x:Bind ViewModel.OnlyShowLovedChecked, Mode=TwoWay}" />
-            <CheckBox Grid.Column="1"
-                      Margin="12 4"
-                      Content="Show disliked"
-                      IsChecked="{x:Bind ViewModel.ShowDislikedChecked, Mode=TwoWay}" />
         </Grid>
 
         <uc:ExpandableChecklist x:Name="CategoryChecklist"
-                                Grid.Row="2" Header="Categories"
+                                Header="Categories"
                                 ItemsSource="{x:Bind ViewModel.Categories}"
                                 MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
         
         <uc:ExpandableChecklist x:Name="AuthorChecklist"
-                                Grid.Row="3" Header="Authors"
+                                Header="Authors"
                                 ItemsSource="{x:Bind ViewModel.Authors}"
                                 MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
 
         <uc:ExpandableChecklist x:Name="TagChecklist"
-                                Grid.Row="4" Header="Tags"
+                                Header="Tags"
                                 ItemsSource="{x:Bind ViewModel.Tags}"
                                 MaxHeight="560"
                                 Expanding="Checklist_Expanding"/>
 
-        <StackPanel Orientation="Horizontal" Margin="12 4">
-            <TextBlock Text="{x:Bind ViewModel.ParentViewModel.VisibleItemCount, Mode=OneWay}"
-                       Style="{StaticResource DimmedTextStyle}"/>
-            <TextBlock Text=" item(s) visible"
-                       Style="{StaticResource DimmedTextStyle}"/>
-        </StackPanel>
+        <TextBlock Margin="12 4"
+                   Text="{x:Bind ViewModel.ParentViewModel.TotalItemCount, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='\{0\} item(s) visible'}" 
+                   Style="{StaticResource DimmedTextStyle}"
+                   d:Text="12 item(s) visible"/>
     </StackPanel>
 </Page>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -34,10 +33,10 @@ namespace ComicsLibrary.Collections {
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
-                    var add = e.Add.Where(this.filter);
-                    var remove = e.Remove.Where(this.filter); 
+                    var add = e.Add.Where(this.filter).ToList();
+                    var remove = e.Remove.Where(this.filter).ToList(); 
 
-                    if (add.Count() > 0 || remove.Count() > 0) {
+                    if (add.Any() || remove.Any()) {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add, remove));
                     }
 
@@ -48,14 +47,14 @@ namespace ComicsLibrary.Collections {
                     return;
 
                 case ComicChangeType.ThumbnailChanged:
-                    var changed = e.Add.Where(this.filter);
-                    if (changed.Count() > 0) {
+                    var changed = e.Add.Where(this.filter).ToList();
+                    if (changed.Any()) {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add: changed));
                     }
                     return;
  
                 default:
-                    throw new ProgrammerError($"{nameof(FilteredComicView)}.{nameof(ParentComicView_ViewChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(FilteredComicView)}.{nameof(this.ParentComicView_ViewChanged)}: unhandled switch case");
             }
         }
     }

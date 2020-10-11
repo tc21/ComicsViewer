@@ -4,16 +4,12 @@ using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System;
-using Windows.UI.Xaml.Controls;
 
 #nullable enable
 
@@ -32,7 +28,7 @@ namespace ComicsViewer.Features {
 
                 case StartupApplicationType.BuiltinViewer:
                     var testFile = subitem.Files.First().Path;
-                    var files = subitem.Files.Select(f => f.Path).ToArray();
+                    var files = subitem.Files.Select(f => f.Path);
 
                     if (ImageExtensions.Contains(Path.GetExtension(testFile))) {
                         await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
@@ -43,10 +39,12 @@ namespace ComicsViewer.Features {
                         var description = "";
                         var comicFolder = await StorageFolder.GetFolderFromPathAsync(subitem.Comic.Path);
                         foreach (var descriptionSpecification in profile.ExternalDescriptions) {
-                            if ((await descriptionSpecification.FetchFromFolderAsync(comicFolder)) is ExternalDescription desc) {
-                                description += desc.Content;
-                                description += "\n";
+                            if (!(await descriptionSpecification.FetchFromFolderAsync(comicFolder) is { } desc)) {
+                                continue;
                             }
+
+                            description += desc.Content;
+                            description += "\n";
                         }
 
                         await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///filenames", files, description);
@@ -66,9 +64,9 @@ namespace ComicsViewer.Features {
                     throw new ProgrammerError($"{nameof(OpenComicSubitemAsync)}: unhandled switch case");
             }
 
-            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, string[] filenames, string? description = null) {
+            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, IEnumerable<string> filenames, string? description = null) {
                 var data = new ValueSet {
-                    ["Filenames"] = filenames
+                    ["Filenames"] = filenames.ToArray()
                 };
 
                 if (description != null) {
@@ -86,7 +84,6 @@ namespace ComicsViewer.Features {
                         cancelled: false
                     );
                 }
-                return;
             }
         }
 

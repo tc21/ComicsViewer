@@ -1,7 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsViewer.Features;
-using System;
 using System.Collections.Generic;
 
 #nullable enable
@@ -10,7 +9,7 @@ namespace ComicsViewer.Support {
     public class MainComicList : ComicList {
         public readonly Filter Filter = new Filter();
 
-        public MainComicList() : base() {
+        public MainComicList() {
             this.Filter.FilterChanged += this.Filter_FilterChanged;
         }
 
@@ -21,10 +20,7 @@ namespace ComicsViewer.Support {
 
         private ComicView? filtered;
         public ComicView Filtered() {
-            if (this.filtered == null) {
-                this.filtered = this.Filtered(this.Filter.ShouldBeVisible);
-            }
-
+            this.filtered ??= this.Filtered(this.Filter.ShouldBeVisible);
             return this.filtered;
         }
 

@@ -1,13 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using TC.Database;
-using TC.Database.MicrosoftSqlite;
+using ComicsLibrary.SQL.Sqlite;
 
 #nullable enable
 
@@ -25,7 +20,6 @@ namespace ComicsLibrary.SQL {
         private const string key_display_title = "display_title";
         private const string key_thumbnail_source = "thumbnail_source";
         private const string key_loved = "loved";
-        private const string key_disliked = "disliked";
         private const string key_active = "active";
         private const string key_date_added = "date_added";
 
@@ -41,17 +35,13 @@ namespace ComicsLibrary.SQL {
 
         public SqliteTransaction BeginTransaction() => this.connection.Connection.BeginTransaction();
 
-        public void Open() => this.connection.Connection.Open();
-        public async Task OpenAsync() => await this.connection.Connection.OpenAsync();
-        public void Close() => this.connection.Connection.Close();
-
         public async Task<IEnumerable<Comic>> GetActiveComicsAsync() {
-            using var reader = await this.GetComicReaderWithContraintAsync(key_active, 1);
+            using var reader = await this.GetComicReaderWithConstraintAsync(key_active, 1);
 
             var comics = new List<Comic>();
 
             while (await reader.ReadAsync()) {
-                var comic = this.ReadComicFromRow(reader);
+                var comic = ReadComicFromRow(reader);
                 comics.Add(comic);
             }
 
@@ -70,14 +60,13 @@ namespace ComicsLibrary.SQL {
                 (key_title, comic.Title),
                 (key_author, comic.Author),
                 (key_category, comic.Category),
-                (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.ThumbnailSource),
                 (key_display_title, comic.DisplayTitle),
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
-            if (!(await this.connection.ExecuteInsertAsync(table_comics, parameters) is int comicid)) {
+            if (!(await this.connection.ExecuteInsertAsync(table_comics, parameters) is { } comicid)) {
                 throw new ComicsDatabaseException("Insertion of comic failed for unknown reasons.");
             }
 
@@ -89,7 +78,7 @@ namespace ComicsLibrary.SQL {
         }
 
         public async Task UpdateComicAsync(Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is int comicid)) {
+            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
                 throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
             }
 
@@ -102,7 +91,6 @@ namespace ComicsLibrary.SQL {
                 (key_title, comic.Title),
                 (key_author, comic.Author),
                 (key_category, comic.Category),
-                (key_disliked, comic.Disliked),
                 (key_loved, comic.Loved),
                 (key_thumbnail_source, comic.ThumbnailSource),
                 (key_display_title, comic.DisplayTitle),
@@ -124,7 +112,7 @@ namespace ComicsLibrary.SQL {
             // Update tags
             var storedMetadata = await this.TryGetComicMetadataAsync(comic);
 
-            if (!(storedMetadata is ComicMetadata metadata)) {
+            if (!(storedMetadata is { } metadata)) {
                 return;
             }
 
@@ -132,7 +120,7 @@ namespace ComicsLibrary.SQL {
             var add = comic.Tags.Except(metadata.Tags);
 
             foreach (var tag in delete) {
-                if (await this.TryGetComicTagXrefIdAsync(comicid, await this.AddTagAsync(tag)) is int xrefid) {
+                if (await this.TryGetComicTagXrefIdAsync(comicid, await this.AddTagAsync(tag)) is { } xrefid) {
                     await this.RemoveRowAsync(table_tags_xref, xrefid);
                 }
             }
@@ -143,7 +131,7 @@ namespace ComicsLibrary.SQL {
         }
 
         public async Task InvalidateComicAsync(Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is int comicid)) {
+            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
                 throw new ComicsDatabaseException("Attempting to invalidate a comic that doesn't exist");
             }
 
@@ -156,29 +144,31 @@ namespace ComicsLibrary.SQL {
         }
 
         public async Task<ComicMetadata?> TryGetComicMetadataAsync(Comic comic) {
-            using var reader = await this.GetComicReaderWithContraintAsync(key_unique_id, comic.UniqueIdentifier);
+            using var reader = await this.GetComicReaderWithConstraintAsync(key_unique_id, comic.UniqueIdentifier);
 
             if (!reader.HasRows) {
                 return null;
             }
 
             _ = await reader.ReadAsync();
-            return this.ReadComicMetadataFromRow(reader);
+            return ReadComicMetadataFromRow(reader);
         }
 
         public async Task<bool> HasComicAsync(Comic comic) {
-            return (await this.TryGetComicRowidAsync(comic)) != null;
+            return await this.TryGetComicRowidAsync(comic) != null;
         }
 
         private async Task<int?> TryGetComicRowidAsync(Comic comic) {
             var constraints = new Dictionary<string, object> { [key_unique_id] = comic.UniqueIdentifier };
             var rowids = await this.GetRowidsAsync(table_comics, constraints);
 
-            return rowids.Count == 1 ? rowids[0] : (int?)null;
+            return rowids.Count == 1 
+                ? rowids[0] 
+                : (int?)null;
         }
 
         /* returns the tag's rowid; can be used to query for an existing tag */
-        public async Task<int> AddTagAsync(string tag) {
+        private async Task<int> AddTagAsync(string tag) {
             // The insertion may be ignored; 
             _ = await this.connection.ExecuteInsertAsync(table_tags, new Dictionary<string, object> { [key_tag_name] = tag });
 
@@ -190,8 +180,10 @@ namespace ComicsLibrary.SQL {
 
         private Task AssociateTagAsync(int comicid, int tagid) {
             // I'm assuming you can't do an injection attack with an Int32
-            return this.connection.ExecuteNonQueryAsync(
-                $"INSERT INTO {table_tags_xref} ({key_xref_comic_id}, {key_xref_tag_id}) VALUES ({comicid}, {tagid})");
+            return this.connection.ExecuteInsertAsync(table_tags_xref, new Dictionary<string, object> {
+                [key_xref_comic_id] = comicid,
+                [key_xref_tag_id] = tagid,
+            });
         }
 
         /* selects for rows matching the constraint, but only returning the rowids */
@@ -247,18 +239,18 @@ namespace ComicsLibrary.SQL {
             return (constraintString, parameters);
         }
 
-        private Comic ReadComicFromRow(DictionaryReader<SqliteDataReader> reader) {
+        private static Comic ReadComicFromRow(SqliteDictionaryReader reader) {
             var path = reader.GetString(key_path);
             var title = reader.GetString(key_title);
             var author = reader.GetString(key_author);
             var category = reader.GetString(key_category);
-            var metadata = this.ReadComicMetadataFromRow(reader);
+            var metadata = ReadComicMetadataFromRow(reader);
 
             var comic = new Comic(path, title: title, author: author, category: category, metadata: metadata);
             return comic;
         }
 
-        private ComicMetadata ReadComicMetadataFromRow(DictionaryReader<SqliteDataReader> reader) {
+        private static ComicMetadata ReadComicMetadataFromRow(SqliteDictionaryReader reader) {
             var tagList = reader.GetStringOrNull(col_tag_list);
             var tags = new HashSet<string>(tagList == null ? new string[0] : tagList.Split(','));
 
@@ -266,7 +258,6 @@ namespace ComicsLibrary.SQL {
                 DisplayTitle = reader.GetStringOrNull(key_display_title),
                 ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                 Loved = reader.GetBoolean(key_loved),
-                Disliked = reader.GetBoolean(key_disliked),
                 Tags = tags,
                 DateAdded = reader.GetString(key_date_added)
             };
@@ -274,10 +265,10 @@ namespace ComicsLibrary.SQL {
             return metadata;
         }
 
-        const string col_comic_id = "comicid";
-        const string col_tag_list = "tag_list";
+        private const string col_comic_id = "comicid";
+        private const string col_tag_list = "tag_list";
 
-        private static readonly string getComicWithConstraintsQuery = @$"
+        private static readonly string GetComicWithConstraintsQuery = @$"
             SELECT 
                 {table_comics}.rowid AS {col_comic_id},
                 {table_comics}.{key_path},
@@ -287,7 +278,6 @@ namespace ComicsLibrary.SQL {
                 {table_comics}.{key_display_title},
                 {table_comics}.{key_thumbnail_source},
                 {table_comics}.{key_loved},
-                {table_comics}.{key_disliked},
                 {table_comics}.{key_date_added},
                 group_concat({table_tags}.{key_tag_name}) AS {col_tag_list}
             FROM
@@ -302,16 +292,16 @@ namespace ComicsLibrary.SQL {
                 {table_comics}.rowid
         ";
 
-        private static readonly List<string> getComicQueryColumnNames = new List<string> {
+        private static readonly List<string> GetComicQueryColumnNames = new List<string> {
             col_comic_id, key_path, key_title, key_author, key_category, key_display_title, key_thumbnail_source,
-            key_loved, key_disliked, key_date_added, col_tag_list
+            key_loved, key_date_added, col_tag_list
         };
 
-        private Task<DictionaryReader<SqliteDataReader>> GetComicReaderWithContraintAsync(string constraintName, object constraintValue) {
+        private Task<SqliteDictionaryReader> GetComicReaderWithConstraintAsync(string constraintName, object constraintValue) {
             var parameters = new Dictionary<string, object> { ["@constraint_value"] = constraintValue };
-            var query = string.Format(getComicWithConstraintsQuery, constraintName);
+            var query = string.Format(GetComicWithConstraintsQuery, constraintName);
 
-            return this.connection.ExecuteReaderAsync(query, getComicQueryColumnNames, parameters);
+            return this.connection.ExecuteReaderAsync(query, GetComicQueryColumnNames, parameters);
         }
     }
 }

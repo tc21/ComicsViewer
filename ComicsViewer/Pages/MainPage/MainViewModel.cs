@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.SQL;
+using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
@@ -11,17 +12,11 @@ using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using TC.Database.MicrosoftSqlite;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
-using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 
@@ -40,11 +35,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private string? PageName {
             set {
-                if (value == null) {
-                    this.Title = "Comics";
-                } else {
-                    this.Title = $"Comics - {value}";
-                }
+                this.Title = value == null
+                    ? "Comics"
+                    : $"Comics - {value}";
 
                 this.OnPropertyChanged(nameof(this.Title));
             }
@@ -53,7 +46,7 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Profiles 
 
         internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
-        public bool IsLoadingProfile { get; private set; } = false;
+        public bool IsLoadingProfile { get; private set; }
 
         public async Task SetDefaultProfileAsync() {
             var suggestedProfile = Defaults.SettingsAccessor.LastProfile;
@@ -94,14 +87,14 @@ namespace ComicsViewer.ViewModels.Pages {
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
             this.Profile = await ProfileManager.LoadProfileAsync(newProfileName);
-            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProile = this.Profile });
+            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { NewProfile = this.Profile });
 
             this.IsLoadingProfile = false;
             this.OnPropertyChanged(nameof(this.IsLoadingProfile));
         }
 
         private async void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
-            if (e.NewProile != this.Profile) {
+            if (e.NewProfile != this.Profile) {
                 throw new ProgrammerError();
             }
 
@@ -112,7 +105,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
             // Verify that we have access to the file system
-            if (await this.VerifyPermissionForPathsAsync(e.NewProile.RootPaths.Select(p => p.Path))) {
+            if (await this.VerifyPermissionForPathsAsync(e.NewProfile.RootPaths.Select(p => p.Path))) {
                 await this.StartValidateAndRemoveComicsTaskAsync();
             }
         }
@@ -139,7 +132,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var dbconnection = new SqliteDatabaseConnection(connection);
 
             if (migrate) {
-                return ComicsManager.MigratedComicsManager(dbconnection);
+                return await ComicsManager.MigratedComicsManagerAsync(dbconnection);
             }
 
             return new ComicsManager(dbconnection);
@@ -149,7 +142,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public delegate void ProfileChangedEventHandler(MainViewModel sender, ProfileChangedEventArgs e);
 
         internal void NotifyProfileChanged(ProfileChangeType type) {
-            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { ChangeType = type, NewProile = this.Profile });
+            this.ProfileChanged?.Invoke(this, new ProfileChangedEventArgs { ChangeType = type, NewProfile = this.Profile });
         }
 
         #endregion
@@ -161,8 +154,9 @@ namespace ComicsViewer.ViewModels.Pages {
         public NavigationTag ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : NavigationTag.Detail;
 
         public void Navigate(NavigationTag navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {
-            var navigationType = (ignoreCache || navigationTag != this.ActiveNavigationTag) 
-                ? NavigationType.New : NavigationType.Scroll;
+            var navigationType = ignoreCache || navigationTag != this.ActiveNavigationTag 
+                ? NavigationType.New 
+                : NavigationType.Scroll;
 
             this.selectedTopLevelNavigationTag = navigationTag;
             this.NavigationLevel = 0;
@@ -215,7 +209,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public void FilterToAuthor(string author) {
             var properties = this.Comics.SortedProperties(c => new[] { c.Author }, ComicsLibrary.Sorting.ComicPropertySortSelector.Random);
             var authorView = properties.PropertyView(author);
-            var placeholder = ComicItem.NavigationItem(author, authorView);
+            var placeholder = new ComicNavigationItem(author, authorView);
 
             this.NavigateInto(placeholder);
         }
@@ -241,8 +235,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Comics.Filter.Search = search;
 
             if (searchText != null) {
-                this.Comics.Filter.Metadata.SearchPhrase = searchText;
-
                 // Add this search to the recents list
                 if (searchText.Trim() != "") {
                     IList<string> savedSearches = Defaults.SettingsAccessor.GetSavedSearches(this.Profile.Name);
@@ -320,10 +312,8 @@ namespace ComicsViewer.ViewModels.Pages {
                         throw new ProgrammerError("A faulted task should have its StoredException property set!");
                     }
 
-                    if (exceptionHandler == null) {
-                        // By default, let's notify the user of IntendedBehaviorExceptions (instead of crashing)
-                        exceptionHandler = ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync;
-                    }
+                    // By default, let's notify the user of IntendedBehaviorExceptions (instead of crashing)
+                    exceptionHandler ??= ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync;
 
                     if (await exceptionHandler(task.StoredException) == false) {
                         _ = await new ContentDialog{
@@ -349,25 +339,13 @@ namespace ComicsViewer.ViewModels.Pages {
             return true;
         }
 
-        public bool RequestCancelTask(string tag) {
+        private bool RequestCancelTask(string tag) {
             if (!this.taskNames.ContainsKey(tag)) {
                 return false;
             }
 
             var task = this.taskNames[tag];
             _ = task.Cancel();
-            return true;
-        }
-
-        public async Task<bool> CancelTaskAsync(string tag) {
-            if (this.RequestCancelTask(tag) == false) {
-                return false;
-            }
-
-            while (this.taskNames.ContainsKey(tag)) {
-                await Task.Delay(100);
-            }
-
             return true;
         }
 
@@ -380,7 +358,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 exceptionHandler: exceptionHandler);
         }
 
-        public async Task StartUniqueTaskAsync<T>(
+        private async Task StartUniqueTaskAsync<T>(
                 string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, 
                 Func<T, Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
             if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
@@ -423,8 +401,10 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task StartLoadComicsFromFoldersTaskAsync(IEnumerable<StorageFolder> folders) {
-            await this.StartUniqueTaskAsync("reload", $"Adding comics from {folders.Count()} folders...",
-                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, folders, cc, p),
+            var comicFolders = folders.ToList();
+
+            await this.StartUniqueTaskAsync("reload", $"Adding comics from {comicFolders.Count} folders...",
+                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, comicFolders, cc, p),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
                     result = await manager.RetrieveKnownMetadataAsync(result);
@@ -438,8 +418,8 @@ namespace ComicsViewer.ViewModels.Pages {
             await this.StartUniqueTaskAsync("validate", $"Validating {this.Comics.Count()} comics...",
                 (cc, p) => ComicsLoader.FindInvalidComicsAsync(this.Comics, cc, p),
                 async result => {
-                    if (result.Count() > 0) {
-                        if (await this.PromptRemoveComicsAsync(result)) {
+                    if (result.Any()) {
+                        if (await PromptRemoveComicsAsync(result)) {
                             await this.RemoveComicsAsync(result);
                         }
                     }
@@ -449,10 +429,10 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public Task StartRenameAuthorTaskAsync(string oldAuthor, string newAuthor) {
-            var comics = this.Comics.Where(c => c.Author == oldAuthor);
+            var comics = this.Comics.Where(c => c.Author == oldAuthor).ToList();
 
             // Note: if we make another function where we need to move files around, we should move this to a new class.
-            return this.StartUniqueTaskAsync("moveFiles", $"Moving {comics.Count().PluralString("item")} belonging to author {oldAuthor}...",
+            return this.StartUniqueTaskAsync("moveFiles", $"Moving {comics.Count.PluralString("item")} belonging to author {oldAuthor}...",
                 async (cc, p) => {
                     // Step 1. Validation
                     if (newAuthor.Any(c => Path.GetInvalidFileNameChars().Contains(c))) {
@@ -469,12 +449,12 @@ namespace ComicsViewer.ViewModels.Pages {
                         "Could not determine the category for the following items"
                     );
 
-                    var existingComicsUnderNewName = this.Comics.Where(c => c.Author == newAuthor);
+                    var existingComicsUnderNewName = this.Comics.Where(c => c.Author == newAuthor).ToList();
                     if (existingComicsUnderNewName.Any()) {
                         var existingTitles = existingComicsUnderNewName.Select(c => c.Title).ToHashSet();
                         EnsureEmpty(
                             comics.Where(c => existingTitles.Contains(c.Title)),
-                            $"The following items cannot be moved, because an item with the same title already exists undner author {newAuthor}"
+                            $"The following items cannot be moved, because an item with the same title already exists under author {newAuthor}"
                         );
                     }
 
@@ -496,11 +476,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
                         // some checks just in case
                         if (!IO.FileOrDirectoryExists(oldPath)) {
-                            throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic not found at {oldPath}");
+                            throw new ProgrammerError($"{nameof(this.StartRenameAuthorTaskAsync)}: comic not found at {oldPath}");
                         }
 
                         if (IO.FileOrDirectoryExists(newPath)) {
-                            throw new ProgrammerError($"{nameof(StartRenameAuthorTaskAsync)}: comic already exists at {newPath}");
+                            throw new ProgrammerError($"{nameof(this.StartRenameAuthorTaskAsync)}: comic already exists at {newPath}");
                         }
 
                         var newComic = comic.With(path: newPath, author: newAuthor);
@@ -531,7 +511,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     foreach (var old in oldDirectories) {
                         if (IO.GetDirectoryContents(old).Any()) {
                             throw new ProgrammerError("Not every file under directory {} was moved " +
-                                "(the function should've terminated before reaching this point.)");
+                                "(the function should have terminated before reaching this point.)");
                         }
 
                         IO.RemoveDirectory(old);
@@ -541,9 +521,14 @@ namespace ComicsViewer.ViewModels.Pages {
             );
 
             static void EnsureEmpty(IEnumerable<Comic> set, string errorMessage, string? title = null) {
-                if (set.Any()) {
-                    throw new IntendedBehaviorException($"{errorMessage}\n" + string.Join("\n", set.Select(c => c.UniqueIdentifier)), title);
+                var comics = set.ToList();
+
+                if (!comics.Any()) {
+                    return;
                 }
+
+                var message = comics.Aggregate($"{errorMessage}", (message, comic) => message + "\n" + comic.UniqueIdentifier);
+                throw new IntendedBehaviorException(message, title);
             }
         }
 
@@ -591,12 +576,8 @@ namespace ComicsViewer.ViewModels.Pages {
             _ = await new ContentDialog { Content = message, Title = "Warning: items not added", CloseButtonText = "OK" }.ShowAsync();
         }
 
-        private async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
-            var message = "The following items were not found on disk. Do you want them to be automatically removed from this library?\n";
-
-            foreach (var comic in comics) {
-                message += $"\n{comic.UniqueIdentifier}";
-            }
+        private static async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
+            var message = comics.Aggregate("The following items were not found on disk. Do you want them to be automatically removed from this library?", (current, comic) => current + $"\n{comic.UniqueIdentifier}");
 
             var result = await new ContentDialog {
                 Title = "Warning: items not found",
@@ -609,13 +590,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
-            var removed = new List<Comic>();
-
-            foreach (var comic in comics.ToList()) {
-                if (this.Comics.Contains(comic)) {
-                    removed.Add(comic);
-                }
-            }
+            var removed = comics.Where(comic => this.Comics.Contains(comic)).ToList();
 
             this.Comics.Remove(removed);
 
@@ -624,6 +599,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task UpdateComicAsync(IEnumerable<Comic> comics) {
+            comics = comics.ToList();
+
             this.Comics.Modify(comics);
 
             var manager = await this.GetComicsManagerAsync();
@@ -672,8 +649,8 @@ namespace ComicsViewer.ViewModels.Pages {
     }
 
     public class ProfileChangedEventArgs {
-        public ProfileChangeType ChangeType = ProfileChangeType.ProfileChanged;
-        public UserProfile NewProile { get; set; } = new UserProfile();
+        public ProfileChangeType ChangeType { get; set; } = ProfileChangeType.ProfileChanged;
+        public UserProfile NewProfile { get; set; } = new UserProfile();
     }
 
     public enum ProfileChangeType {
@@ -684,7 +661,6 @@ namespace ComicsViewer.ViewModels.Pages {
         public Type? PageType { get; set; }
         public NavigationTag? Tag { get; set; }
         public ComicView? Comics { get; set; }
-        public ComicItem? ConnectedAnimationItem { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
         public NavigationType NavigationType { get; set; } = NavigationType.New;

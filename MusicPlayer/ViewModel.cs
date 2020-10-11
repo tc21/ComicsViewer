@@ -2,15 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
 using Windows.Media.Core;
 using Windows.Storage;
-using Windows.UI.Text;
 
 namespace MusicPlayer {
     public class ViewModel : ViewModelBase {
@@ -38,7 +37,7 @@ namespace MusicPlayer {
         private PlaylistItem? nowPlaying;
 
         public async Task OpenContainingFolderAsync(StorageFile item, bool append = false) {
-            if (!(await item.GetParentAsync() is StorageFolder folder)) {
+            if (!(await item.GetParentAsync() is { } folder)) {
                 await ExpectedExceptions.UnauthorizedAccessAsync(cancelled: false);
                 return;
             }
@@ -47,7 +46,7 @@ namespace MusicPlayer {
         }
 
         public async Task OpenFolderAsync(StorageFolder item, string? startAtName = null, bool append = false) {
-            await this.OpenFilesAsync(await item.GetFilesAsync(), startAtName, append);
+            await this.OpenFilesAsync(await item.GetFilesInNaturalOrderAsync(), startAtName, append);
         }
 
         public async Task OpenFilesAsync(IEnumerable<StorageFile> items, string? startAtName = null, bool append = false) {
@@ -68,8 +67,6 @@ namespace MusicPlayer {
 
                 currentIndex += 1;
             }
-
-            newItems.Sort((a, b) => NaturalOrder.Comparer.Compare(a.Name, b.Name));
 
             this.PlaylistItems.AddRange(newItems);
 
@@ -104,7 +101,6 @@ namespace MusicPlayer {
                     return;
                 } catch (FileNotFoundException) {
                     await ExpectedExceptions.FileNotFoundAsync(filenames[0]);
-                    continue;
                 }
             } 
         }

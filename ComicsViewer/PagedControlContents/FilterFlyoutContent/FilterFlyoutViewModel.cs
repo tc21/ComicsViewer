@@ -3,13 +3,8 @@ using ComicsViewer.Features;
 using ComicsViewer.Support;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
+using ComicsViewer.Common;
 
 #nullable enable
 
@@ -35,13 +30,6 @@ namespace ComicsViewer.ViewModels.Pages {
             get => this.Filter.OnlyShowLoved;
             set {
                 this.Filter.OnlyShowLoved = value;
-                this.OnPropertyChanged();
-            }
-        }
-        public bool ShowDislikedChecked {
-            get => this.Filter.ShowDisliked;
-            set {
-                this.Filter.ShowDisliked = value;
                 this.OnPropertyChanged();
             }
         }

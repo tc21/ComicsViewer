@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 #nullable enable
 
@@ -34,7 +33,7 @@ namespace ComicsLibrary.Collections {
     /// 
     /// </para>
     /// </summary>
-    public class OneTimeComicPropertiesView : IEnumerable<ComicProperty>, IReadOnlyCollection<ComicProperty> {
+    public class OneTimeComicPropertiesView : IReadOnlyCollection<ComicProperty> {
         /* optimization notes:
          * - we can simplify some calls by allowing a variant of a Func<Comic, string> getProperties
          * - we can make our children more efficent with a custom ComicPropertyView : ComicView subclass instead of filtering from parent;
@@ -76,6 +75,10 @@ namespace ComicsLibrary.Collections {
             }
         }
 
+        /// <summary>
+        /// Adds a comic. Sorting is not preserced, and you must call Sort() again manually to ensure
+        /// the view stays sorted.
+        /// </summary>
         private void AddComic(Comic comic) {
             // ToHashSet isn't a thing in .net standard 2.0...
             foreach (var property in this.getProperties(comic)) {
@@ -87,7 +90,11 @@ namespace ComicsLibrary.Collections {
             }
         }
 
-        private void AddProperty(string name, List<Comic> comics, bool preserveSort = true) {
+        /// <summary>
+        /// Adds a property. Sorting is not preserced, and you must call Sort() again manually to ensure
+        /// the view stays sorted.
+        /// </summary>
+        private void AddProperty(string name, List<Comic> comics) {
             if (this.ContainsProperty(name)) {
                 throw new ProgrammerError("comic already exists in this collection");
             }
@@ -97,8 +104,8 @@ namespace ComicsLibrary.Collections {
             this.accessor[property.Name] = comics;
         }
 
-        public ComicProperty this[string key] => new ComicProperty(key, this.accessor[key]);
-        public bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
+        private ComicProperty this[string key] => new ComicProperty(key, this.accessor[key]);
+        private bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
 
         public int Count => this.sortedComicProperties.Count;
 

@@ -1,24 +1,11 @@
 ﻿using ComicsViewer.Common;
 using ComicsViewer.Controls;
-using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Graphics.Imaging;
 using Windows.Storage;
-using Windows.System;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
@@ -28,21 +15,22 @@ namespace ComicsViewer.Pages {
     /* For, I'm assuming, security reasons, UWP dosen't allow you to open an File Picker to an arbitrary location. 
      * The result of this decision, obviously, isn't that programs won't want to open the file picker to arbitrary
      * locations, but that we will have to write our own file pickers. */
-    public sealed partial class RedefineThumbnailDialogContent : Page, IPagedControlContent {
+    public sealed partial class RedefineThumbnailDialogContent : IPagedControlContent {
         private ComicItemGridViewModel? _parentViewModel;
-        public ComicWorkItem? _item;
+        private ComicWorkItem? _item;
 
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
-        public ComicItemGridViewModel ParentViewModel => this._parentViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
-        public ComicWorkItem Item => this._item ?? throw new ProgrammerError("Item must be initialized");
+        private ComicItemGridViewModel ParentViewModel => this._parentViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        private ComicWorkItem Item => this._item ?? throw new ProgrammerError("Item must be initialized");
 
         public RedefineThumbnailDialogContent() {
             this.InitializeComponent();
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
-            var (accessor, args) 
-                = PagedControlAccessor.FromNavigationArguments<RedefineThumbnailDialogNavigationArguments>(e.Parameter);
+            var (accessor, args) = PagedControlAccessor.FromNavigationArguments<RedefineThumbnailDialogNavigationArguments>(
+                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+            );
 
             this.PagedControlAccessor = accessor;
             this._item = args.Item;

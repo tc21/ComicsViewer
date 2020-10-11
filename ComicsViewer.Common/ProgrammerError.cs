@@ -10,7 +10,7 @@ namespace ComicsViewer.Common {
     /// </summary>
     public class ProgrammerError : Exception {
         public ProgrammerError(string message) : base(message) { }
-        public ProgrammerError() : base() { }
+        public ProgrammerError() { }
 
         public static ProgrammerError Auto(
             [CallerMemberName] string? calledFrom = null,

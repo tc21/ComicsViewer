@@ -28,7 +28,7 @@ namespace MusicPlayer {
             }
         }
 
-        public PlaylistItem(string name, int duration, StorageFile file) {
+        private PlaylistItem(string name, int duration, StorageFile file) {
             this.Name = name;
             this.Duration = duration;
             this.File = file;

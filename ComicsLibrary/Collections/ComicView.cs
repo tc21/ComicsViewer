@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -14,7 +13,7 @@ namespace ComicsLibrary.Collections {
     /// change their contents. Any changes will be signaled by one or more <see cref="ComicsChanged"/> events.
     /// </summary>
     public abstract class ComicView : IEnumerable<Comic> {
-        public static ComicView Empty = new ComicList();
+        public static readonly ComicView Empty = new ComicList();
 
         public abstract int Count();
         // comics should be considered equivalent if their UniqueIdentifier is the same.
@@ -37,10 +36,10 @@ namespace ComicsLibrary.Collections {
             => new SortedComicView(this, comics: this, sortSelector);
 
 
-        public virtual FilteredComicView Filtered(Func<Comic, bool> filter)
+        public FilteredComicView Filtered(Func<Comic, bool> filter)
             => new FilteredComicView(this, filter);
 
-        public virtual OneTimeComicPropertiesView SortedProperties(
+        public OneTimeComicPropertiesView SortedProperties(
             Func<Comic, IEnumerable<string>> getProperties, Sorting.ComicPropertySortSelector sortSelector
         ) {
             return new OneTimeComicPropertiesView(this, getProperties, sortSelector);
@@ -62,13 +61,13 @@ namespace ComicsLibrary.Collections {
 
         protected internal class ViewChangedEventArgs {
             public readonly ComicChangeType Type;
-            public readonly IEnumerable<Comic> Add;
-            public readonly IEnumerable<Comic> Remove;
+            public readonly IReadOnlyList<Comic> Add;
+            public readonly IReadOnlyList<Comic> Remove;
 
             public ViewChangedEventArgs(ComicChangeType type, IEnumerable<Comic>? add = null, IEnumerable<Comic>? remove = null) {
                 this.Type = type;
-                this.Add = add ?? new Comic[0];
-                this.Remove = remove ?? new Comic[0];
+                this.Add = add?.ToList() ?? new List<Comic>();
+                this.Remove = remove?.ToList() ?? new List<Comic>();
             }
 
             public ComicsChangedEventArgs ToComicsChangedEventArgs() {
@@ -97,7 +96,7 @@ namespace ComicsLibrary.Collections {
                         return new ComicsChangedEventArgs(this.Type, modified: new ComicList(this.Add));
 
                     default:
-                        throw new ProgrammerError($"{nameof(ViewChangedEventArgs)}.{nameof(ToComicsChangedEventArgs)}: unhandled switch case");
+                        throw new ProgrammerError($"{nameof(ViewChangedEventArgs)}.{nameof(this.ToComicsChangedEventArgs)}: unhandled switch case");
                 }
             }
         }
@@ -131,7 +130,7 @@ namespace ComicsLibrary.Collections {
         /// 
         /// <item>Represents that one or more items has changed. <br/></item>
         /// 
-        /// <item>In a <see cref="ViewChangedEventArgs"/>: <c>Add</c> and <c>Remove</c> have been populated with items that have been 
+        /// <item>In a <see cref="ComicView.ViewChangedEventArgs"/>: <c>Add</c> and <c>Remove</c> have been populated with items that have been 
         /// added to and removed from the sender. Child views should add/remove, and propagate, where appropriate.</item>
         /// 
         /// <item>In a <see cref="ComicsChangedEventArgs"/>: By design, all items in <c>Removed</c> and <c>Modified</c> previously
@@ -152,7 +151,7 @@ namespace ComicsLibrary.Collections {
         /// <list type="table">
         /// <item>Only sent by external requests. Nothing about the underlying comics of this view has changed, but the
         /// thumbnails for the items in has changed.</item>
-        /// <item>In a <see cref="ViewChangedEventArgs"/>: items are stored in <see cref="ViewChangedEventArgs.Add"/>.</item>
+        /// <item>In a <see cref="ComicView.ViewChangedEventArgs"/>: items are stored in <see cref="ComicView.ViewChangedEventArgs.Add"/>.</item>
         /// <item>In a <see cref="ComicsChangedEventArgs"/>: items are stored in <see cref="ComicsChangedEventArgs.Modified"/>.</item>
         /// </list>
         /// </summary>

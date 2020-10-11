@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-#nullable enable
+﻿#nullable enable
 
 namespace ComicsViewer.Support {
     public class Commented<T> {
@@ -22,16 +16,16 @@ namespace ComicsViewer.Support {
     /// Part of why we trust it to work is that C# only allows bools as a if/loop condition.
     /// </summary>
     public class ValidateResult : Commented<bool> {
-        public ValidateResult(bool value, string? comment) : base(value, comment) { }
+        private ValidateResult(bool value, string? comment) : base(value, comment) { }
         public static ValidateResult Ok(string? comment = null) => new ValidateResult(true, comment);
         public static ValidateResult Err(string comment = "This value is invalid.") => new ValidateResult(false, comment);
 
         public static implicit operator ValidateResult(bool value) {
             if (value) {
                 return Ok();
-            } else {
-                return Err();
             }
+
+            return Err();
         }
 
         /// <summary>

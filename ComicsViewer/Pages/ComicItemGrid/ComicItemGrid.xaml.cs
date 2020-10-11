@@ -9,7 +9,6 @@ using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -29,11 +28,11 @@ using WinRTXamlToolkit.Controls.Extensions;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicItemGrid : Page {
+    public sealed partial class ComicItemGrid {
         private ComicItemGridViewModel? _viewModel;
         private ScrollViewer? _visibleComicsGridScrollViewer;
 
-        public MainViewModel MainViewModel => this.ViewModel.MainViewModel;
+        private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
         public ComicItemGridViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
 
         private ScrollViewer VisibleComicsGridScrollViewer => this._visibleComicsGridScrollViewer 
@@ -42,15 +41,9 @@ namespace ComicsViewer.Pages {
         public ComicItemGrid() {
             this.InitializeComponent();
 
-            Debug.WriteLine($"{this.debug_this_count} created");
-
             // This has to be done in code, not XAML since we need the third handledEventsToo argument
             this.VisibleComicsGrid.AddHandler(
                 PointerPressedEvent, new PointerEventHandler(this.VisibleComicsGrid_PointerPressed), true);
-        }
-
-        ~ComicItemGrid() {
-            Debug.WriteLine($"{this.debug_this_count} destroyed");
         }
 
         #region Clicking, double clicking, right clicking
@@ -97,7 +90,7 @@ namespace ComicsViewer.Pages {
             }
 
             switch (this.ViewModel) {  // switch ComicItemGridViewModel
-                case ComicWorkItemGridViewModel vm:
+                case ComicWorkItemGridViewModel _:
                     var workItem = (ComicWorkItem)item;
                     this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
                     this.ComicInfoFlyout.NavigateAndShowAt(
@@ -182,7 +175,7 @@ namespace ComicsViewer.Pages {
 
         public async Task ShowEditNavigationItemDialogAsync(ComicNavigationItem item) {
             if (!(this.ViewModel is ComicNavigationItemGridViewModel vm)) {
-                throw new ProgrammerError($"{nameof(ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
+                throw new ProgrammerError($"{nameof(this.ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
             }
 
             _ = await new PagedContentDialog { Title = $"{vm.NavigationTag.Describe(capitalized: true)}: {item.Title}" }.NavigateAndShowAsync(
@@ -206,30 +199,29 @@ namespace ComicsViewer.Pages {
         #region Controlling from MainPage
 
         internal void ScrollToTop() {
-            if (this.ViewModel.ComicItems.Count > 0) {
-                // Looks like there isn't a good way to actually scroll with an animation. 
-                // Both GridView.ScrollIntoView and GridView.MakeVisible scrolls instantly without animation.
-                // The solution used here is a reverse-engineering that can potentially break anytime with an update to the UWP library
-                if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) == null) {
-                    // this means the grid hasn't even loaded yet, just ignore the request
-                    return;
-                }
+            if (this.ViewModel.ComicItems.Count == 0) {
+                return;
+            }
 
-                if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) is UIElement childElement &&
-                    VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
-                    _ = scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
-                } else {
-                    throw new ProgrammerError("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
-                }
+            // Looks like there isn't a good way to actually scroll with an animation. 
+            // Both GridView.ScrollIntoView and GridView.MakeVisible scrolls instantly without animation.
+            // The solution used here is a reverse-engineering that can potentially break anytime with an update to the UWP library
+            if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) == null) {
+                // this means the grid hasn't even loaded yet, just ignore the request
+                return;
+            }
+
+            if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) is UIElement childElement &&
+                VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
+                _ = scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
+            } else {
+                throw new ProgrammerError("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
             }
         }
 
         #endregion
 
         #region Saving and setting state during navigation
-
-        private static int debug_count = 0;
-        private readonly int debug_this_count = ++debug_count;
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (!(e.Parameter is ComicItemGridNavigationArguments args)) {
@@ -240,20 +232,27 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("A ComicItemGrid must received a viewmodel in its navigation arguments");
             }
 
-            if (e.NavigationMode == NavigationMode.New) {
-                // Initialize this page only when creating a new page, 
-                // not when the user returned to this page by pressing the back button
-                this._viewModel = args.ViewModel;
-                Debug.WriteLine($"{this.debug_this_count} OnNavigatedTo (new)");
-            } else {
-                Debug.WriteLine($"{this.debug_this_count} OnNavigatedTo ({e.NavigationMode})");
-            }
-            if (e.NavigationMode == NavigationMode.Back) {
-                var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateOut");
-                if (animation != null) {
-                    _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, 
-                        this.VisibleComicsGrid.SelectedItem, "ComicItemThumbnailContainer");
+            switch (e.NavigationMode) {
+                case NavigationMode.New:
+                    // Initialize this page only when creating a new page, 
+                    // not when the user returned to this page by pressing the back button
+                    this._viewModel = args.ViewModel;
+                    break;
+                case NavigationMode.Back: {
+                    var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateOut");
+                    if (animation != null) {
+                        _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, 
+                            this.VisibleComicsGrid.SelectedItem, "ComicItemThumbnailContainer");
+                    }
+
+                    break;
                 }
+                case NavigationMode.Forward:
+                case NavigationMode.Refresh:
+                    // do nothing
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             if (this.VisibleComicsGrid.IsLoaded) {
@@ -273,19 +272,20 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             // Under the current implementation, this page is never used again after a call to OnNavigatingFrom.
-            Debug.WriteLine($"{this.debug_this_count} OnNavigatingFrom");
             this.ViewModel.Dispose();
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }
 
         public void PrepareNavigateOut() {
-            if (this.connectedAnimationItem != null && this.VisibleComicsGrid.Items.Contains(this.connectedAnimationItem)) {
-                var animation = this.VisibleComicsGrid.PrepareConnectedAnimation(
-                    "navigateOut", this.connectedAnimationItem, "ComicItemThumbnailContainer");
-                animation.Configuration = new DirectConnectedAnimationConfiguration();
-                this.connectedAnimationItem = null;
+            if (this.connectedAnimationItem == null || !this.VisibleComicsGrid.Items!.Contains(this.connectedAnimationItem)) {
+                return;
             }
+
+            var animation = this.VisibleComicsGrid.PrepareConnectedAnimation(
+                "navigateOut", this.connectedAnimationItem, "ComicItemThumbnailContainer");
+            animation.Configuration = new DirectConnectedAnimationConfiguration();
+            this.connectedAnimationItem = null;
         }
 
         public void PrepareNavigateIn(ComicItem item) {
@@ -298,7 +298,7 @@ namespace ComicsViewer.Pages {
         #region Redefining thumbnails
 
         public async Task RedefineThumbnailAsync(ComicWorkItem item) {
-            if (!(await item.Comic.GetFolderAndNotifyErrorsAsync() is StorageFolder folder)) {
+            if (!(await item.Comic.GetFolderAndNotifyErrorsAsync() is { } folder)) {
                 return;
             }
 
@@ -317,7 +317,7 @@ namespace ComicsViewer.Pages {
         /* We will have to manage item widths manually. Note that the Windows Community Toolkit provides the ability ]
          * to do this without writing custom code using AdaptiveGridView, but that uses a min width for each item, 
          * when we want a max width for each item. */
-        private bool resizing = false;
+        private bool resizing;
 
         private void ComicItemGrid_ResizeStarted(CoreWindow sender, object args) {
             this.resizing = true;
@@ -339,7 +339,7 @@ namespace ComicsViewer.Pages {
             var idealItemWidth = this.ViewModel.ImageWidth;
             var idealItemHeight = this.ViewModel.ImageHeight;
             var columns = Math.Ceiling(grid.ActualWidth / idealItemWidth);
-            var itemsWrapGrid = (ItemsWrapGrid)grid.ItemsPanelRoot;
+            var itemsWrapGrid = (ItemsWrapGrid)grid.ItemsPanelRoot!;
             itemsWrapGrid.ItemWidth = grid.ActualWidth / columns;
             itemsWrapGrid.ItemHeight = itemsWrapGrid.ItemWidth * idealItemHeight / idealItemWidth;
         }
@@ -411,28 +411,31 @@ namespace ComicsViewer.Pages {
 
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
 
-            if (this.ViewModel.NavigationTag == NavigationTag.Detail && connectedAnimationComic != null) {
-                var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateInto");
-                if (animation != null) {
-                    var itemsWrapGrid = (ItemsWrapGrid)this.VisibleComicsGrid.ItemsPanelRoot;
-                    var visibleColumns = (int)(this.VisibleComicsGrid.ActualWidth / itemsWrapGrid.ItemWidth);
-                    var visibleRows = (int)Math.Ceiling(this.VisibleComicsGrid.ActualHeight / itemsWrapGrid.ItemHeight);
-                    var visibleItemCount = visibleColumns * visibleRows;
-
-                    var search = this.ViewModel.ComicItems.Take(visibleItemCount).Cast<ComicWorkItem>().Where(i => i.Comic.IsSame(connectedAnimationComic));
-
-                    if (search.Any()) {
-                        var item = search.First();
-
-                        _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, item, "ComicItemThumbnailContainer");
-                        this.connectedAnimationItem = item;
-                    } else {
-                        animation.Cancel();
-                    }
-                }
-
-                connectedAnimationComic = null;
+            if (this.ViewModel.NavigationTag != NavigationTag.Detail || connectedAnimationComic == null) {
+                return;
             }
+
+            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateInto");
+            if (animation != null) {
+                var itemsWrapGrid = (ItemsWrapGrid)this.VisibleComicsGrid.ItemsPanelRoot!;
+                var visibleColumns = (int)(this.VisibleComicsGrid.ActualWidth / itemsWrapGrid.ItemWidth);
+                var visibleRows = (int)Math.Ceiling(this.VisibleComicsGrid.ActualHeight / itemsWrapGrid.ItemHeight);
+                var visibleItemCount = visibleColumns * visibleRows;
+
+                var search = this.ViewModel.ComicItems
+                    .Take(visibleItemCount)
+                    .Cast<ComicWorkItem>()
+                    .Where(i => i.Comic.IsSame(connectedAnimationComic));
+
+                if (search.FirstOrDefault() is {} item) {
+                    _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, item, "ComicItemThumbnailContainer");
+                    this.connectedAnimationItem = item;
+                } else {
+                    animation.Cancel();
+                }
+            }
+
+            connectedAnimationComic = null;
         }
 
         private ComicItem? connectedAnimationItem;

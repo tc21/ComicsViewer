@@ -11,12 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\..\files\dev\windows\projects\TCSupport\TC Support\TCSupport.csproj" />
       <ProjectReference Include="..\ComicsViewer.Common\ComicsViewer.Common.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Common\" />
     </ItemGroup>
 
 </Project>

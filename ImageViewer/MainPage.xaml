@@ -2,7 +2,6 @@
     x:Class="ImageViewer.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ImageViewer"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -50,6 +49,12 @@
                     </MenuFlyoutItem>
                     
                     <MenuFlyoutSubItem Text="Go to">
+                        <MenuFlyoutItem Text="Image..." Command="{x:Bind SeekToImageCommand}">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="G" Modifiers="Control"/>
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        
                         <MenuFlyoutItem Text="Next image" Command="{x:Bind SeekRelativeCommand}" CommandParameter="1">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="Right"/>
@@ -64,29 +69,29 @@
 
                         <MenuFlyoutItem Text="First image" Command="{x:Bind SeekCommand}" CommandParameter="0"
                                         KeyboardAcceleratorTextOverride="Ctrl+[">
-                            <!-- note: the override is required or else WinUI crashes looking up the string representation of VkOpenBracket -->
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkOpenBracket}"/>
+                                <KeyboardAccelerator Key="Left" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
                         <MenuFlyoutItem Text="Last image" Command="{x:Bind SeekCommand}" CommandParameter="-1"
                                         KeyboardAcceleratorTextOverride="Ctrl+]">
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="{x:Bind VkCloseBracket}" />
+                                <KeyboardAccelerator Key="Right" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
                     <MenuFlyoutSubItem Text="Zoom">
-                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="1.33"
+                        <MenuFlyoutItem Text="Zoom in" Command="{x:Bind ZoomCommand}" CommandParameter="0.75"
                                         KeyboardAcceleratorTextOverride="Ctrl+-">
                             <MenuFlyoutItem.KeyboardAccelerators>
+                                <!-- note: the override is required or else WinUI crashes looking up the string representation of VkMinus -->
                                 <KeyboardAccelerator Key="{x:Bind VkMinus}" Modifiers="Control" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="0.75"
+                        <MenuFlyoutItem Text="Zoom out" Command="{x:Bind ZoomCommand}" CommandParameter="1.33"
                                         KeyboardAcceleratorTextOverride="Ctrl+=">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="{x:Bind VkPlus}" Modifiers="Control" />
@@ -129,8 +134,7 @@
                           RenderTransformOrigin="0.5 0.5"
                           ZoomMode="Enabled"
                           SizeChanged="ImageContainer_SizeChanged">
-                <Image x:Name="Image"
-                       MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
+                <Image MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
                        MaxHeight="{Binding ViewportHeight, ElementName=ImageContainer}"
                        Source="{x:Bind ViewModel.CurrentImageSource, Mode=OneWay}" d:Source="ms-appx:///Assets/test-image.png"
                        Stretch="Uniform"
@@ -144,8 +148,7 @@
                     PointerReleased="ImageContainer_PointerReleased"
                     PointerMoved="ImageContainer_PointerMoved"/>
 
-            <Border x:Name="Metadata"
-                    Margin="10" Padding="10" 
+            <Border Margin="10" Padding="10" 
                     Background="{ThemeResource SystemControlAccentDark2AcrylicElementAccentDark2MediumHighBrush}" 
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Visibility="{x:Bind ViewModel.IsMetadataVisible, Mode=OneWay}"
@@ -154,5 +157,17 @@
                 <TextBlock Text="{x:Bind ViewModel.CurrentImageMetadata, Mode=OneWay}" d:Text="No images currently open." />
             </Border>
         </Grid>
+
+        <ContentDialog Grid.Row="1" x:Name="SeekToImageDialog" 
+                       Title="Go to"
+                       PrimaryButtonText="Go"
+                       CloseButtonText="Cancel"
+                       DefaultButton="Primary">
+            <StackPanel>
+                <TextBox x:Name="SeekToImageTextBox" 
+                         Header="Enter the index of the image you want to go to:" 
+                         d:Text="1"/>
+            </StackPanel>
+        </ContentDialog>
     </Grid>
 </Page>

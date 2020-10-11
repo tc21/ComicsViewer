@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-using DWORD = System.UInt32;
 using ComicsViewer.Common;
 
 #nullable enable
@@ -20,11 +13,11 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
         [DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr FindFirstFileExFromApp(
             string lpFileName,
-            FINDEX_INFO_LEVELS fInfoLevelId,
+            Flags.FindExInfoLevel fInfoLevelId,
             out WIN32_FIND_DATA lpFindFileData,
-            FINDEX_SEARCH_OPS fSearchOp,
+            Flags.FindExSearchOp fSearchOp,
             IntPtr lpSearchFilter,
-            DWORD dwAdditionalFlags
+            uint dwAdditionalFlags
         );
 
         [DllImport("api-ms-win-core-file-l1-1-0.dll", CharSet = CharSet.Unicode)]
@@ -40,7 +33,7 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
         [DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool GetFileAttributesExFromApp(
             string lpFileName,
-            GET_FILEEX_INFO_LEVELS fInfoLevelId,
+            Flags.GetFileExInfoLevel fInfoLevelId,
             out WIN32_FILE_ATTRIBUTE_DATA lpFileInformation
         );
 
@@ -131,8 +124,8 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
             }
         }
 
-        public static void CopyFile(string path, string NewName, bool failIfExists = true) {
-            if (!CopyFileFromApp(path, NewName, failIfExists)) {
+        public static void CopyFile(string path, string newName, bool failIfExists = true) {
+            if (!CopyFileFromApp(path, newName, failIfExists)) {
                 throw General.ThrowLastError(path);
             }
         }
@@ -167,8 +160,8 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
 
         public static bool FileOrDirectoryExists(string path) {
             var hFindFile = FindFirstFileExFromApp(
-                path, FINDEX_INFO_LEVELS.FindExInfoBasic, out _,
-                FINDEX_SEARCH_OPS.FindExSearchNameMatch, IntPtr.Zero, 0);
+                path, Flags.FindExInfoLevel.Basic, out _,
+                Flags.FindExSearchOp.NameMatch, IntPtr.Zero, 0);
 
             if (hFindFile == Win32ReturnValues.InvalidHandleValue) {
                 var error = General.GetLastError();
@@ -212,8 +205,8 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
 
         public static IEnumerable<FileOrDirectoryInfo> GetDirectoryContents(string rootPath) {
             var hFindFile = FindFirstFileExFromApp(
-                rootPath + @"\*", FINDEX_INFO_LEVELS.FindExInfoBasic, out var findFileData,
-                FINDEX_SEARCH_OPS.FindExSearchNameMatch, IntPtr.Zero, 0);
+                rootPath + @"\*", Flags.FindExInfoLevel.Basic, out var findFileData,
+                Flags.FindExSearchOp.NameMatch, IntPtr.Zero, 0);
 
             if (hFindFile == Win32ReturnValues.InvalidHandleValue) {
                 throw General.ThrowLastError(rootPath);
@@ -227,7 +220,7 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
 
                 var path = Path.Combine(rootPath, findFileData.cFileName);
 
-                if (!GetFileAttributesExFromApp(path, GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var fileInformation)) {
+                if (!GetFileAttributesExFromApp(path, Flags.GetFileExInfoLevel.Standard, out var fileInformation)) {
                     throw General.ThrowLastError(path);
                 }
 
@@ -240,7 +233,7 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
             _ = FindClose(hFindFile);
         }
 
-        public struct FileOrDirectoryInfo {
+        public readonly struct FileOrDirectoryInfo {
             public string Path { get; }
             public string Name { get; }
             public FileOrDirectoryType ItemType { get; }

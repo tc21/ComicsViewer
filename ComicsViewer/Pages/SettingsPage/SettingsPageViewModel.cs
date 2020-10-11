@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Input;
+using ComicsViewer.Common;
 
 #nullable enable
 
@@ -22,7 +20,9 @@ namespace ComicsViewer.ViewModels.Pages {
         internal readonly MainViewModel MainViewModel;
 
         // We will directly edit this list. We will need to save the profile and notify others of changes. 
-        public readonly ObservableCollection<NamedPath> RootPaths = new ObservableCollection<NamedPath>();
+        public ObservableCollection<NamedPath> RootPaths { get; }  = new ObservableCollection<NamedPath>();
+        public ObservableCollection<ExternalDescriptionSpecification> ExternalDescriptions { get; }
+            = new ObservableCollection<ExternalDescriptionSpecification>();
 
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
             this.MainViewModel = mainViewModel;
@@ -46,7 +46,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     str => this.profile.ImageWidth = int.Parse(str),
                     IsValidImageDimension
                 ),
-                new SettingsItemViewModel(this, "File extensions", 
+                new SettingsItemViewModel(this, "File extensions",
                     getValue: () => StringConversions.CommaDelimitedList.ConvertToString(this.profile.FileExtensions),
                     setValue: value => this.profile.FileExtensions = StringConversions.CommaDelimitedList.Convert(value).ToList(),
                     validateValue: StringConversions.CommaDelimitedList.CanConvert
@@ -55,6 +55,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
             this.RootPaths.Clear();
             this.RootPaths.AddRange(this.profile.RootPaths);
+
+            this.ExternalDescriptions.Clear();
+            this.ExternalDescriptions.AddRange(this.profile.ExternalDescriptions);
 
             this.OnPropertyChanged(nameof(this.ProfileSettings));
             this.OnPropertyChanged(nameof(this.ProfileName));
@@ -74,19 +77,19 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             if (e.ChangeType == ProfileChangeType.ProfileChanged) {
-                this.SetProfile(e.NewProile);
+                this.SetProfile(e.NewProfile);
             }
         }
 
         public async Task ProfileModifiedAsync() {
             this.MainViewModel.NotifyProfileChanged(ProfileChangeType.SettingsChanged);
-            await ProfileManager.SaveProfileAsync(profile);
+            await ProfileManager.SaveProfileAsync(this.profile);
         }
 
         public List<SettingsItemViewModel> ProfileSettings { get; private set; } = new List<SettingsItemViewModel>();
 
         public async Task CreateProfileAsync(string suggestedName, bool copyCurrent = false) {
-            var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? MainViewModel.Profile : null);
+            var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? this.MainViewModel.Profile : null);
             await this.MainViewModel.SetProfileAsync(profile.Name);
         }
 
@@ -108,6 +111,17 @@ namespace ComicsViewer.ViewModels.Pages {
 
             this.RootPaths.Clear();
             this.RootPaths.AddRange(this.profile.RootPaths);
+        }
+
+        public async Task SaveProfileDescriptionsAsync() {
+            this.profile.ExternalDescriptions.Clear();
+            this.profile.ExternalDescriptions.AddRange(this.ExternalDescriptions);
+
+            await ProfileManager.SaveProfileAsync(this.profile);
+        }
+
+        public void AddEmptyProfileDescription() {
+            this.ExternalDescriptions.Add(new ExternalDescriptionSpecification());
         }
     }
 

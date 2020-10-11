@@ -1,29 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.DataTransfer;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace ImageViewer {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    sealed partial class App : Application {
+    sealed partial class App {
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -63,10 +53,26 @@ namespace ImageViewer {
             }
         }
 
-        protected override void OnFileActivated(FileActivatedEventArgs args) {
+        protected override async void OnFileActivated(FileActivatedEventArgs args) {
             var rootFrame = this.EnsureInitialized();
 
-            _ = rootFrame.Navigate(typeof(MainPage), args.Files.OfType<StorageFile>());
+            if (args.Files.OfType<StorageFolder>().Any()) {
+                await this.StopAppLaunch("Not supported", "we cannot open folders");
+                return;
+            }
+
+            var files = args.Files.OfType<StorageFile>().ToList();
+
+            if (files.Count() != 1) {
+                await this.StopAppLaunch("Not supported", "we only allow opening individual images");
+                return;
+            }
+
+            _ = rootFrame.Navigate(typeof(MainPage), new ProtocolActivatedArguments {
+                Mode = ProtocolActivatedMode.File,
+                File = files.First()
+            });
+
             Window.Current.Activate();
         }
 

@@ -1,25 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
+﻿using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace ComicsViewer.Pages {
     /* This class is an exact duplicate of ComicItemGridTopLevelContainer. For why, see the comment for ComicItemGridTopLevelContainer. */
-    public sealed partial class ComicItemGridSecondLevelContainer : Page, IComicItemGridContainer {
+    public sealed partial class ComicItemGridSecondLevelContainer : IComicItemGridContainer {
         public ComicItemGrid? Grid { get; private set; }
 
         public ComicItemGridSecondLevelContainer() {
@@ -27,7 +13,7 @@ namespace ComicsViewer.Pages {
         }
 
         private void Frame_Navigated(object sender, NavigationEventArgs e) {
-            this.Grid = (ComicItemGrid)this.Frame.Content;
+            this.Grid = (ComicItemGrid)this.Frame.Content!;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {

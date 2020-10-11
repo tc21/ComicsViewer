@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ComicsLibrary.SQL.Migrations {
+﻿namespace ComicsLibrary.SQL.Migrations {
     internal class Migration_Initialize : ComicsDatabaseMigration {
         public Migration_Initialize() : base(
             version: 1,

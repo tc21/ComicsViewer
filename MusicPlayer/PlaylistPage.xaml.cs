@@ -1,26 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System.Collections.Generic;
 using ComicsViewer.Common;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
 
 namespace MusicPlayer {
-    public sealed partial class PlaylistPage : Page {
+    public sealed partial class PlaylistPage {
         private ViewModel? _parentViewModel;
 
-        private readonly PlaylistViewModel ViewModel = new PlaylistViewModel();
+        private PlaylistViewModel ViewModel { get; } = new PlaylistViewModel();
         private ViewModel ParentViewModel => this._parentViewModel ?? throw ProgrammerError.Auto();
 
         public PlaylistPage() {
@@ -28,24 +17,26 @@ namespace MusicPlayer {
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (e.NavigationMode == NavigationMode.New || e.NavigationMode == NavigationMode.Refresh) {
-                if (!(e.Parameter is PlaylistPageNavigationArguments args)) {
-                    throw ProgrammerError.Auto();
-                }
-
-                if (this._parentViewModel != null) {
-                    this._parentViewModel.PlaylistChanged -= this.ParentViewModel_PlaylistChanged;
-                }
-
-                this._parentViewModel = args.ViewModel;
-                this._parentViewModel.PlaylistChanged += this.ParentViewModel_PlaylistChanged;
-                this._parentViewModel.PlayStarted += this.ParentViewModel_PlayStarted;
-                this.ViewModel.SetItems(args.Items);
+            if (e.NavigationMode != NavigationMode.New && e.NavigationMode != NavigationMode.Refresh) {
+                return;
             }
+
+            if (!(e.Parameter is PlaylistPageNavigationArguments args)) {
+                throw ProgrammerError.Auto();
+            }
+
+            if (this._parentViewModel != null) {
+                this._parentViewModel.PlaylistChanged -= this.ParentViewModel_PlaylistChanged;
+            }
+
+            this._parentViewModel = args.ViewModel;
+            this._parentViewModel.PlaylistChanged += this.ParentViewModel_PlaylistChanged;
+            this._parentViewModel.PlayStarted += this.ParentViewModel_PlayStarted;
+            this.ViewModel.SetItems(args.Items);
         }
 
         private void ParentViewModel_PlayStarted(ViewModel sender, PlaylistItem item) {
-            if (this.ListView.Items.IndexOf(item) is var index && index != -1) { 
+            if (this.ListView.Items!.IndexOf(item) is var index && index != -1) { 
                 this.ListView.SelectedIndex = index;
             }
         }
