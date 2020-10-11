@@ -10,6 +10,17 @@
     d:Width="500"
     d:Height="400"
     d:RequestedTheme="Dark">
+    <Page.Resources>
+        <Style TargetType="Border" x:Key="TransientBorderPopup">
+            <Style.Setters>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="{ThemeResource SystemControlAcrylicElementBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource SystemControlTransientBorderBrush}"/>
+            </Style.Setters>
+        </Style>
+    </Page.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -149,12 +160,22 @@
                     PointerMoved="ImageContainer_PointerMoved"/>
 
             <Border Margin="10" Padding="10" 
-                    Background="{ThemeResource SystemControlAccentDark2AcrylicElementAccentDark2MediumHighBrush}" 
+                    Style="{StaticResource TransientBorderPopup}"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Visibility="{x:Bind ViewModel.IsMetadataVisible, Mode=OneWay}"
                     IsHitTestVisible="False"
                     >
                 <TextBlock Text="{x:Bind ViewModel.CurrentImageMetadata, Mode=OneWay}" d:Text="No images currently open." />
+            </Border>
+
+            <Border x:Name="ZoomFactorBorder"
+                    Margin="10" Padding="10"
+                    Style="{StaticResource TransientBorderPopup}"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Visibility="Collapsed" d:Visibility="Visible"
+                    IsHitTestVisible="False"
+                    >
+                <TextBlock x:Name="ZoomFactorTextBlock" d:Text="100%" />
             </Border>
         </Grid>
 
@@ -162,7 +183,8 @@
                        Title="Go to"
                        PrimaryButtonText="Go"
                        CloseButtonText="Cancel"
-                       DefaultButton="Primary">
+                       DefaultButton="Primary"
+                       d:Visibility="Collapsed">
             <StackPanel>
                 <TextBox x:Name="SeekToImageTextBox" 
                          Header="Enter the index of the image you want to go to:" 

@@ -44,6 +44,9 @@ namespace ImageViewer {
             coreWindow.KeyUp += this.MainPage_KeyUp;
             coreWindow.ResizeStarted += this.MainPage_ResizeStarted;
             coreWindow.ResizeCompleted += this.MainPage_ResizeCompleted;
+
+            // Zoom level indicator
+            this.ImageContainer.ViewChanged += this.ImageContainer_ViewChanged;
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
@@ -120,11 +123,13 @@ namespace ImageViewer {
 
         #region Zooming
 
+        // For some reason, you have to wait a while before calling ChangeView
+        private const int ChangeViewDelay = 20;  // milliseconds
+
         private void ResetZoom() {
-            // For some reason, you have to wait a while before calling ChangeView
             _ = new Timer(async __ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 _ = this.ImageContainer.ChangeView(0, 0, 1))
-            , null, 10, Timeout.Infinite);
+            , null, ChangeViewDelay, Timeout.Infinite);
         }
 
         private void ZoomImage(double scale) {
@@ -166,7 +171,15 @@ namespace ImageViewer {
                     this.ImageContainer.VerticalOffset - heightDifference,
                     zoomTo
                 );
-            }), null, 10, Timeout.Infinite);
+            }), null, ChangeViewDelay, Timeout.Infinite);
+        }
+
+        // We could alternatively use converters and implement INotifyPropertyChanged, but not for just one text block
+        private void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
+            this.ZoomFactorTextBlock.Text = (100 * this.ImageContainer.ZoomFactor).ToString("N0") + "%";
+            this.ZoomFactorBorder.Visibility = this.ImageContainer.ZoomFactor == 1
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
 
         private void MainPage_KeyDown(CoreWindow sender, KeyEventArgs args) {
