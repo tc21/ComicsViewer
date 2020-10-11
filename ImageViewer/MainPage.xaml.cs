@@ -123,6 +123,9 @@ namespace ImageViewer {
 
         #region Zooming
 
+        // Todo: when ViewModel.DecodeImageHeight is set, we might want to reload the image after a zoom operation, 
+        // silimar to what happens after a window resize. In other words, moire reduction should apply to zoomed images as well.
+
         // For some reason, you have to wait a while before calling ChangeView
         private const int ChangeViewDelay = 20;  // milliseconds
 

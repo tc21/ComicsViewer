@@ -18,6 +18,11 @@ namespace ImageViewer {
             ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
         };
 
+        // load default values from Settings
+        public ViewModel() {
+            this.IsMetadataVisible = Settings.Get<bool>("IsMetadataVisible");
+        }
+
         // if you set this directly, make sure all items are valid images
         internal readonly List<StorageFile> Images = new List<StorageFile>();
 
@@ -28,6 +33,7 @@ namespace ImageViewer {
             get => this._isMetadataVisible;
             set {
                 this._isMetadataVisible = value;
+                Settings.Set("IsMetadataVisible", value);
                 this.OnPropertyChanged();
             }
         }
