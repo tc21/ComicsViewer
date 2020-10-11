@@ -147,7 +147,7 @@ namespace ImageViewer {
                 }
 
                 // we use these imprecise numbers because floats are imprecise
-                if ((zoomTo > 0.99 && this.ImageContainer.ZoomFactor < 0.99) || (zoomTo < 1.01 && this.ImageContainer.ZoomFactor > 1.01)) {
+                if ((zoomTo > 1 && this.ImageContainer.ZoomFactor < 0.999) || (zoomTo < 1 && this.ImageContainer.ZoomFactor > 1.001)) {
                     zoomTo = 1;
                 }
 
@@ -180,9 +180,14 @@ namespace ImageViewer {
         // We could alternatively use converters and implement INotifyPropertyChanged, but not for just one text block
         private void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
             this.ZoomFactorTextBlock.Text = (100 * this.ImageContainer.ZoomFactor).ToString("N0") + "%";
-            this.ZoomFactorBorder.Visibility = this.ImageContainer.ZoomFactor == 1
+            this.ZoomFactorButton.Visibility = Math.Abs(1 - this.ImageContainer.ZoomFactor) < 0.001
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+        }
+
+
+        private void ZoomFactorButton_Click(object sender, RoutedEventArgs e) {
+            this.ResetZoom();
         }
 
         private void MainPage_KeyDown(CoreWindow sender, KeyEventArgs args) {

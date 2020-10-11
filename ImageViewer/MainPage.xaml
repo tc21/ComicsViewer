@@ -168,15 +168,26 @@
                 <TextBlock Text="{x:Bind ViewModel.CurrentImageMetadata, Mode=OneWay}" d:Text="No images currently open." />
             </Border>
 
-            <Border x:Name="ZoomFactorBorder"
+            <Button x:Name="ZoomFactorButton"
                     Margin="10" Padding="10"
-                    Style="{StaticResource TransientBorderPopup}"
+                    Background="{ThemeResource SystemControlAcrylicElementBrush}"
+                    BorderBrush="{ThemeResource SystemControlTransientBorderBrush}"
+                    CornerRadius="4"
                     HorizontalAlignment="Right" VerticalAlignment="Top"
                     Visibility="Collapsed" d:Visibility="Visible"
-                    IsHitTestVisible="False"
+                    ToolTipService.ToolTip="Reset zoom to 100%"
+                    Click="ZoomFactorButton_Click"
                     >
+                <Button.Resources>
+                    <ResourceDictionary>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="{ThemeResource SystemRevealBaseMediumColor}"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="{ThemeResource SystemRevealBaseHighColor}"/>
+                        <AcrylicBrush x:Key="ButtonBackgroundPointerOver" TintColor="{ThemeResource SystemRevealChromeMediumColor}" TintOpacity="0.8"/>
+                        <AcrylicBrush x:Key="ButtonBackgroundPressed" TintColor="{ThemeResource SystemRevealChromeHighColor}" TintOpacity="0.8"/>
+                    </ResourceDictionary>
+                </Button.Resources>
                 <TextBlock x:Name="ZoomFactorTextBlock" d:Text="100%" />
-            </Border>
+            </Button>
         </Grid>
 
         <ContentDialog Grid.Row="1" x:Name="SeekToImageDialog" 
