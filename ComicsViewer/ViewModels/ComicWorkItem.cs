@@ -66,6 +66,7 @@ namespace ComicsViewer.ViewModels {
                     }
 
                     var image = new BitmapImage();
+                    // We must be able to access the file system if we successfully set a thumbnail.
                     var thumbnailFile = await StorageFile.GetFileFromPathAsync(Thumbnail.ThumbnailPath(this.Comic));
 
                     using (var stream = await thumbnailFile.OpenReadAsync()) {

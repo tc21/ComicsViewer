@@ -97,10 +97,16 @@ namespace ComicsViewer.Features {
 
         // Temporary: this code should be moved elsewhere
         // Unfortunately we aren't actually on .NET Core 3.0, meaning we can't await an IAsyncEnumerable
-        public async Task<IEnumerable<ComicSubitem>> GetComicSubitemsAsync(Comic comic) {
+        /// <summary>
+        /// Returns null if comic.Path could not be accessed. Note: this will create a popup dialog.
+        /// </summary>
+        public async Task<IEnumerable<ComicSubitem>?> GetComicSubitemsAsync(Comic comic) {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
-            var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
+
+            if (!(await ExpectedExceptions.TryGetFolderWithPermission(comic.Path) is { } comicFolder)) {
+                return null;
+            }
 
             if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is { } rootItem) {
                 subitems.Add(rootItem);

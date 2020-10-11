@@ -124,7 +124,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ClassExtensions\Comic_OpenFolder.cs" />
     <Compile Include="ClassExtensions\IEnumerable_FirstOrNull.cs" />
     <Compile Include="Controls\ComicsMenuFlyoutItem.cs" />
     <Compile Include="Controls\EditItemTextBox.xaml.cs">

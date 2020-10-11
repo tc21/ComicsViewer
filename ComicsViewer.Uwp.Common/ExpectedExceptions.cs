@@ -2,7 +2,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Documents;
 
 #nullable enable
 
@@ -61,6 +63,30 @@ namespace ComicsViewer.Uwp.Common {
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        public static async Task<StorageFile?> TryGetFileWithPermission(string path) {
+            try {
+                return await StorageFile.GetFileFromPathAsync(path);
+            } catch (Exception e) {
+                if (!await HandleFileRelatedExceptionsAsync(e)) {
+                    throw;
+                }
+
+                return null;
+            }
+        }
+
+        public static async Task<StorageFolder?> TryGetFolderWithPermission(string path) {
+            try {
+                return await StorageFolder.GetFolderFromPathAsync(path);
+            } catch (Exception e) {
+                if (!await HandleFileRelatedExceptionsAsync(e)) {
+                    throw;
+                }
+
+                return null;
             }
         }
     }

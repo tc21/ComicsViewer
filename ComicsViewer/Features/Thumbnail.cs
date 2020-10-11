@@ -74,9 +74,7 @@ namespace ComicsViewer.Features {
         private static async Task<StorageFile?> TryGetThumbnailSourceAsync(Comic comic) {
             if (comic.ThumbnailSource is { } path) {
                 try {
-                    if (await StorageFile.GetFileFromPathAsync(path) is { } file) {
-                        return file;
-                    }
+                    return await StorageFile.GetFileFromPathAsync(path);
                 } catch (UnauthorizedAccessException) {
                     // weird shit happens with windows and file permissions. just ignore this
                 } catch (FileNotFoundException) {

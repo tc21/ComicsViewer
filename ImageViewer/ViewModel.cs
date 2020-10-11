@@ -135,9 +135,15 @@ namespace ImageViewer {
             var first = paths.First();
             var rest = paths.Skip(1);
 
-            await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(first) });
+            // we need to verify if we have permission
+            if (!(await ExpectedExceptions.TryGetFileWithPermission(first) is { } firstFile)) {
+                return;
+            }
+
+            await this.LoadImagesAsync(new[] { firstFile });
 
             foreach (var filename in rest) {
+                // this will crash if any file in <paths> doesn't exist
                 await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(filename) }, seekTo: null, append: true);
             }
         }

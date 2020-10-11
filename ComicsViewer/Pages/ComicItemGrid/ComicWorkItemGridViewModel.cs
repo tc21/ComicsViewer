@@ -57,23 +57,13 @@ namespace ComicsViewer.ViewModels.Pages {
             if (workItems.Any(item => !this.ComicItems.Contains(item))) {
                 throw new ProgrammerError("received items that are not part of this.ComicItems");
             }
-            // Although we don't have to await these, we will need to do so for it to throw an 
-            // UnauthorizedAccessException when broadFileSystemAccess isn't enabled.
-            try {
-                var tasks = workItems.Select(async item => {
-                    var subitems = await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic);
-                    await Startup.OpenComicSubitemAsync(subitems.First(), this.MainViewModel.Profile);
-                });
 
-                await Task.WhenAll(tasks);
-            } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedAccessAsync();
-            } catch (FileNotFoundException e) {
-                if (workItems.Count == 1) {
-                    await ExpectedExceptions.ComicNotFoundAsync(workItems[0].Comic);
-                } else {
-                    await ExpectedExceptions.FileNotFoundAsync(e.FileName, "The folder for an item could not be found.", cancelled: false);
+            foreach (var item in workItems) {
+                if (!(await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic) is { } subitems)) {
+                    return;
                 }
+
+                await Startup.OpenComicSubitemAsync(subitems.First(), this.MainViewModel.Profile);
             }
         }
 

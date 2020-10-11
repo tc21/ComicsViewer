@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Common;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using System;
@@ -24,14 +25,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
         public async Task InitializeAsync() {
-            try {
-                foreach (var item in await this.MainViewModel.Profile.GetComicSubitemsAsync(this.item.Comic)) {
-                    this.ComicSubitems.Add(item);
-                }
-            } catch (UnauthorizedAccessException) {
-                await ExpectedExceptions.UnauthorizedAccessAsync();
-            } catch (FileNotFoundException) {
-                await ExpectedExceptions.ComicNotFoundAsync(this.item.Comic);
+            if (await this.MainViewModel.Profile.GetComicSubitemsAsync(this.item.Comic) is { } subitems) {
+                this.ComicSubitems.AddRange(subitems);
             }
 
             this.IsLoadingSubItems = false;

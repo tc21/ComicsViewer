@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using System;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 #nullable enable
 
@@ -13,6 +14,7 @@ namespace ComicsViewer.Support {
         public static Task ComicNotFoundAsync(Comic comic) {
             return IntendedBehaviorAsync($"The folder for item {comic.Title} could not be found. ({comic.Path})", "Item not found");
         }
+
         public static Task FileNotFoundAsync(string? filename = null, string? message = null, bool cancelled = true)
             => Uwp.Common.ExpectedExceptions.FileNotFoundAsync(filename, message, cancelled);
 
@@ -24,5 +26,7 @@ namespace ComicsViewer.Support {
         public static Task<bool> HandleFileRelatedExceptionsAsync(Exception e) => Uwp.Common.ExpectedExceptions.HandleFileRelatedExceptionsAsync(e);
 
         public static Task<bool> HandleIntendedBehaviorExceptionsAsync(Exception e) => Uwp.Common.ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync(e);
+
+        public static Task<StorageFolder?> TryGetFolderWithPermission(string path) => Uwp.Common.ExpectedExceptions.TryGetFolderWithPermission(path);
     }
 }

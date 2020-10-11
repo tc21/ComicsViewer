@@ -298,7 +298,7 @@ namespace ComicsViewer.Pages {
         #region Redefining thumbnails
 
         public async Task RedefineThumbnailAsync(ComicWorkItem item) {
-            if (!(await item.Comic.GetFolderAndNotifyErrorsAsync() is { } folder)) {
+            if (!(await ExpectedExceptions.TryGetFolderWithPermission(item.Comic.Path) is { } folder)) {
                 return;
             }
 
