@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
-using ComicsViewer.Uwp.Common.Win32Interop;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Storage;
@@ -26,7 +25,7 @@ namespace ImageViewer {
         };
 
         // if you set this directly, make sure all items are valid images
-        internal readonly List<string> Images = new List<string>();
+        internal readonly List<StorageFile> Images = new List<StorageFile>();
 
         public int CurrentImageIndex { get; private set; }
 
@@ -42,7 +41,7 @@ namespace ImageViewer {
         public string? CurrentImagePath {
             get {
                 if (this.CurrentImageIndex < this.Images.Count) {
-                    return this.Images[this.CurrentImageIndex];
+                    return this.Images[this.CurrentImageIndex].Path;
                 }
 
                 return null;
@@ -105,14 +104,14 @@ namespace ImageViewer {
             }
         }
 
-        public async Task LoadImagesAsync(IEnumerable<string> files, int? seekTo = 0, bool append = false) {
+        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false) {
             this.canSeek = false;
 
             if (!append) {
                 this.Images.Clear();
             }
 
-            this.Images.AddRange(files.Where(IsImage));
+            this.Images.AddRange(files.Where(f => IsImage(f.Path)));
             this.canSeek = true;
 
             if (seekTo is int index) {
@@ -126,22 +125,60 @@ namespace ImageViewer {
             }
         }
 
-        public async Task OpenContainingFolderAsync(StorageFile file) {
-            if (!(await file.GetParentAsync() is StorageFolder parent)) {
-                /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
-                await this.LoadImagesAsync(new[] { file.Path });
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths) {
+            if (!paths.Any()) {
                 return;
             }
 
+            var first = paths.First();
+            var rest = paths.Skip(1);
+
+            await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(first) });
+
+            foreach (var filename in rest) {
+                await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(filename) }, seekTo: null, append: true);
+            }
+        }
+
+        private async Task LoadViaPassthrough<I>(StorageFile passthrough, Func<Task<I>> getAllFiles) where I : IEnumerable<StorageFile> {
             this.canSeek = false;
             this.Title = "Viewer - Loading related files...";
-            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file.Path);
-            var files = await parent.GetFilesAsync();
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
 
-            await this.LoadImagesAsync(files.Select(f => f.Path), seekTo: null);
+            var files = await getAllFiles();
+            await this.LoadImagesAsync(files, seekTo: null);
 
             for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i] == file.Path) {
+                if (this.Images[i].Name == passthrough.Name) {
+                    if (passthroughSuccessful) {
+                        this.SetCurrentImageIndex(i);
+                    } else {
+                        await this.SeekAsync(i, reload: true);
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        public async Task OpenContainingFolderAsync(StorageFile file) {
+            if (!(await file.GetParentAsync() is StorageFolder parent)) {
+                /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
+                await this.LoadImagesAsync(new[] { file });
+                return;
+            }
+
+            await this.LoadViaPassthrough(file, async () => await parent.GetFilesAsync());
+
+            this.canSeek = false;
+            this.Title = "Viewer - Loading related files...";
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
+            var files = await parent.GetFilesAsync();
+
+            await this.LoadImagesAsync(files, seekTo: null);
+
+            for (var i = 0; i < this.Images.Count; i++) {
+                if (this.Images[i].Name == file.Name) {
                     if (passthroughSuccessful) {
                         this.SetCurrentImageIndex(i);
                     } else {
@@ -190,7 +227,7 @@ namespace ImageViewer {
             this.UpdateTitle();
         }
 
-        private async Task SetCurrentImageSourceAsync(string? file, int? decodePixelHeight) {
+        private async Task SetCurrentImageSourceAsync(StorageFile? file, int? decodePixelHeight) {
             if (file == null) {
                 this.CurrentImageSource = null;
                 this.CurrentImageMetadata = null;
@@ -199,26 +236,12 @@ namespace ImageViewer {
 
             var image = new BitmapImage();
 
-            if (decodePixelHeight is int height) {
-                image.DecodePixelHeight = height;
-            }
-
-            var success = false;
-
-            while (!success) {
-                using var stream = IO.OpenFileForRead(file);
-
-                try {
-                    await image.SetSourceAsync(stream);
-                    success = true;
-#pragma warning disable CS0618 // Type or member is obsolete
-                } catch (ExecutionEngineException) {
-                    // sometimes weird things happen on the Interop boundary, we just need to retry.
-                    // And the documentation says that the runtime no longer raises this exception, but Win32 still does.
-                    // Maybe we should move this into InteropReadStream, but I'm not quite sure where this is actually being thrown.
-#pragma warning restore CS0618 // Type or member is obsolete
-                    continue;
+            using (var stream = await file.OpenReadAsync()) {
+                if (decodePixelHeight is int height) {
+                    image.DecodePixelHeight = height;
                 }
+
+                await image.SetSourceAsync(stream);
             }
 
             this.CurrentImageSource = image;
@@ -228,9 +251,9 @@ namespace ImageViewer {
 
         // note: index must be valid!
         private bool updatingBitmapSource;
-        private string? queuedFile;
+        private StorageFile? queuedFile;
 
-        private async Task<bool> UpdateBitmapSourceAsync(string file) {
+        private async Task<bool> UpdateBitmapSourceAsync(StorageFile file) {
             if (this.updatingBitmapSource) {
                 this.queuedFile = file;
                 return true;
@@ -247,12 +270,11 @@ namespace ImageViewer {
                 result = false;
             } catch (FileNotFoundException) {
                 result = false;
-            } finally {
-                this.updatingBitmapSource = false;
             }
 
+            this.updatingBitmapSource = false;
 
-            if (this.queuedFile is string f) {
+            if (this.queuedFile is StorageFile f) {
                 this.queuedFile = null;
                 _ = await this.UpdateBitmapSourceAsync(f);
                 // we can't really notify that another image is invalid yet
@@ -263,16 +285,15 @@ namespace ImageViewer {
         }
 
         public async Task DeleteCurrentImageAsync() {
-            var file = await StorageFile.GetFileFromPathAsync(this.Images[this.CurrentImageIndex]);
+            var file = this.Images[this.CurrentImageIndex];
             this.Images.RemoveAt(this.CurrentImageIndex);
             var reloadTask = this.SeekAsync(this.CurrentImageIndex, reload: true);
             await file.DeleteAsync();  // this moves the file to recycle bin, if possible
             await reloadTask;
         }
 
-        private async Task UpdateBitmapMetadataAsync(string file_) {
+        private async Task UpdateBitmapMetadataAsync(StorageFile file) {
             try {
-                var file = await StorageFile.GetFileFromPathAsync(file_);
                 var properties = await file.GetBasicPropertiesAsync();
                 var imageProperties = await file.Properties.GetImagePropertiesAsync();
                 this.CurrentImageMetadata = this.CurrentImageDescription(properties, imageProperties);

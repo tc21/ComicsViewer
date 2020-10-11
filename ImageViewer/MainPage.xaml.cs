@@ -59,11 +59,11 @@ namespace ImageViewer {
             if (e.Parameter is ProtocolActivatedArguments args) {
                 switch (args.Mode) {
                     case ProtocolActivatedMode.Filenames:
-                        await this.ViewModel.LoadImagesAsync(args.Filenames!);
+                        await this.ViewModel.LoadImagesAtPathsAsync(args.Filenames!);
                         break;
                     case ProtocolActivatedMode.Folder:
                         var files = await args.Folder!.GetFilesAsync();
-                        await this.ViewModel.LoadImagesAsync(files.Select(f => f.Path));
+                        await this.ViewModel.LoadImagesAsync(files);
                         break;
                     case ProtocolActivatedMode.File:
                         await this.ViewModel.OpenContainingFolderAsync(args.File!);
@@ -118,8 +118,7 @@ namespace ImageViewer {
                 await this.ViewModel.OpenContainingFolderAsync(file);
             } else {
                 var files = items.Where(item => item.IsOfType(StorageItemTypes.File))
-                                 .Cast<StorageFile>()
-                                 .Select(f => f.Path);
+                                 .Cast<StorageFile>();
 
                 await this.ViewModel.LoadImagesAsync(files);
             }
