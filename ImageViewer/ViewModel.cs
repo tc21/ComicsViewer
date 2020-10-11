@@ -161,7 +161,16 @@ namespace ImageViewer {
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
             if (!(await file.GetParentAsync() is { } parent)) {
-                /* this means that the user hasn't enabled broadFileSystemAccess. should we show a warning? */
+                /* this means that the user hasn't enabled broadFileSystemAccess */
+                await ExpectedExceptions.ShowDialogAsync(
+                    title: "Access denied",
+                    message: "Viewer could not access the parent folder of the opened file. "
+                        + "This is required to view multiple files in a folder. "
+                        + "This is likely because File system access hasn't been enabled for this app. "
+                        + "Please check that it's enabled in Settings > Privacy > File system.",
+                    cancelled: false
+                );
+
                 await this.LoadImagesAsync(new[] { file });
                 return;
             }
