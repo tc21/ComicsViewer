@@ -142,20 +142,14 @@ namespace ImageViewer {
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
 
             var files = await getAllFiles();
+            // will set CanSeek = true
             await this.LoadImagesAsync(files, seekTo: null);
 
-            for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i].Name != passthrough.Name) {
-                    continue;
-                }
-
-                if (passthroughSuccessful) {
-                    this.SetCurrentImageIndex(i);
-                } else {
-                    await this.SeekAsync(i, reload: true);
-                }
-
-                return;
+            var passthroughIndex = this.Images.FindIndex(file => file.Name == passthrough.Name);
+            if (passthroughSuccessful) {
+                this.SetCurrentImageIndex(passthroughIndex);
+            } else {
+                await this.SeekAsync(passthroughIndex, reload: true);
             }
         }
 
@@ -167,25 +161,6 @@ namespace ImageViewer {
             }
 
             await this.LoadViaPassthrough(file, async () => await parent.GetFilesInNaturalOrderAsync());
-
-            this.CanSeek = false;
-            this.Title = "Viewer - Loading related files...";
-            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(file);
-            var files = await parent.GetFilesInNaturalOrderAsync();
-
-            await this.LoadImagesAsync(files, seekTo: null);
-
-            for (var i = 0; i < this.Images.Count; i++) {
-                if (this.Images[i].Name != file.Name) {
-                    continue;
-                }
-
-                if (passthroughSuccessful) {
-                    this.SetCurrentImageIndex(i);
-                } else {
-                    await this.SeekAsync(i, reload: true);
-                }
-            }
         }
 
         public bool CanSeek { get; private set; }
