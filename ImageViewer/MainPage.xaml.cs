@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
@@ -47,6 +48,12 @@ namespace ImageViewer {
 
             // Zoom level indicator
             this.ImageContainer.ViewChanged += this.ImageContainer_ViewChanged;
+
+            // Reduce moire
+            if (Settings.Get(Settings.ScalingEnabledProperty, true)) {
+                this.ToggleScalingFlyoutItem.IsChecked = true;
+                this.ToggleScalingCommand.Execute(null);
+            }
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
@@ -123,9 +130,6 @@ namespace ImageViewer {
 
         #region Zooming
 
-        // Todo: when ViewModel.DecodeImageHeight is set, we might want to reload the image after a zoom operation, 
-        // silimar to what happens after a window resize. In other words, moire reduction should apply to zoomed images as well.
-
         // For some reason, you have to wait a while before calling ChangeView
         private const int ChangeViewDelay = 20;  // milliseconds
 
@@ -177,12 +181,25 @@ namespace ImageViewer {
             }), null, ChangeViewDelay, Timeout.Infinite);
         }
 
+        private const int InteractionDelay = 100;
+        private object resizeIdentifier;
+
         // We could alternatively use converters and implement INotifyPropertyChanged, but not for just one text block
-        private void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
+        private async void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
             this.ZoomFactorTextBlock.Text = (100 * this.ImageContainer.ZoomFactor).ToString("N0") + "%";
             this.ZoomFactorButton.Visibility = Math.Abs(1 - this.ImageContainer.ZoomFactor) < 0.001
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+
+            if (this.ViewModel.DecodeImageHeight is null) {
+                return;
+            }
+
+            var myResizeIdentifier = this.resizeIdentifier = new object();
+            await Task.Delay(InteractionDelay);
+            if (this.resizeIdentifier == myResizeIdentifier) {
+                this.UpdateDecodeImageHeight();
+            }
         }
 
 
@@ -288,8 +305,7 @@ namespace ImageViewer {
                 return;
             }
 
-            var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
+            this.UpdateDecodeImageHeight();
         }
 
         private void ImageContainer_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -297,8 +313,12 @@ namespace ImageViewer {
                 return;
             }
 
+            this.UpdateDecodeImageHeight();
+        }
+
+        private void UpdateDecodeImageHeight() {
             var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
+            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ExtentHeight * resolutionScale);
         }
     }
 }

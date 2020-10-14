@@ -116,7 +116,7 @@
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
-                    <ToggleMenuFlyoutItem Text="(Experimental) Reduce moiré" Command="{x:Bind ToggleScalingCommand}">
+                    <ToggleMenuFlyoutItem x:Name="ToggleScalingFlyoutItem" Text="Reduce moiré" Command="{x:Bind ToggleScalingCommand}">
                         <MenuFlyoutItem.KeyboardAccelerators>
                             <KeyboardAccelerator Key="M" Modifiers="Control"/>
                         </MenuFlyoutItem.KeyboardAccelerators>
@@ -145,7 +145,8 @@
                           RenderTransformOrigin="0.5 0.5"
                           ZoomMode="Enabled"
                           SizeChanged="ImageContainer_SizeChanged">
-                <Image MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
+                <Image x:Name="Image"
+                       MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
                        MaxHeight="{Binding ViewportHeight, ElementName=ImageContainer}"
                        Source="{x:Bind ViewModel.CurrentImageSource, Mode=OneWay}" d:Source="ms-appx:///Assets/test-image.png"
                        Stretch="Uniform"

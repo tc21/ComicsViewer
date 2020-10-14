@@ -139,15 +139,15 @@ namespace ImageViewer {
             get {
                 this._toggleScalingCommand ??= new RelayCommand(
                     val => {
-                        if (this.ViewModel.DecodeImageHeight == null) {
-                            var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-                            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * resolutionScale);
+                        if (this.ToggleScalingFlyoutItem.IsChecked) {
+                            this.UpdateDecodeImageHeight();
                         } else {
                             this.ViewModel.DecodeImageHeight = null;
                         }
+
+                        Settings.Set(Settings.ScalingEnabledProperty, this.ToggleScalingFlyoutItem.IsChecked);
                     }
                 );
-
                 return this._toggleScalingCommand;
             }
         }
