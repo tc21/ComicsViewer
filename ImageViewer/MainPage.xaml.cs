@@ -48,7 +48,9 @@ namespace ImageViewer {
 
             // Zoom level indicator
             this.ImageContainer.ViewChanged += this.ImageContainer_ViewChanged;
+        }
 
+        private void ImageContainer_Loaded(object sender, RoutedEventArgs e) {
             // Reduce moire
             if (Settings.Get(Settings.ScalingEnabledProperty, true)) {
                 this.ToggleScalingFlyoutItem.IsChecked = true;
@@ -318,7 +320,10 @@ namespace ImageViewer {
 
         private void UpdateDecodeImageHeight() {
             var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ExtentHeight * resolutionScale);
+            var imageContainerHeight = this.ImageContainer.ExtentHeight == 0
+                ? this.ImageContainer.ActualHeight * this.ImageContainer.ZoomFactor
+                : this.ImageContainer.ExtentHeight;
+            this.ViewModel.DecodeImageHeight = (int)(imageContainerHeight * resolutionScale);
         }
     }
 }

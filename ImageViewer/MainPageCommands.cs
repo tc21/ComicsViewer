@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Input;
-using Windows.Graphics.Display;
 using Windows.System;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml.Controls;
@@ -66,8 +65,13 @@ namespace ImageViewer {
         private ICommand? _toggleImageInfoCommand;
         public ICommand ToggleImageInfoCommand {
             get {
+
                 this._toggleImageInfoCommand ??= new RelayCommand(
-                    o => this.ViewModel.IsMetadataVisible = !this.ViewModel.IsMetadataVisible
+                    o => {
+                        this.ViewModel.IsMetadataVisible = this.ToggleImageInfoFlyoutItem.IsChecked;
+                        Settings.Set(Settings.MetadataVisibleProperty, this.ToggleImageInfoFlyoutItem.IsChecked);
+
+                    }
                 );
 
                 return this._toggleImageInfoCommand;

@@ -47,11 +47,11 @@
             <Grid.ContextFlyout>
                 <MenuFlyout>
 
-                    <MenuFlyoutItem Text="Toggle image information" Command="{x:Bind ToggleImageInfoCommand}">
+                    <ToggleMenuFlyoutItem x:Name="ToggleImageInfoFlyoutItem" Text="Show image information" Command="{x:Bind ToggleImageInfoCommand}">
                         <MenuFlyoutItem.KeyboardAccelerators>
                             <KeyboardAccelerator Key="Tab" Modifiers="Control"/>
                         </MenuFlyoutItem.KeyboardAccelerators>
-                    </MenuFlyoutItem>
+                    </ToggleMenuFlyoutItem>
 
                     <MenuFlyoutItem Text="Show in Explorer" Command="{x:Bind ShowInExplorerCommand}">
                         <MenuFlyoutItem.KeyboardAccelerators>
@@ -144,7 +144,8 @@
                           VerticalScrollBarVisibility="Auto"
                           RenderTransformOrigin="0.5 0.5"
                           ZoomMode="Enabled"
-                          SizeChanged="ImageContainer_SizeChanged">
+                          SizeChanged="ImageContainer_SizeChanged"
+                          Loaded="ImageContainer_Loaded">
                 <Image x:Name="Image"
                        MaxWidth="{Binding ViewportWidth, ElementName=ImageContainer}"
                        MaxHeight="{Binding ViewportHeight, ElementName=ImageContainer}"

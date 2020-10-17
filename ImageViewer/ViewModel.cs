@@ -98,8 +98,11 @@ namespace ImageViewer {
                 }
 
                 this._decodeImageHeight = value;
+
                 if (this.CurrentImageSource != null) {
-                    _ = this.SetCurrentImageSourceAsync(this.Images[this.CurrentImageIndex], value).ConfigureAwait(false);
+                    this.WhenCanSeek(() => {
+                        _ = this.SetCurrentImageSourceAsync(this.Images[this.CurrentImageIndex], value).ConfigureAwait(false);
+                    });
                 }
             }
         }
@@ -184,7 +187,31 @@ namespace ImageViewer {
             await this.LoadViaPassthrough(file, async () => await parent.GetFilesInNaturalOrderAsync());
         }
 
-        public bool CanSeek { get; private set; }
+        private Action? whenCanSeekAction;
+        private bool canSeek;
+        public bool CanSeek {
+            get => this.canSeek;
+            private set {
+                if (value == canSeek) {
+                    return;
+                }
+
+                canSeek = value;
+
+                if (value && this.whenCanSeekAction is { } action) {
+                    this.whenCanSeekAction = null;
+                    action();
+                }
+            }
+        }
+
+        private void WhenCanSeek(Action action) {
+            if (this.CanSeek) {
+                action();
+            } else {
+                this.whenCanSeekAction += action;
+            }
+        }
 
         public async Task SeekAsync(int index, bool reload = false) {
             if (!this.CanSeek) {
