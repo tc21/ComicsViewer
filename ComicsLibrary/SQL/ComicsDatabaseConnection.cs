@@ -317,9 +317,9 @@ namespace ComicsLibrary.SQL {
                 {table_comics}.{key_unique_id}
             FROM 
                 {table_playlists}
-            INNER JOIN
+            LEFT OUTER JOIN
                 {table_playlist_items} ON {table_playlist_items}.{key_xref_playlist_id} = {table_playlists}.rowid
-            INNER JOIN
+            LEFT OUTER JOIN
                 {table_comics} ON {table_playlist_items}.{key_xref_comic_id} = {table_comics}.rowid
         "; 
         
@@ -333,13 +333,14 @@ namespace ComicsLibrary.SQL {
 
             while (await reader.ReadAsync()) {
                 var playlistName = reader.GetString(key_playlist_name);
-                var comicUniqueName = reader.GetString(key_unique_id);
 
                 if (!playlists.ContainsKey(playlistName)) {
                     playlists[playlistName] = new List<string>();
                 }
 
-                playlists[playlistName].Add(comicUniqueName);
+                if (reader.GetStringOrNull(key_unique_id) is { } comicUniqueName) {
+                    playlists[playlistName].Add(comicUniqueName);
+                }
             }
 
             var actualPlaylists =

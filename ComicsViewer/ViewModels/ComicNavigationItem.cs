@@ -20,15 +20,17 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => this.Comics;
 
-        public ComicNavigationItem(string name, ComicView comics) {
-            if (!comics.Any()) {
+        public ComicNavigationItem(string name, ComicView comics, bool allowEmptyItems = false) {
+            if (!allowEmptyItems && !comics.Any()) {
                 throw new ProgrammerError("ComicNavigationItem should not receive an empty ComicView in its constructor.");
             }
 
             this.Title = name;
             this.Comics = comics;
 
-            this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(comics.First())) };
+            if (comics.Any()) {
+                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(comics.First())) };
+            }
         }
 
         /* TODO:

@@ -43,7 +43,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private protected override void SortOrderChanged() {
             var sortedPlaylists = this.GetSortedPlaylists();
 
-            var items = sortedPlaylists.Select(playlist => new ComicNavigationItem(playlist.Name, playlist));
+            var items = sortedPlaylists.Select(playlist => new ComicNavigationItem(playlist.Name, playlist, allowEmptyItems: true));
 
             this.SetComicItems(items, this.Playlists.Count);
         }

@@ -173,6 +173,7 @@ namespace ComicsViewer.Pages {
 
         public ComicNavigationItemGridCommand NavigateIntoCommand { get; }
 
+        public ComicPlaylistItemGridCommand CreatePlaylistCommand { get; }
         public ComicPlaylistItemGridCommand DeletePlaylistCommand { get; }
 
         private static string DescribeItem(string action, int count)
@@ -282,9 +283,30 @@ namespace ComicsViewer.Pages {
                 canExecute: e => e.Count == 1
             );
 
+            // Creates a playlist
+            this.CreatePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
+                name: $"Create playlist...",
+                execute: e => {
+                    foreach (var proposedName in GetProposedPlaylistNames()) {
+                        if (!e.MainViewModel.Playlists.ContainsKey(proposedName)) {
+                            e.MainViewModel.CreatePlaylist(proposedName);
+                            break;
+                        }
+                    }
+
+                    static IEnumerable<string> GetProposedPlaylistNames() {
+                        yield return "New Playlist";
+
+                        for (var i = 1; /* forever */; i++) {
+                            yield return $"New Playlist {i}";
+                        }
+                    }
+                }
+            );
+
             // Removes a playlist
             this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
-                getName: e =>  $"Delete {e.Count.PluralString("playlist", simple: true)}",
+                getName: e => $"Delete {e.Count.PluralString("playlist", simple: true)}",
                 execute: e => e.MainViewModel.DeletePlaylists(e.Items.Select(item => item.Title))
             );
 

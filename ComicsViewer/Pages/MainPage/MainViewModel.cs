@@ -626,10 +626,11 @@ namespace ComicsViewer.ViewModels.Pages {
         public delegate void PlaylistChangedHandler(MainViewModel source, PlaylistChangedArguments e);
         public event PlaylistChangedHandler? PlaylistChanged;
         public class PlaylistChangedArguments {
-            public PlaylistChangeType Type;
+            public PlaylistChangeType Type { get; }
             public Playlist Playlist { get; }
 
-            public PlaylistChangedArguments(Playlist playlist) {
+            public PlaylistChangedArguments(PlaylistChangeType type, Playlist playlist) {
+                this.Type = type;
                 this.Playlist = playlist;
             }
         }
@@ -648,8 +649,19 @@ namespace ComicsViewer.ViewModels.Pages {
                 // an error will occur if name doesn't exist. This is a programmer error
                 var playlist = this.Playlists[name];
                 _ = this.Playlists.Remove(name);
-                this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(playlist));
+                this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Remove, playlist));
             }
+        }
+
+        public void CreatePlaylist(string name, IEnumerable<Comic>? comics = null) {
+            if (this.Playlists.ContainsKey(name)) {
+                throw new ArgumentException($"playlist {name} already exists");
+            }
+
+            var uniqueIds = comics is null ? new string[] { } : comics.Select(comic => comic.UniqueIdentifier);
+            var playlist = Playlist.Make(this.Comics, name, uniqueIds);
+            this.Playlists[name] = playlist;
+            this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Add, playlist));
         }
 
         public void NotifyThumbnailChanged(Comic comic) {
@@ -688,6 +700,19 @@ namespace ComicsViewer.ViewModels.Pages {
 
             await this.UpdateComicAsync(updatedComics);
             await ProfileManager.SaveProfileAsync(this.Profile);
+        }
+
+        public async Task RenamePlaylistAsync(string oldName, string newName) {
+            if (!this.Playlists.TryGetValue(oldName, out var playlist)) {
+                throw new ProgrammerError($"playlist {oldName} does not exist");
+            }
+
+            if (this.Playlists.ContainsKey(newName)) {
+                throw new ProgrammerError($"playlist {newName} already exists");
+            }
+
+            this.DeletePlaylists(new[] { oldName });
+            this.CreatePlaylist(newName, playlist.Comics);
         }
 
         #endregion

@@ -120,6 +120,8 @@
                                              Command="{x:Bind ContextMenuCommands.AddToPlaylistCommand}"/>
                     <uc:ComicsMenuFlyoutItem FontIcon="&#xECC9;"
                                              Command="{x:Bind ContextMenuCommands.RemoveFromSelectedPlaylistCommand}"/>
+                    <uc:ComicsMenuFlyoutItem SymbolIcon="Add"
+                                             Command="{x:Bind ContextMenuCommands.CreatePlaylistCommand}"/>
                     <uc:ComicsMenuFlyoutItem FontIcon="&#xE74D;"
                                              Command="{x:Bind ContextMenuCommands.DeletePlaylistCommand}"/>
                 </MenuFlyoutSubItem>

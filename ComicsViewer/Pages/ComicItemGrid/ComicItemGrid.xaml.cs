@@ -289,6 +289,10 @@ namespace ComicsViewer.Pages {
         }
 
         public void PrepareNavigateIn(ComicItem item) {
+            if (!item.ContainedComics().Any()) {
+                return;
+            }
+
             _ = this.VisibleComicsGrid.PrepareConnectedAnimation("navigateInto", item, "ComicItemThumbnailContainer");
             connectedAnimationComic = item.ContainedComics().First();
         }

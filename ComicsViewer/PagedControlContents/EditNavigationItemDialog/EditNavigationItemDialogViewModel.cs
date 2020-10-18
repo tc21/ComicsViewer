@@ -29,7 +29,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 NavigationTag.Tags => this.parent.MainViewModel.UpdateTagNameAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Category => this.parent.MainViewModel.RenameCategoryAsync(this.ItemTitle, newItemTitle),
-                NavigationTag.Playlist => throw new NotImplementedException(),
+                NavigationTag.Playlist => this.parent.MainViewModel.RenamePlaylistAsync(this.ItemTitle, newItemTitle),
                 _ => throw new ProgrammerError("unhandled switch case"),
             };
         }
@@ -69,8 +69,11 @@ namespace ComicsViewer.ViewModels.Pages {
                     return ValidateResult.Ok();
 
                 case NavigationTag.Playlist:
-                    // TODO
-                    return "Renaming playlists is not yet supported";
+                    if (this.parent.MainViewModel.Playlists.ContainsKey(title)) {
+                        return $"Playlist '{title}' already exists";
+                    }
+
+                    return ValidateResult.Ok();
 
                 default:
                     throw new ProgrammerError("Editing properties other than tags not yet supported");
