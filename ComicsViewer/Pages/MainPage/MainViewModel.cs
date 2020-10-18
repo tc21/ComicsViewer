@@ -193,14 +193,19 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         // note: we have already validateed that item is a nav item
-        public void NavigateInto(ComicNavigationItem item, NavigationTransitionInfo? transitionInfo = null) {
+        public void NavigateInto(ComicNavigationItem item, NavigationTransitionInfo? transitionInfo = null, ComicItemGridViewModel? parent = null) {
+            var properties = parent is null
+                ? new ComicItemGridViewModelProperties()
+                : new ComicItemGridViewModelProperties(parent.NavigationTag, parent.NavigationTag == NavigationTag.Playlist ? item.Title : null);
+
             this.NavigationLevel = 1;
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
                 PageType = typeof(ComicItemGridSecondLevelContainer),
                 Tag = NavigationTag.Detail,
                 NavigationType = NavigationType.New,
                 TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                Comics = item.Comics
+                Comics = item.Comics,
+                Properties = properties
             });
 
             this.PageName = item.Title;
@@ -694,6 +699,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public Type? PageType { get; set; }
         public NavigationTag? Tag { get; set; }
         public ComicView? Comics { get; set; }
+        public ComicItemGridViewModelProperties? Properties { get; set; }
 
         public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
         public NavigationType NavigationType { get; set; } = NavigationType.New;

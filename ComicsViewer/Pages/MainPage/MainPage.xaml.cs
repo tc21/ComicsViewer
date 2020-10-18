@@ -126,7 +126,7 @@ namespace ComicsViewer {
 
                     var navigationArguments = new ComicItemGridNavigationArguments {
                         ViewModel = e.Tag switch {
-                            NavigationTag.Detail => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!),
+                            NavigationTag.Detail => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!, e.Properties),
                             _ => ComicItemGridViewModel.ForTopLevelNavigationTag(sender)
                         },
                         OnNavigatedTo = (grid, e) => this.activeContent = grid

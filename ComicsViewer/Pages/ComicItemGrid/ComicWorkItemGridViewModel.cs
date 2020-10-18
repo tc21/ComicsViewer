@@ -17,11 +17,15 @@ namespace ComicsViewer.ViewModels.Pages {
         public override string[] SortSelectors => SortSelectorNames.ComicSortSelectorNames;
         private ComicSortSelector SelectedSortSelector => (ComicSortSelector)this.SelectedSortIndex;
 
+        public ComicItemGridViewModelProperties Properties { get; }
+
         private readonly SortedComicView comics;
 
-        public ComicWorkItemGridViewModel(MainViewModel appViewModel, ComicView comics) 
+        public ComicWorkItemGridViewModel(MainViewModel appViewModel, ComicView comics, ComicItemGridViewModelProperties? properties = null) 
             : base(appViewModel) 
         {
+            this.Properties = properties ?? new ComicItemGridViewModelProperties();
+
             this.comics = comics.Sorted(this.SelectedSortSelector);
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
 

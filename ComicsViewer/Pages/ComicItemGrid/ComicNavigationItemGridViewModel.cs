@@ -46,7 +46,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
-            this.MainViewModel.NavigateInto(item);
+            this.MainViewModel.NavigateInto(item, parent: this);
         }
 
         private OneTimeComicPropertiesView GetOneTimeSortedProperties() {

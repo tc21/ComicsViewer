@@ -109,12 +109,16 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(MainViewModel appViewModel, ComicView comics) {
+        public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(
+            MainViewModel appViewModel, 
+            ComicView comics, 
+            ComicItemGridViewModelProperties? properties
+        ) {
             if (appViewModel.ActiveNavigationTag != NavigationTag.Detail) {
                 throw new ProgrammerError($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
             }
 
-            return new ComicWorkItemGridViewModel(appViewModel, comics);
+            return new ComicWorkItemGridViewModel(appViewModel, comics, properties);
         }
 
         #region Filtering and grouping

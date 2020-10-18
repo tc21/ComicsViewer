@@ -110,6 +110,20 @@
                     </uc:ComicsMenuFlyoutItem.KeyboardAccelerators>
                 </uc:ComicsMenuFlyoutItem>
                 <MenuFlyoutSeparator/>
+
+                <MenuFlyoutSubItem Text="Playlist">
+                    <MenuFlyoutSubItem.Icon>
+                        <FontIcon Glyph="&#xE8FD;"/>
+                    </MenuFlyoutSubItem.Icon>
+
+                    <uc:ComicsMenuFlyoutItem FontIcon="&#xECC8;"
+                                             Command="{x:Bind ContextMenuCommands.AddToPlaylistCommand}"/>
+                    <uc:ComicsMenuFlyoutItem FontIcon="&#xECC9;"
+                                             Command="{x:Bind ContextMenuCommands.RemoveFromSelectedPlaylistCommand}"/>
+                    <uc:ComicsMenuFlyoutItem FontIcon="&#xE74D;"
+                                             Command="{x:Bind ContextMenuCommands.DeletePlaylistCommand}"/>
+                </MenuFlyoutSubItem>
+                
                 <MenuFlyoutSubItem Text="Thumbnails">
                     <MenuFlyoutSubItem.Icon>
                         <FontIcon Glyph="&#xE91B;"/>

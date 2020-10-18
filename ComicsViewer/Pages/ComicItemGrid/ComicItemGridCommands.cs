@@ -19,6 +19,7 @@ namespace ComicsViewer.Pages {
     using ComicItemGridCommand = ComicItemGridCommand<ComicItemGridViewModel, ComicItem>;
     using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
     using ComicNavigationItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
+    using ComicPlaylistItemGridCommand = ComicItemGridCommand<ComicPlaylistItemGridViewModel, ComicNavigationItem>;
 
     public partial class ComicItemGrid {
         /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 
@@ -159,6 +160,7 @@ namespace ComicsViewer.Pages {
         public ComicItemGridCommand RemoveItemCommand { get; }
         public ComicItemGridCommand MoveFilesCommand { get; }
         public ComicItemGridCommand EditItemCommand { get; }
+        public ComicItemGridCommand AddToPlaylistCommand { get; }
 
         public ComicWorkItemGridCommand OpenItemsCommand { get; }
         public ComicWorkItemGridCommand ShowInExplorerCommand { get; }
@@ -166,8 +168,11 @@ namespace ComicsViewer.Pages {
         public ComicWorkItemGridCommand RedefineThumbnailCommand { get; }
         public ComicWorkItemGridCommand LoveComicsCommand { get; }
         public ComicWorkItemGridCommand SearchAuthorCommand { get; }
+        public ComicWorkItemGridCommand RemoveFromSelectedPlaylistCommand { get; }
 
         public ComicNavigationItemGridCommand NavigateIntoCommand { get; }
+
+        public ComicPlaylistItemGridCommand DeletePlaylistCommand { get; }
 
         private static string DescribeItem(string action, int count)
             => count == 1 ? action : $"{action} {count} items";
@@ -275,6 +280,26 @@ namespace ComicsViewer.Pages {
                 execute: e => e.ViewModel.NavigateIntoItem(e.Items.First()),
                 canExecute: e => e.Count == 1
             );
+
+            // Removes a playlist
+            this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
+                name: "Delete playlist",
+                execute: e => throw new NotImplementedException()
+            );
+
+            // Popup dialog to add to playlist
+            this.AddToPlaylistCommand = new ComicItemGridCommand(parent,
+                name: "Add to playlist...",
+                execute: e => throw new NotImplementedException()
+            );
+
+            // Removes an item from the currently active playlist
+            this.RemoveFromSelectedPlaylistCommand = new ComicWorkItemGridCommand(parent,
+                getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'", 
+                execute: e => throw new NotImplementedException(),
+                canExecute: e => e.ViewModel.Properties.ParentType == NavigationTag.Playlist
+            );
+
         }
     }
 }
