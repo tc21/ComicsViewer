@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ComicsLibrary.SQL.Sqlite;
+using ComicsLibrary.Collections;
 
 #nullable enable
 
@@ -11,6 +12,8 @@ namespace ComicsLibrary.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
+        private const string table_playlists = "playlist";
+        private const string table_playlist_items = "playlist_items";
 
         private const string key_path = "folder";
         private const string key_unique_id = "unique_name";
@@ -22,10 +25,12 @@ namespace ComicsLibrary.SQL {
         private const string key_loved = "loved";
         private const string key_active = "active";
         private const string key_date_added = "date_added";
+        private const string key_playlist_name = "name";
 
         private const string key_tag_name = "name";
         private const string key_xref_comic_id = "comicid";
         private const string key_xref_tag_id = "tagid";
+        private const string key_xref_playlist_id = "playlistid";
 
         private readonly SqliteDatabaseConnection connection;
 
@@ -303,5 +308,53 @@ namespace ComicsLibrary.SQL {
 
             return this.connection.ExecuteReaderAsync(query, GetComicQueryColumnNames, parameters);
         }
+
+        #region Playlists
+
+        private static readonly string GetAllPlaylistsQuery = @$"
+            SELECT
+                {table_playlists}.{key_playlist_name},
+                {table_comics}.{key_unique_id}
+            FROM 
+                {table_playlists}
+            INNER JOIN
+                {table_playlist_items} ON {table_playlist_items}.{key_xref_playlist_id} = {table_playlists}.rowid
+            INNER JOIN
+                {table_comics} ON {table_playlist_items}.{key_xref_comic_id} = {table_comics}.rowid
+        "; 
+        
+        private static readonly List<string> GetPlaylistQueryColumnNames = new List<string> {
+            key_playlist_name, key_unique_id
+        };
+
+        public async Task<List<Playlist>> GetAllPlaylistsAsync(ComicList comics) {
+            var reader = await this.connection.ExecuteReaderAsync(GetAllPlaylistsQuery, GetPlaylistQueryColumnNames);
+            var playlists = new Dictionary<string, List<string>>();
+
+            while (await reader.ReadAsync()) {
+                var playlistName = reader.GetString(key_playlist_name);
+                var comicUniqueName = reader.GetString(key_unique_id);
+
+                if (!playlists.ContainsKey(playlistName)) {
+                    playlists[playlistName] = new List<string>();
+                }
+
+                playlists[playlistName].Add(comicUniqueName);
+            }
+
+            var actualPlaylists =
+                from pair in playlists
+                select new Playlist(
+                    name: pair.Key,
+                    comics:
+                        from id in pair.Value
+                        where comics.Contains(id)
+                        select comics.GetStored(id)
+                );
+
+            return actualPlaylists.ToList();
+        }
+
+        #endregion
     }
 }

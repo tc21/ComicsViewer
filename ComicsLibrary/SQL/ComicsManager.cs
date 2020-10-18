@@ -1,4 +1,5 @@
-﻿using ComicsLibrary.SQL.Migrations;
+﻿using ComicsLibrary.Collections;
+using ComicsLibrary.SQL.Migrations;
 using ComicsLibrary.SQL.Sqlite;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,6 +18,10 @@ namespace ComicsLibrary.SQL {
 
         private Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
             return this.Connection.TryGetComicMetadataAsync(comic);
+        }
+
+        public Task<List<Playlist>> GetPlaylistsAsync(ComicList comics) {
+            return this.Connection.GetAllPlaylistsAsync(comics);
         }
 
         /* called when a profile is first loaded */
