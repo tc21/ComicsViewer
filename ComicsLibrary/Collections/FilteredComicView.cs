@@ -18,16 +18,17 @@ namespace ComicsLibrary.Collections {
             this.filter = filter;
         }
 
-        public override bool Contains(Comic comic) => this.filter(comic) && this.filteredFrom.Contains(comic);
+        public override bool Contains(string uniqueIdentifier)
+            => this.filteredFrom.Contains(uniqueIdentifier) && this.filter(this.filteredFrom.GetStored(uniqueIdentifier));
         public override int Count() => this.filteredFrom.Where(this.filter).Count();
         public override IEnumerator<Comic> GetEnumerator() => this.filteredFrom.Where(this.filter).GetEnumerator();
 
-        public override Comic GetStored(Comic comic) {
-            if (!this.filter(comic)) {
+        public override Comic GetStored(string uniqueIdentifier) {
+            if (!this.Contains(uniqueIdentifier)) {
                 throw new ArgumentException("comic doesn't exist in this collection");
             }
 
-            return this.filteredFrom.GetStored(comic);
+            return this.filteredFrom.GetStored(uniqueIdentifier);
         }
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {

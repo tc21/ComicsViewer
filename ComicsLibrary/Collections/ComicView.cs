@@ -15,12 +15,17 @@ namespace ComicsLibrary.Collections {
     public abstract class ComicView : IEnumerable<Comic> {
         public static readonly ComicView Empty = new ComicList();
 
-        public abstract int Count();
         // comics should be considered equivalent if their UniqueIdentifier is the same.
-        public abstract bool Contains(Comic comic);
-        public abstract Comic GetStored(Comic comic);
+        public bool Contains(Comic comic) => this.Contains(comic.UniqueIdentifier);
+        public Comic GetStored(Comic comic) => this.GetStored(comic.UniqueIdentifier);
+        public abstract bool Contains(string uniqueIdentifier);
+        public abstract Comic GetStored(string uniqueIdentifier);
         public abstract IEnumerator<Comic> GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        public virtual int Count() {
+            return ((IEnumerable<Comic>)this).Count();
+        }
 
         private protected ComicView(ComicView? trackChangesFrom = null) {
             if (trackChangesFrom != null) {

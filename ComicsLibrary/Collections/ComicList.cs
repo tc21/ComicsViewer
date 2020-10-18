@@ -10,7 +10,7 @@ namespace ComicsLibrary.Collections {
         private readonly Dictionary<string, Comic> comics = new Dictionary<string, Comic>();
 
         public ComicList() : base(null) { }
-        
+
         public ComicList(IEnumerable<Comic> comics) : base(null) {
             this.AddComics(comics);
         }
@@ -46,8 +46,7 @@ namespace ComicsLibrary.Collections {
 
         public void Add(Comic comic) => this.Add(new[] { comic });
 
-        // commented out because it's not used: reenable when needed
-        // public void Remove(Comic comic) => this.Remove(new[] { comic });
+        public void Remove(Comic comic) => this.Remove(new[] { comic });
 
         // you should pass in the new list of comics
         public void Modify(IEnumerable<Comic> comics) {
@@ -66,12 +65,9 @@ namespace ComicsLibrary.Collections {
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.Refresh));
         }
 
-        public override bool Contains(Comic comic) => this.comics.ContainsKey(comic.UniqueIdentifier);
-        public override Comic GetStored(Comic comic) => this.comics[comic.UniqueIdentifier];
+        public override bool Contains(string uniqueIdentifier) => this.comics.ContainsKey(uniqueIdentifier);
+        public override Comic GetStored(string uniqueIdentifier) => this.comics[uniqueIdentifier];
         public override int Count() => this.comics.Count;
         public override IEnumerator<Comic> GetEnumerator() => this.comics.Values.GetEnumerator();
-
-        public bool Contains(string uniqueIdentifier) => this.comics.ContainsKey(uniqueIdentifier);
-        public Comic GetStored(string uniqueIdentifier) => this.comics[uniqueIdentifier];
     }
 }

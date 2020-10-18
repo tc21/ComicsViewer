@@ -2,6 +2,7 @@
 using ComicsViewer.Common;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ComicsLibrary.Sorting {
     public enum ComicPropertySortSelector {
@@ -13,18 +14,18 @@ namespace ComicsLibrary.Sorting {
     }
 
     public static class ComicPropertyComparers {
-        private class NameComparer : IComparer<ComicProperty> {
-            public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);
+        private class NameComparer : IComparer<IComicProperty> {
+            public int Compare(IComicProperty x, IComicProperty y) => CompareProperty(x, y);
 
-            public static int CompareProperty(ComicProperty x, ComicProperty y) {
+            public static int CompareProperty(IComicProperty x, IComicProperty y) {
                 return string.Compare(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant(), StringComparison.Ordinal);
             }
         }
 
-        private class ItemCountComparer : IComparer<ComicProperty> {
-            public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);
+        private class ItemCountComparer : IComparer<IComicProperty> {
+            public int Compare(IComicProperty x, IComicProperty y) => CompareProperty(x, y);
 
-            private static int CompareProperty(ComicProperty x, ComicProperty y) {
+            private static int CompareProperty(IComicProperty x, IComicProperty y) {
                 var result = -x.Comics.Count().CompareTo(y.Comics.Count());
                 if (result != 0) {
                     return result;
@@ -34,7 +35,7 @@ namespace ComicsLibrary.Sorting {
             }
         }
 
-        public static IComparer<ComicProperty> Make(ComicPropertySortSelector sortSelector) {
+        public static IComparer<IComicProperty> Make(ComicPropertySortSelector sortSelector) {
             return sortSelector switch {
                 ComicPropertySortSelector.Name => new NameComparer(),
                 ComicPropertySortSelector.ItemCount => new ItemCountComparer(),

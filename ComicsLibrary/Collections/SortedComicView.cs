@@ -112,8 +112,8 @@ namespace ComicsLibrary.Collections {
             }
         }
 
-        public override bool Contains(Comic comic) => this.comicAccessor.ContainsKey(comic.UniqueIdentifier);
-        public override Comic GetStored(Comic comic) => this.comicAccessor[comic.UniqueIdentifier];
+        public override bool Contains(string uniqueIdentifier) => this.comicAccessor.ContainsKey(uniqueIdentifier);
+        public override Comic GetStored(string uniqueIdentifier) => this.comicAccessor[uniqueIdentifier];
         public override int Count() => this.sortedComics.Count;
         public override IEnumerator<Comic> GetEnumerator() => this.sortedComics.GetEnumerator();
     }

@@ -8,12 +8,17 @@ using System.Linq;
 #nullable enable
 
 namespace ComicsLibrary.Collections {
-    public class ComicProperty {
+    public interface IComicProperty {
         public string Name { get; }
-        public ComicView Comics { get; }
+        public IEnumerable<Comic> Comics { get; }
+    }
+
+    public class ComicProperty : IComicProperty {
+        public string Name { get; }
+        public IEnumerable<Comic> Comics { get; }
 
         public ComicProperty(string name, IEnumerable<Comic> comics) {
-            this.Comics = new ComicList(comics);
+            this.Comics = comics.ToList();
             this.Name = name;
         }
     }
