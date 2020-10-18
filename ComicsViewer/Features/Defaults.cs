@@ -151,6 +151,7 @@ namespace ComicsViewer.Features {
                 [NavigationTag.Author.ToTagName()] = (int)ComicPropertySortSelector.Name,
                 [NavigationTag.Tags.ToTagName()] = (int)ComicPropertySortSelector.Name,
                 [NavigationTag.Category.ToTagName()] = (int)ComicPropertySortSelector.Name,
+                [NavigationTag.Playlist.ToTagName()] = (int)ComicPropertySortSelector.Name,
                 [NavigationTag.Detail.ToTagName()] =(int)ComicSortSelector.Author
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...

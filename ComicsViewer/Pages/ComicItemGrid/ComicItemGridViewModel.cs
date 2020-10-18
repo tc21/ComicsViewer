@@ -103,7 +103,7 @@ namespace ComicsViewer.ViewModels.Pages {
             if (appViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
                 return new ComicWorkItemGridViewModel(appViewModel, appViewModel.ComicView);
             } else {
-                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.ComicView);
+                return new ComicNavigationItemGridViewModel(appViewModel, appViewModel.ComicView, appViewModel.Playlists);
             }
         }
 

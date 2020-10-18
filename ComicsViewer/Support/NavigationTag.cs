@@ -8,6 +8,7 @@ namespace ComicsViewer.Support {
                 "authors" => NavigationTag.Author,
                 "categories" => NavigationTag.Category,
                 "tags" => NavigationTag.Tags,
+                "playlists" => NavigationTag.Playlist,
                 "default" => NavigationTag.Detail,
                 _ => throw new ProgrammerError("unhandled switch case")
             };
@@ -15,7 +16,7 @@ namespace ComicsViewer.Support {
     }
 
     public enum NavigationTag {
-        Comics, Author, Category, Tags, Detail
+        Comics, Author, Category, Tags, Detail, Playlist
     }
 
     public static class NavigationTag_ToTagName {
@@ -25,6 +26,7 @@ namespace ComicsViewer.Support {
                 NavigationTag.Author => "authors",
                 NavigationTag.Category => "categories",
                 NavigationTag.Tags => "tags",
+                NavigationTag.Playlist => "playlists",
                 NavigationTag.Detail => "default",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
@@ -37,6 +39,7 @@ namespace ComicsViewer.Support {
                 NavigationTag.Category => capitalized ? "Category" : "category",
                 NavigationTag.Tags => capitalized ? "Tag" : "tag",
                 NavigationTag.Detail => capitalized ? "Item" : "item",
+                NavigationTag.Playlist => capitalized ? "Playlist" : "playlist",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
         }

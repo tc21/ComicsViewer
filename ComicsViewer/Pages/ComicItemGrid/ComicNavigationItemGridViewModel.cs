@@ -1,7 +1,9 @@
-﻿using ComicsLibrary.Collections;
+﻿using ComicsLibrary;
+using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Support;
+using System.Collections.Generic;
 using System.Linq;
 
 #nullable enable
@@ -12,11 +14,13 @@ namespace ComicsViewer.ViewModels.Pages {
         private ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
 
         private readonly ComicView comics;
+        private readonly List<Playlist> playlists;
 
-        public ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
+        public ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics, List<Playlist> playlists)
             : base(appViewModel)
         {
             this.comics = comics;
+            this.playlists = playlists;
 
             // TODO implement events for ComicPropertiesView and replace this logic with more sophisticated logic.
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
@@ -49,10 +53,19 @@ namespace ComicsViewer.ViewModels.Pages {
                     NavigationTag.Author => comic => new[] { comic.Author },
                     NavigationTag.Category => comic => new[] { comic.Category },
                     NavigationTag.Tags => comic => comic.Tags,
+                    NavigationTag.Playlist => TempGetComicPlaylists,
                     _ => throw new ProgrammerError("unhandled switch case")
                 },
                 this.SelectedSortSelector
             );
+
+            IEnumerable<string> TempGetComicPlaylists(Comic comic) {
+                foreach (var playlist in this.playlists) {
+                    if (playlist.Comics.Contains(comic)) {
+                        yield return playlist.Name;
+                    }
+                }
+            }
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {

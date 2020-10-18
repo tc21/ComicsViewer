@@ -1,5 +1,6 @@
 ﻿using ComicsViewer.Common;
 using ComicsViewer.Support;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 NavigationTag.Tags => this.parent.MainViewModel.UpdateTagNameAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Category => this.parent.MainViewModel.RenameCategoryAsync(this.ItemTitle, newItemTitle),
+                NavigationTag.Playlist => throw new NotImplementedException(),
                 _ => throw new ProgrammerError("unhandled switch case"),
             };
         }
@@ -65,6 +67,10 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     return ValidateResult.Ok();
+
+                case NavigationTag.Playlist:
+                    // TODO
+                    return "Renaming playlists is not yet supported";
 
                 default:
                     throw new ProgrammerError("Editing properties other than tags not yet supported");

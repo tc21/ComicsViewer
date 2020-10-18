@@ -12,7 +12,7 @@ namespace ComicsLibrary.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
-        private const string table_playlists = "playlist";
+        private const string table_playlists = "playlists";
         private const string table_playlist_items = "playlist_items";
 
         private const string key_path = "folder";

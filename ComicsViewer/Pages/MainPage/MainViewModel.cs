@@ -26,7 +26,7 @@ namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         internal readonly MainComicList Comics = new MainComicList();
         public ComicView ComicView => this.Comics.Filtered();
-        private List<Playlist> Playlists = new List<Playlist>();
+        public List<Playlist> Playlists { get; } = new List<Playlist>();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -101,7 +101,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
             this.Comics.Refresh(await manager.GetAllComicsAsync());
-            this.Playlists = await manager.GetPlaylistsAsync(this.Comics);
+
+            this.Playlists.Clear();
+            this.Playlists.AddRange(await manager.GetPlaylistsAsync(this.Comics));
 
             this.Comics.Filter.Clear();
 

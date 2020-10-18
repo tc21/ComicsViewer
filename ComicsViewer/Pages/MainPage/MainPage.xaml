@@ -70,6 +70,7 @@
                 <muxc:NavigationViewItem Tag="categories" Content="Categories" />
                 <muxc:NavigationViewItem Tag="authors" Content="Authors" />
                 <muxc:NavigationViewItem Tag="tags" Content="Tags" />
+                <muxc:NavigationViewItem Tag="playlists" Content="Playlists" />
             </muxc:NavigationView.MenuItems>
 
             <muxc:NavigationView.AutoSuggestBox>
