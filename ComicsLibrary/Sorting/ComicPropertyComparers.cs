@@ -25,7 +25,7 @@ namespace ComicsLibrary.Sorting {
             public int Compare(ComicProperty x, ComicProperty y) => CompareProperty(x, y);
 
             private static int CompareProperty(ComicProperty x, ComicProperty y) {
-                var result = -x.Comics.Count.CompareTo(y.Comics.Count);
+                var result = -x.Comics.Count().CompareTo(y.Comics.Count());
                 if (result != 0) {
                     return result;
                 }

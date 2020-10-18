@@ -11,25 +11,27 @@ using System.Linq;
 namespace ComicsViewer.ViewModels.Pages {
     public class ComicNavigationItemGridViewModel : ComicItemGridViewModel {
         public override string[] SortSelectors => SortSelectorNames.ComicPropertySortSelectorNames;
-        private ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
+        protected ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
 
         private readonly ComicView comics;
-        private readonly List<Playlist> playlists;
 
-        public ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics, List<Playlist> playlists)
+        protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
             : base(appViewModel)
         {
             this.comics = comics;
-            this.playlists = playlists;
 
             // TODO implement events for ComicPropertiesView and replace this logic with more sophisticated logic.
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
-
-            // Sorts and loads the actual comic items
-            this.RefreshComicItems();
         }
 
-        private void RefreshComicItems() {
+        public static ComicNavigationItemGridViewModel ForViewModel(MainViewModel mainViewModel, ComicView comics) {
+            var viewModel = new ComicNavigationItemGridViewModel(mainViewModel, comics);
+            // Sorts and loads the actual comic items
+            viewModel.RefreshComicItems();
+            return viewModel;
+        }
+
+        protected void RefreshComicItems() {
             this.SortOrderChanged();
         }
 
@@ -53,19 +55,10 @@ namespace ComicsViewer.ViewModels.Pages {
                     NavigationTag.Author => comic => new[] { comic.Author },
                     NavigationTag.Category => comic => new[] { comic.Category },
                     NavigationTag.Tags => comic => comic.Tags,
-                    NavigationTag.Playlist => TempGetComicPlaylists,
                     _ => throw new ProgrammerError("unhandled switch case")
                 },
                 this.SelectedSortSelector
             );
-
-            IEnumerable<string> TempGetComicPlaylists(Comic comic) {
-                foreach (var playlist in this.playlists) {
-                    if (playlist.Comics.Contains(comic)) {
-                        yield return playlist.Name;
-                    }
-                }
-            }
         }
 
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {

@@ -10,10 +10,10 @@ using System.Linq;
 namespace ComicsLibrary.Collections {
     public class ComicProperty {
         public string Name { get; }
-        public IReadOnlyList<Comic> Comics { get; }
+        public ComicView Comics { get; }
 
-        public ComicProperty(string name, IReadOnlyList<Comic> comics) {
-            this.Comics = comics;
+        public ComicProperty(string name, IEnumerable<Comic> comics) {
+            this.Comics = new ComicList(comics);
             this.Name = name;
         }
     }

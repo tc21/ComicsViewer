@@ -1,16 +1,10 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
-using System.Linq;
+using ComicsLibrary.Collections;
 
 namespace ComicsLibrary {
-    public class Playlist {
-        public string Name { get; }
-        public List<Comic> Comics { get; }
-
-        public Playlist(string name, IEnumerable<Comic> comics) {
-            this.Name = name;
-            this.Comics = comics.ToList();
-        }
+    public class Playlist : ComicProperty {
+        public Playlist(string name, IEnumerable<Comic> comics) : base(name, comics) { }
     }
 }

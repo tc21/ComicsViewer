@@ -140,6 +140,7 @@
     <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridCommands.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicNavigationItemGridViewModel.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicPlaylistItemGridViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicWorkItemGridViewModel.cs" />
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\CommentedType.cs" />

@@ -240,7 +240,7 @@ namespace ComicsViewer.Pages {
                     break;
                 case NavigationMode.Back: {
                     var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateOut");
-                    if (animation != null) {
+                    if (animation != null && this.VisibleComicsGrid.SelectedItem != null) {
                         _ = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation, 
                             this.VisibleComicsGrid.SelectedItem, "ComicItemThumbnailContainer");
                     }
