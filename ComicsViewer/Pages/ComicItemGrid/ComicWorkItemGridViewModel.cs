@@ -29,7 +29,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             // Track changes if this is a playlist
             if (this.Properties.PlaylistName is { } name) {
-                var playlist = this.MainViewModel.Playlists.Find(playlist => playlist.Name == name);
+                var playlist = this.MainViewModel.Playlists[name];
                 playlist.ComicsChanged += this.Comics_ComicsChanged;
             }
 

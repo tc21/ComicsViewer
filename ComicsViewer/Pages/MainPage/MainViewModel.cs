@@ -26,7 +26,7 @@ namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         internal readonly MainComicList Comics = new MainComicList();
         public ComicView ComicView => this.Comics.Filtered();
-        public List<Playlist> Playlists { get; } = new List<Playlist>();
+        public Dictionary<string, Playlist> Playlists { get; } = new Dictionary<string, Playlist>();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -103,7 +103,10 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Comics.Refresh(await manager.GetAllComicsAsync());
 
             this.Playlists.Clear();
-            this.Playlists.AddRange(await manager.GetPlaylistsAsync(this.Comics));
+
+            foreach (var playlist in await manager.GetPlaylistsAsync(this.Comics)) {
+                this.Playlists[playlist.Name] = playlist;
+            }
 
             this.Comics.Filter.Clear();
 
@@ -616,11 +619,37 @@ namespace ComicsViewer.ViewModels.Pages {
             await manager.AddOrUpdateComicsAsync(comics);
         }
 
+        public enum PlaylistChangeType {
+            Add, Remove
+        }
+
+        public delegate void PlaylistChangedHandler(MainViewModel source, PlaylistChangedArguments e);
+        public event PlaylistChangedHandler? PlaylistChanged;
+        public class PlaylistChangedArguments {
+            public PlaylistChangeType Type;
+            public Playlist Playlist { get; }
+
+            public PlaylistChangedArguments(Playlist playlist) {
+                this.Playlist = playlist;
+            }
+        }
+
         public void RemoveFromPlaylist(string playlistName, IEnumerable<Comic> comics) {
             // we allow the exception to happen if the playlist doesn't exist: this is considered a programmer error
-            var playlist = this.Playlists.Find(playlist => playlist.Name == playlistName);
+            var playlist = this.Playlists[playlistName];
 
             playlist.Remove(comics);
+        }
+
+        public void DeletePlaylists(IEnumerable<string> playlistNames) {
+            playlistNames = playlistNames.ToList();
+
+            foreach (var name in playlistNames) {
+                // an error will occur if name doesn't exist. This is a programmer error
+                var playlist = this.Playlists[name];
+                _ = this.Playlists.Remove(name);
+                this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(playlist));
+            }
         }
 
         public void NotifyThumbnailChanged(Comic comic) {

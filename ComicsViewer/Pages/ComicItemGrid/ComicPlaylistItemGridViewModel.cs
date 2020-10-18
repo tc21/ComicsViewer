@@ -9,18 +9,22 @@ using System.Linq;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class ComicPlaylistItemGridViewModel : ComicNavigationItemGridViewModel {
-        private readonly List<Playlist> playlists;
+        private Dictionary<string, Playlist> Playlists => this.MainViewModel.Playlists;
 
-        protected ComicPlaylistItemGridViewModel(MainViewModel appViewModel, List<Playlist> playlists) : base(appViewModel, ComicsInPlaylists(playlists)) {
-            this.playlists = playlists;
-
-            foreach (var playlist in this.playlists) {
+        protected ComicPlaylistItemGridViewModel(MainViewModel mainViewModel, List<Playlist> playlists) : base(mainViewModel, ComicsInPlaylists(playlists)) {
+            foreach (var playlist in this.Playlists.Values) {
                 playlist.ComicsChanged += this.Comics_ComicsChanged;
             }
+
+            mainViewModel.PlaylistChanged += this.MainViewModel_PlaylistChanged;
         }
 
-        public static ComicPlaylistItemGridViewModel ForViewModel(MainViewModel mainViewModel, List<Playlist> playlists) {
-            var viewModel = new ComicPlaylistItemGridViewModel(mainViewModel, playlists);
+        private void MainViewModel_PlaylistChanged(MainViewModel source, MainViewModel.PlaylistChangedArguments e) {
+            this.RefreshComicItems();
+        }
+
+        public static ComicPlaylistItemGridViewModel ForViewModel(MainViewModel mainViewModel, IEnumerable<Playlist> playlists) {
+            var viewModel = new ComicPlaylistItemGridViewModel(mainViewModel, playlists.ToList());
             // Sorts and loads the actual comic items
             viewModel.RefreshComicItems();
             return viewModel;
@@ -41,11 +45,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var items = sortedPlaylists.Select(playlist => new ComicNavigationItem(playlist.Name, playlist));
 
-            this.SetComicItems(items, this.playlists.Count);
+            this.SetComicItems(items, this.Playlists.Count);
         }
 
         private List<Playlist> GetSortedPlaylists() {
-            var copy = new List<Playlist>(this.playlists);
+            var copy = new List<Playlist>(this.Playlists.Values);
             copy.Sort(ComicPropertyComparers.Make(this.SelectedSortSelector));
             return copy;
         }

@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Common;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
@@ -283,8 +284,8 @@ namespace ComicsViewer.Pages {
 
             // Removes a playlist
             this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
-                name: "Delete playlist",
-                execute: e => throw new NotImplementedException()
+                getName: e =>  $"Delete {e.Count.PluralString("playlist", simple: true)}",
+                execute: e => e.MainViewModel.DeletePlaylists(e.Items.Select(item => item.Title))
             );
 
             // Popup dialog to add to playlist
