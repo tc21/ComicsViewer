@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
+using ComicsViewer.Common;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,6 +13,10 @@ namespace ComicsViewer.ViewModels.Pages {
 
         protected ComicPlaylistItemGridViewModel(MainViewModel appViewModel, List<Playlist> playlists) : base(appViewModel, ComicsInPlaylists(playlists)) {
             this.playlists = playlists;
+
+            foreach (var playlist in this.playlists) {
+                playlist.ComicsChanged += this.Comics_ComicsChanged;
+            }
         }
 
         public static ComicPlaylistItemGridViewModel ForViewModel(MainViewModel mainViewModel, List<Playlist> playlists) {
@@ -34,7 +39,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private protected override void SortOrderChanged() {
             var sortedPlaylists = this.GetSortedPlaylists();
 
-            var items = sortedPlaylists.Select(playlist => new ComicNavigationItem(playlist.Name, playlist.Comics));
+            var items = sortedPlaylists.Select(playlist => new ComicNavigationItem(playlist.Name, playlist));
 
             this.SetComicItems(items, this.playlists.Count);
         }

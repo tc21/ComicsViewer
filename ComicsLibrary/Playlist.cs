@@ -2,52 +2,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ComicsLibrary.Collections;
 
 namespace ComicsLibrary {
-    public class Playlist : ComicView, IComicProperty {
+    public class Playlist : FilteredComicView, IComicProperty {
         public string Name { get; }
+        public IEnumerable<Comic> Comics => this;
 
-        private readonly ComicView parent;
         private readonly HashSet<string> uniqueIds = new HashSet<string>();
 
-        public Playlist(ComicView parent, string name, IEnumerable<string> uniqueIds) : base(parent) {
-            this.parent = parent;
-            this.uniqueIds = new HashSet<string>(uniqueIds);
+        private Playlist(ComicView parent, string name, HashSet<string> uniqueIds) : base(parent, comic => uniqueIds.Contains(comic.UniqueIdentifier)) {
+            this.uniqueIds = uniqueIds;
             this.Name = name;
         }
 
-        public ComicView Comics => this.parent.Filtered(comic => this.uniqueIds.Contains(comic.UniqueIdentifier));
-
-        IEnumerable<Comic> IComicProperty.Comics => this.Comics;
-
-        public override int Count() {
-            return this.Comics.Count();
+        public static Playlist Make(ComicView parent, string name, IEnumerable<string> uniqueIds) {
+            return new Playlist(parent, name, new HashSet<string>(uniqueIds));
         }
 
-        public override IEnumerator<Comic> GetEnumerator() {
-            return this.Comics.GetEnumerator();
+        public void Add(IEnumerable<Comic> comics) {
+            comics = comics.ToList();
+
+            this.uniqueIds.UnionWith(comics.Select(comic => comic.UniqueIdentifier));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
         }
 
-        public override bool Contains(string uniqueIdentifier) {
-            if (!this.uniqueIds.Contains(uniqueIdentifier)) {
-                return false;
-            }
+        public void Remove(IEnumerable<Comic> comics) {
+            comics = comics.ToList();
 
-            if (!this.parent.Contains(uniqueIdentifier)) {
-                _ = this.uniqueIds.Remove(uniqueIdentifier);
-                return false;
-            }
-
-            return true;
-        }
-
-        public override Comic GetStored(string uniqueIdentifier) {
-            if (!this.Contains(uniqueIdentifier)) {
-                throw new ArgumentException("comic doesn't exist in this collection");
-            }
-
-            return this.parent.GetStored(uniqueIdentifier);
+            this.uniqueIds.ExceptWith(comics.Select(comic => comic.UniqueIdentifier));
+            this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
         }
     }
 }

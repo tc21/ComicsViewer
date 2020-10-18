@@ -602,7 +602,6 @@ namespace ComicsViewer.ViewModels.Pages {
             var removed = comics.Where(comic => this.Comics.Contains(comic)).ToList();
 
             this.Comics.Remove(removed);
-            this.NotifyPlaylistChanged(removed);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsAsync(removed);
@@ -612,37 +611,16 @@ namespace ComicsViewer.ViewModels.Pages {
             comics = comics.ToList();
 
             this.Comics.Modify(comics);
-            this.NotifyPlaylistChanged(comics);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);
         }
 
+        public void RemoveFromPlaylist(string playlistName, IEnumerable<Comic> comics) {
+            // we allow the exception to happen if the playlist doesn't exist: this is considered a programmer error
+            var playlist = this.Playlists.Find(playlist => playlist.Name == playlistName);
 
-        public delegate void PlaylistChangedHandler(MainViewModel source, PlaylistChangedArguments e);
-        public event PlaylistChangedHandler? PlaylistChanged;
-        public class PlaylistChangedArguments {
-            public Playlist Playlist { get; }
-
-            public PlaylistChangedArguments(Playlist playlist) {
-                this.Playlist = playlist;
-            }
-        }
-
-        private void NotifyPlaylistChanged(IEnumerable<Comic> changed) {
-            var changedPlaylists = new Dictionary<string, Playlist>();
-
-            foreach (var comic in changed) {
-                foreach (var playlist in this.Playlists) {
-                    if (playlist.Contains(comic)) {
-                        changedPlaylists[playlist.Name] = playlist;
-                    }
-                }
-            }
-
-            foreach (var playlist in changedPlaylists.Values) {
-                this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(playlist));
-            }
+            playlist.Remove(comics);
         }
 
         public void NotifyThumbnailChanged(Comic comic) {

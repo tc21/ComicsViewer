@@ -296,7 +296,7 @@ namespace ComicsViewer.Pages {
             // Removes an item from the currently active playlist
             this.RemoveFromSelectedPlaylistCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'", 
-                execute: e => throw new NotImplementedException(),
+                execute: e => e.MainViewModel.RemoveFromPlaylist(e.ViewModel.Properties.PlaylistName!, e.Items.Select(item => item.Comic)),
                 canExecute: e => e.ViewModel.Properties.ParentType == NavigationTag.Playlist
             );
 

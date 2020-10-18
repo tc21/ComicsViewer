@@ -344,7 +344,7 @@ namespace ComicsLibrary.SQL {
 
             var actualPlaylists =
                 from pair in playlists
-                select new Playlist(
+                select Playlist.Make(
                     parent: comics,
                     name: pair.Key,
                     uniqueIds: pair.Value.Where(comics.Contains)

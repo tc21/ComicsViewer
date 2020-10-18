@@ -61,7 +61,7 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
+        protected void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                 case ComicChangeType.Refresh:

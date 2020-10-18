@@ -4,9 +4,7 @@ using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,10 +27,15 @@ namespace ComicsViewer.ViewModels.Pages {
             this.comics = comics.Sorted(this.SelectedSortSelector);
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
 
+            // Track changes if this is a playlist
+            if (this.Properties.PlaylistName is { } name) {
+                var playlist = this.MainViewModel.Playlists.Find(playlist => playlist.Name == name);
+                playlist.ComicsChanged += this.Comics_ComicsChanged;
+            }
+
             // Sorts and loads the actual comic items
             this.RefreshComicItems();
         }
-
 
         /* We have an unfortunate discrepancy here between work and nav items, caused by how we implemented sorting:
          * You are supposed to call SortedComicView.Sort, which will then trigger events that call SetComicItems. So a
