@@ -19,5 +19,13 @@ namespace ComicsViewer.Common {
         ) {
             return new ProgrammerError($"{calledFrom} on {filePath}: Line {lineNumber}");
         }
+
+        public static ProgrammerError Unwrapped(
+            [CallerMemberName] string? propertyName = null,
+            [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int? lineNumber = null
+        ) {
+            return new ProgrammerError($"{propertyName} must not be null: on {filePath}: Line {lineNumber}");
+        }
     }
 }

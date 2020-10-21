@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 
@@ -542,6 +543,60 @@ namespace ComicsViewer.ViewModels.Pages {
                 var message = comics.Aggregate($"{errorMessage}", (message, comic) => message + "\n" + comic.UniqueIdentifier);
                 throw new IntendedBehaviorException(message, title);
             }
+        }
+
+        public Task StartMoveComicsToCategoryTaskAsync(IEnumerable<Comic> comics_, NamedPath category) {
+            var comics = comics_.ToList();
+
+            return this.StartUniqueTaskAsync(
+                "moveFiles",
+                $"Moving {comics.Count.PluralString("item")} to category '{category.Name}'...",
+                async (cc, p) => {
+                    var progress = 0;
+                    // We should probably try to catch FileNotFound and UnauthorizedAccess here
+                    _ = await StorageFolder.GetFolderFromPathAsync(category.Path);
+
+                    foreach (var comic in comics) {
+                        if (comic.Category != category.Name) {
+                            var originalAuthorPath = Path.GetDirectoryName(comic.Path);
+                            var targetPath = Path.Combine(category.Path, comic.Author, comic.Title);
+
+                            if (IO.FileOrDirectoryExists(targetPath)) {
+                                throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}' " +
+                                    $"because an item with the same name already exists at the destination.");
+                            }
+
+                            if (!IO.FileOrDirectoryExists(comic.Path)) {
+                                throw new IntendedBehaviorException($"Could not move item '{comic.DisplayTitle}': " +
+                                    $"the folder for this item could not be found. ({comic.Path})", "Item not found");
+                            }
+
+                            IO.MoveDirectory(comic.Path, targetPath);
+
+                            if (!IO.GetDirectoryContents(originalAuthorPath).Any()) {
+                                IO.RemoveDirectory(originalAuthorPath);
+                            }
+
+                            // Although we could modify comic.Path, comic.Category, and call into database update methods,
+                            // this is probably easier to maintain:
+                            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                                CoreDispatcherPriority.Normal,
+                                async () => {
+                                    var copy = comic.With(path: targetPath, category: category.Name);
+                                    await this.UpdateComicAsync(new[] { copy });
+                                }
+                            );
+                        }
+
+                        // Cancellation and progress reporting
+                        if (cc.IsCancellationRequested) {
+                            return;
+                        }
+
+                        p.Report(++progress);
+                    }
+                }, exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
+            );
         }
 
         #endregion

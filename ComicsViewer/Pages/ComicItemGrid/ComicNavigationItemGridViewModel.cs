@@ -1,9 +1,7 @@
-﻿using ComicsLibrary;
-using ComicsLibrary.Collections;
+﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Support;
-using System.Collections.Generic;
 using System.Linq;
 
 #nullable enable

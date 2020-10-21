@@ -1,5 +1,4 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
@@ -188,9 +187,24 @@ namespace ComicsViewer.Pages {
             /* Currently, the application is not able to handle moving files while changing its author or title. So the
              * only thing we can actually change is category. We are thus limiting the ability to move files to moving
              * between the already-defined categories. */
+            var arguments = ItemPickerDialogNavigationArguments.New(
+                properties: new ItemPickerDialogProperties(
+                    comboBoxHeader: "Category",
+                    action: "Move items",
+                    actionDescription: "Move selected items to the root folder of the following category:",
+                    warning: "Warning: this will move the folders containing the selected items to the root path of the chosen category. " +
+                             "There may not be an easy way to undo this operation."
+                ),
+                items: this.MainViewModel.Profile.RootPaths,
+                action: category => {
+                    var comics = items.SelectMany(item => item.ContainedComics()).ToList();
+                    _ = this.MainViewModel.StartMoveComicsToCategoryTaskAsync(comics, category);
+                }
+            );
+
             _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
-                typeof(MoveFilesDialogContent),
-                new MoveFilesDialogNavigationArguments(this.ViewModel, items.SelectMany(item => item.ContainedComics()).ToList())
+                typeof(ItemPickerDialogContent),
+                arguments
             );
         }
 

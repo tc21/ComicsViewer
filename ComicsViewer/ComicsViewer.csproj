@@ -147,8 +147,9 @@
     <Compile Include="Support\CommentedType.cs" />
     <Compile Include="Support\ExpectedExceptions.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
+    <Compile Include="Support\ISelectable.cs" />
     <Compile Include="Support\NamedPath.cs" />
-    <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogNavigationArguments.cs" />
+    <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />
     <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml.cs">
       <DependentUpon>ComicInfoFlyoutContent.xaml</DependentUpon>
@@ -173,8 +174,8 @@
     <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml.cs">
       <DependentUpon>FilterFlyoutContent.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogContent.xaml.cs">
-      <DependentUpon>MoveFilesDialogContent.xaml</DependentUpon>
+    <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogContent.xaml.cs">
+      <DependentUpon>ItemPickerDialogContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="Support\NavigationTag.cs" />
     <Compile Include="Support\StringConversions.cs" />
@@ -326,7 +327,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="PagedControlContents\MoveFilesDialogContent\MoveFilesDialogContent.xaml">
+    <Page Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
