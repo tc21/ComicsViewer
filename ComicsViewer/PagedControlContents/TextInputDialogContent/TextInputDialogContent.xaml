@@ -4,7 +4,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
-    x:Class="ComicsViewer.Pages.EditNavigationItemDialogContent"
+    x:Class="ComicsViewer.Pages.TextInputDialogContent"
     mc:Ignorable="d"
     d:RequestedTheme="Dark"
     Width="400"
@@ -15,8 +15,8 @@
     <StackPanel>
         <uc:EditItemTextBox x:Name="EditItemTitleTextBox" 
                             Margin="0 12 0 0"
-                            Header="Name"
-                            SaveButton="{x:Bind SaveChangesButton}" />
+                            Header="{x:Bind Properties.TextBoxHeader}"
+                            SaveButton="{x:Bind SubmitButton}" />
         
         <Grid Margin="0 12 0 0">
             <Grid.ColumnDefinitions>
@@ -26,11 +26,11 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="1" 
-                    x:Name="SaveChangesButton"
-                    Content="Save Changes" />
+                    x:Name="SubmitButton"
+                    Content="{x:Bind Properties.SubmitText}" />
             <Button Grid.Column="2" Margin="12 0 0 0" 
-                    Content="Discard Changes" 
-                    Click="DiscardChangesButton_Click" />
+                    Content="{x:Bind Properties.CancelText}" 
+                    Click="CancelButton_Click" />
         </Grid>
     </StackPanel>
 </Page>

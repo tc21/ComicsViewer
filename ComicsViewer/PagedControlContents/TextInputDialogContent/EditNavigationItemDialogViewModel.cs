@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
-    // really a RenameTagHelperClass for now...
     public class EditNavigationItemDialogViewModel {
-        public string ItemTitle { get; }
+        private string ItemTitle { get; }
 
         private NavigationTag NavigationTag => this.parent.NavigationTag;
         private readonly ComicNavigationItemGridViewModel parent;

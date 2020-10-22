@@ -133,11 +133,11 @@
     <Compile Include="Features\ExternalDescriptions.cs" />
     <Compile Include="Features\Filter.cs" />
     <Compile Include="Features\RootPaths.cs" />
-    <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogContent.xaml.cs">
-      <DependentUpon>EditNavigationItemDialogContent.xaml</DependentUpon>
+    <Compile Include="PagedControlContents\TextInputDialogContent\TextInputDialogContent.xaml.cs">
+      <DependentUpon>TextInputDialogContent.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogNavigationArguments.cs" />
-    <Compile Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogViewModel.cs" />
+    <Compile Include="PagedControlContents\TextInputDialogContent\TextInputDialogNavigationArguments.cs" />
+    <Compile Include="PagedControlContents\TextInputDialogContent\EditNavigationItemDialogViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicItemGridCommands.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicNavigationItemGridViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicPlaylistItemGridViewModel.cs" />
@@ -295,7 +295,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PagedControlContents\EditNavigationItemDialog\EditNavigationItemDialogContent.xaml">
+    <Page Include="PagedControlContents\TextInputDialogContent\TextInputDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

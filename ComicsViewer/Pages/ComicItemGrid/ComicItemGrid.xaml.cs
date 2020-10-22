@@ -177,9 +177,16 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError($"{nameof(this.ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
             }
 
+            var helper = new EditNavigationItemDialogViewModel(vm, item.Title);
+
             _ = await new PagedContentDialog { Title = $"{vm.NavigationTag.Describe(capitalized: true)}: {item.Title}" }.NavigateAndShowAsync(
-                typeof(EditNavigationItemDialogContent),
-                new EditNavigationItemDialogNavigationArguments(vm, item.Title)
+                typeof(TextInputDialogContent),
+                new TextInputDialogNavigationArguments(
+                    properties: TextInputDialogProperties.ForSavingChanges("Name"),
+                    initialValue: item.Title,
+                    action: helper.SaveAsync,
+                    validate: helper.GetItemTitleInvalidReason
+                )
             );
         }
 
