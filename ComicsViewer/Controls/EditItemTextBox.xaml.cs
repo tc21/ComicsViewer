@@ -19,7 +19,7 @@ namespace ComicsViewer.Controls {
 
         private void Reset() {
             this.IsEditing = false;
-            this.IsContentModified = false;
+            this.IsContentModified = this.canSubmitWhenReset;
             this.IsContentValid = true;
             this.ErrorText = null;
             this.TextBox.Text = this.GetText();
@@ -38,10 +38,18 @@ namespace ComicsViewer.Controls {
             this.IsEnabled = true;
         }
 
-        public void RegisterHandlers(Func<string> get, Func<string, Task> saveAsync, Func<string, ValidateResult>? validate = null) {
+        private bool canSubmitWhenReset;
+
+        public void RegisterHandlers(
+            Func<string> get, 
+            Func<string, Task> saveAsync, 
+            Func<string, ValidateResult>? validate = null,
+            bool canAlreadySubmit = false
+        ) {
             this.GetItemValue = get;
             this.SaveItemValueAsync = saveAsync;
             this.ValidateWithReason = validate;
+            this.canSubmitWhenReset = canAlreadySubmit;
         }
 
         private string GetText() {

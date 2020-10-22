@@ -184,7 +184,7 @@ namespace ComicsViewer.Pages {
                 new TextInputDialogNavigationArguments(
                     properties: TextInputDialogProperties.ForSavingChanges("Name"),
                     initialValue: item.Title,
-                    action: helper.SaveAsync,
+                    asyncAction: helper.SaveAsync,
                     validate: helper.GetItemTitleInvalidReason
                 )
             );
@@ -213,6 +213,37 @@ namespace ComicsViewer.Pages {
                 typeof(ItemPickerDialogContent),
                 arguments
             );
+        }
+
+        public async Task ShowCreatePlaylistDialogAsync() {
+            var arguments = new TextInputDialogNavigationArguments(
+                properties: TextInputDialogProperties.ForNewItem("Playlist name"),
+                initialValue: GetProposedPlaylistName(),
+                asyncAction: name => this.MainViewModel.CreatePlaylistAsync(name),
+                validate: ValidatePlaylistName
+            );
+
+            _ = await new PagedContentDialog { Title = $"Create playlist" }.NavigateAndShowAsync(typeof(TextInputDialogContent), arguments);
+
+            ValidateResult ValidatePlaylistName(string name) {
+                if (this.MainViewModel.Playlists.ContainsKey(name)) {
+                    return "A playlist with this name already exists.";
+                }
+
+                return ValidateResult.Ok();
+            }
+
+            string GetProposedPlaylistName() {
+                return GetProposedPlaylistNames().Where(name => !this.MainViewModel.Playlists.ContainsKey(name)).First();
+            }
+
+            static IEnumerable<string> GetProposedPlaylistNames() {
+                yield return "New Playlist";
+
+                for (var i = 1; /* forever */; i++) {
+                    yield return $"New Playlist {i}";
+                }
+            }
         }
 
         #endregion

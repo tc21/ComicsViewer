@@ -286,28 +286,13 @@ namespace ComicsViewer.Pages {
             // Creates a playlist
             this.CreatePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
                 name: $"Create playlist...",
-                execute: e => {
-                    foreach (var proposedName in GetProposedPlaylistNames()) {
-                        if (!e.MainViewModel.Playlists.ContainsKey(proposedName)) {
-                            e.MainViewModel.CreatePlaylist(proposedName);
-                            break;
-                        }
-                    }
-
-                    static IEnumerable<string> GetProposedPlaylistNames() {
-                        yield return "New Playlist";
-
-                        for (var i = 1; /* forever */; i++) {
-                            yield return $"New Playlist {i}";
-                        }
-                    }
-                }
+                execute: async e => await e.Grid.ShowCreatePlaylistDialogAsync()
             );
 
             // Removes a playlist
             this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
                 getName: e => $"Delete {e.Count.PluralString("playlist", simple: true)}",
-                execute: e => e.MainViewModel.DeletePlaylists(e.Items.Select(item => item.Title))
+                execute: async e => await e.MainViewModel.DeletePlaylistsAsync(e.Items.Select(item => item.Title))
             );
 
             // Popup dialog to add to playlist
@@ -319,7 +304,7 @@ namespace ComicsViewer.Pages {
             // Removes an item from the currently active playlist
             this.RemoveFromSelectedPlaylistCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'", 
-                execute: e => e.MainViewModel.RemoveFromPlaylist(e.ViewModel.Properties.PlaylistName!, e.Items.Select(item => item.Comic)),
+                execute: async e => await e.MainViewModel.RemoveFromPlaylistAsync(e.ViewModel.Properties.PlaylistName!, e.Items.Select(item => item.Comic)),
                 canExecute: e => e.ViewModel.Properties.ParentType == NavigationTag.Playlist
             );
 

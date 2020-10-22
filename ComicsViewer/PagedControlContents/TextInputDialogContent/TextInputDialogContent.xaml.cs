@@ -1,5 +1,6 @@
 ﻿using ComicsViewer.Common;
 using ComicsViewer.Controls;
+using ComicsViewer.Support;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Navigation;
 
@@ -36,11 +37,22 @@ namespace ComicsViewer.Pages {
             this.EditItemTitleTextBox.RegisterHandlers(
                 get: () => args.InitialValue,
                 saveAsync: async value => {
+                    if (args.Properties.StripWhitespace) {
+                        value = value.Trim();
+                    }
+
                     await args.AsyncAction(value);
                     this.PagedControlAccessor.CloseContainer();
                 },
-                validate: args.Validate
-            );;
+                validate: value => {
+                    if (args.Properties.StripWhitespace) {
+                        value = value.Trim();
+                    }
+
+                    return args.Validate?.Invoke(value) ?? ValidateResult.Ok();
+                },
+                canAlreadySubmit: args.Properties.CanInitiallySubmit
+            );
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) {

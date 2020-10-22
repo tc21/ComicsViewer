@@ -14,12 +14,12 @@ namespace ComicsViewer.Pages {
         public TextInputDialogNavigationArguments(
             TextInputDialogProperties properties, 
             string initialValue, 
-            Func<string, Task> action, 
+            Func<string, Task> asyncAction, 
             Func<string, ValidateResult>? validate = null
         ) {
             this.Properties = properties;
             this.InitialValue = initialValue;
-            this.AsyncAction = action;
+            this.AsyncAction = asyncAction;
             this.Validate = validate;
         }
     }
@@ -29,6 +29,9 @@ namespace ComicsViewer.Pages {
         public string SubmitText { get; }
         public string CancelText { get; }
 
+        public bool StripWhitespace { get; set; } = true;
+        public bool CanInitiallySubmit { get; set; } = true;
+
         private TextInputDialogProperties(string textBoxHeader, string submitText, string cancelText) {
             this.TextBoxHeader = textBoxHeader;
             this.SubmitText = submitText;
@@ -36,7 +39,11 @@ namespace ComicsViewer.Pages {
         }
 
         public static TextInputDialogProperties ForSavingChanges(string propertyName) {
-            return new TextInputDialogProperties(propertyName, "Save changes", "Discard changes");
+            return new TextInputDialogProperties(propertyName, "Save changes", "Discard changes") {  CanInitiallySubmit = false };
+        }
+
+        public static TextInputDialogProperties ForNewItem(string propertyName) {
+            return new TextInputDialogProperties(propertyName, "Create", "Cancel");
         }
     }
 }
