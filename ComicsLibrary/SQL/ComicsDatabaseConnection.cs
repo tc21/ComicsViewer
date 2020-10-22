@@ -9,6 +9,7 @@ using ComicsLibrary.Collections;
 
 namespace ComicsLibrary.SQL {
     public class ComicsDatabaseConnection {
+        // TODO rowid can (might?, check for sure) change when we delete stuff.
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
@@ -352,6 +353,89 @@ namespace ComicsLibrary.SQL {
                 );
 
             return actualPlaylists.ToList();
+        }
+
+        public async Task<bool> RemovePlaylistAsync(string name) {
+            if (!(await this.TryGetPlaylistRowidAsync(name) is { } playlistid)) {
+                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            }
+
+            var rowsModified = await this.connection.ExecuteNonQueryAsync(
+                $"DELETE FROM {table_playlists} WHERE rowid = {playlistid}"
+            );
+
+            if (rowsModified != 1) {
+                return false;
+            }
+
+            _ = await this.connection.ExecuteNonQueryAsync(
+                $"DELETE FROM {table_playlist_items} WHERE {key_xref_playlist_id} = {playlistid}"
+            );
+
+            return true;
+        }
+
+        public async Task<bool> AddPlaylistAsync(string name) {
+            var rowid = await this.connection.ExecuteInsertAsync(table_playlists, new Dictionary<string, object> {
+                [key_playlist_name] = name
+            });
+
+            return rowid != null;
+        }
+
+        public async Task<bool> RenamePlaylistAsync(string oldName, string newName) {
+            var rowsModified = await this.connection.ExecuteNonQueryAsync(
+                $"UPDATE {table_playlists} SET {key_playlist_name} = @newName WHERE {key_playlist_name} = @oldName",
+                new Dictionary<string, object> {
+                    ["@oldName"] = oldName,
+                    ["@newName"] = newName
+                }
+            );
+
+            return rowsModified == 1;
+        }
+
+        private async Task<int?> TryGetPlaylistRowidAsync(string name) {
+            var constraints = new Dictionary<string, object> { [key_playlist_name] = name };
+            var rowids = await this.GetRowidsAsync(table_playlists, constraints);
+
+            return rowids.Count == 1
+                ? rowids[0]
+                : (int?)null;
+        }
+
+        public async Task<bool> AssociateComicWithPlaylistAsync(string playlist, Comic comic) {
+            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            }
+
+            if (!(await this.TryGetPlaylistRowidAsync(playlist) is { } playlistid)) {
+                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            }
+
+            var rowid = await this.connection.ExecuteInsertAsync(table_playlist_items, new Dictionary<string, object> {
+                [key_xref_playlist_id] = playlistid,
+                [key_xref_comic_id] = comicid
+            });
+
+            return rowid != null;
+        }
+
+        public async Task<bool> UnassociateComicWithPlaylistAsync(string playlist, Comic comic) {
+            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            }
+
+
+            if (!(await this.TryGetPlaylistRowidAsync(playlist) is { } playlistid)) {
+                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            }
+
+            var rowsModified = await this.connection.ExecuteNonQueryAsync(
+                $"DELETE FROM {table_playlist_items} WHERE {key_xref_playlist_id} = {playlistid} AND {key_xref_comic_id} = {comicid}"
+            );
+
+            return rowsModified == 1;
         }
 
         #endregion

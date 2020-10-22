@@ -730,12 +730,15 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task RemoveFromPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
             if (!(this.Playlists.ContainsKey(playlistName))) {
-                throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to add to playlist '{playlistName}')");
+                throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to remove from playlist '{playlistName}')");
             }
 
             var playlist = this.Playlists[playlistName];
 
             playlist.Remove(comics);
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.RemoveComicsFromPlaylistAsync(playlistName, comics);
         }
 
         public async Task AddToPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
@@ -746,20 +749,30 @@ namespace ComicsViewer.ViewModels.Pages {
             var playlist = this.Playlists[playlistName];
 
             playlist.Add(comics);
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AddComicsToPlaylistAsync(playlistName, comics);
         }
 
-        public async Task DeletePlaylistsAsync(IEnumerable<string> playlistNames) {
-            playlistNames = playlistNames.ToList();
-
-            foreach (var name in playlistNames) {
-                // an error will occur if name doesn't exist. This is a programmer error
-                var playlist = this.Playlists[name];
-                _ = this.Playlists.Remove(name);
-                this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Remove, playlist));
+        public async Task DeletePlaylistAsync(string playlistName, bool updateDatabase = true) {
+            if (!(this.Playlists.ContainsKey(playlistName))) {
+                throw new ProgrammerError($"Deleting a nonexistent playlist should not be possible (tried to delete playlist '{playlistName}')");
             }
+
+            var playlist = this.Playlists[playlistName];
+            _ = this.Playlists.Remove(playlistName);
+            this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Remove, playlist));
+
+            if (!updateDatabase) {
+                return;
+            }
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.RemovePlaylistAsync(playlist.Name);
+            
         }
 
-        public async Task CreatePlaylistAsync(string name, IEnumerable<Comic>? comics = null) {
+        public async Task CreatePlaylistAsync(string name, IEnumerable<Comic>? comics = null, bool updateDatabase = true) {
             if (this.Playlists.ContainsKey(name)) {
                 throw new ArgumentException($"playlist {name} already exists");
             }
@@ -768,6 +781,16 @@ namespace ComicsViewer.ViewModels.Pages {
             var playlist = Playlist.Make(this.Comics, name, uniqueIds);
             this.Playlists[name] = playlist;
             this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Add, playlist));
+
+            if (!updateDatabase) {
+                return;
+            }
+
+            var manager = await this.GetComicsManagerAsync();
+            await manager.AddPlaylistAsync(name);
+            if (comics != null) {
+                await manager.AddComicsToPlaylistAsync(name, comics);
+            }
         }
 
         public async Task RenamePlaylistAsync(string oldName, string newName) {
@@ -779,8 +802,10 @@ namespace ComicsViewer.ViewModels.Pages {
                 throw new ProgrammerError($"playlist {newName} already exists");
             }
 
-            await this.DeletePlaylistsAsync(new[] { oldName });
-            await this.CreatePlaylistAsync(newName, playlist.Comics);
+            await this.DeletePlaylistAsync(oldName, updateDatabase: false);
+            await this.CreatePlaylistAsync(newName, playlist.Comics, updateDatabase: false);
+            var manager = await this.GetComicsManagerAsync();
+            await manager.RenamePlaylistAsync(oldName, newName);
         }
 
         #endregion

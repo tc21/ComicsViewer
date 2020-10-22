@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.SQL.Migrations;
 using ComicsLibrary.SQL.Sqlite;
+using ComicsViewer.Common;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,10 +19,6 @@ namespace ComicsLibrary.SQL {
 
         private Task<ComicMetadata?> TryGetMetadataAsync(Comic comic) {
             return this.Connection.TryGetComicMetadataAsync(comic);
-        }
-
-        public Task<List<Playlist>> GetPlaylistsAsync(ComicList comics) {
-            return this.Connection.GetAllPlaylistsAsync(comics);
         }
 
         /* called when a profile is first loaded */
@@ -82,6 +79,54 @@ namespace ComicsLibrary.SQL {
             }
 
             return result;
+        }
+
+        public Task<List<Playlist>> GetPlaylistsAsync(ComicList comics) {
+            return this.Connection.GetAllPlaylistsAsync(comics);
+        }
+
+
+
+        public async Task RemovePlaylistAsync(string name) {
+            if (!await this.Connection.RemovePlaylistAsync(name)) {
+                throw new ProgrammerError($"Failed to remove playlist '{name}': this playlist doesn't exist.");
+            }
+        }
+
+        public async Task AddPlaylistAsync(string name) {
+            if (!await this.Connection.AddPlaylistAsync(name)) {
+                throw new ProgrammerError($"Failed to remove playlist '{name}': this playlist already exists.");
+            }
+        }
+
+        public async Task RenamePlaylistAsync(string oldName, string newName) {
+            if (!await this.Connection.RenamePlaylistAsync(oldName, newName)) {
+                throw new ProgrammerError($"Failed to rename playlist '{oldName}'.");
+            }
+        }
+
+        public async Task AddComicsToPlaylistAsync(string playlist, IEnumerable<Comic> comics) {
+            using var transaction = this.Connection.BeginTransaction();
+
+            foreach (var comic in comics) {
+                if (!await this.Connection.AssociateComicWithPlaylistAsync(playlist, comic)) {
+                    throw new ProgrammerError($"Failed to add item to playlist '{playlist}'.");
+                }
+            }
+
+            transaction.Commit();
+        }
+
+        public async Task RemoveComicsFromPlaylistAsync(string playlist, IEnumerable<Comic> comics) {
+            using var transaction = this.Connection.BeginTransaction();
+
+            foreach (var comic in comics) {
+                if (!await this.Connection.UnassociateComicWithPlaylistAsync(playlist, comic)) {
+                    throw new ProgrammerError($"Failed to remove item from playlist '{playlist}'.");
+                }
+            }
+
+            transaction.Commit();
         }
     }
 }

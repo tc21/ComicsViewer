@@ -292,7 +292,11 @@ namespace ComicsViewer.Pages {
             // Removes a playlist
             this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
                 getName: e => $"Delete {e.Count.PluralString("playlist", simple: true)}",
-                execute: async e => await e.MainViewModel.DeletePlaylistsAsync(e.Items.Select(item => item.Title))
+                execute: async e => {
+                    foreach (var item in e.Items) {
+                        await e.MainViewModel.DeletePlaylistAsync(item.Title);
+                    }
+                }
             );
 
             // Popup dialog to add to playlist
