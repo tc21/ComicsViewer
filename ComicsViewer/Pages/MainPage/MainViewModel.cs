@@ -729,10 +729,23 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RemoveFromPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
-            // we allow the exception to happen if the playlist doesn't exist: this is considered a programmer error
+            if (!(this.Playlists.ContainsKey(playlistName))) {
+                throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to add to playlist '{playlistName}')");
+            }
+
             var playlist = this.Playlists[playlistName];
 
             playlist.Remove(comics);
+        }
+
+        public async Task AddToPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
+            if (!(this.Playlists.ContainsKey(playlistName))) {
+                throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to add to playlist '{playlistName}')");
+            }
+
+            var playlist = this.Playlists[playlistName];
+
+            playlist.Add(comics);
         }
 
         public async Task DeletePlaylistsAsync(IEnumerable<string> playlistNames) {

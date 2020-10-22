@@ -246,6 +246,21 @@ namespace ComicsViewer.Pages {
             }
         }
 
+        public async Task ShowAddItemsToPlaylistDialogAsync(IEnumerable<ComicItem> items) {
+            var arguments = ItemPickerDialogNavigationArguments.New(
+                properties: new ItemPickerDialogProperties(
+                    comboBoxHeader: "Playlist",
+                    action: "Add to playlist",
+                    actionDescription: "Select a playlist to add the selected items to:",
+                    warning: "Note: the same item will only be added to the same playlist once."
+                ),
+                items: this.MainViewModel.Playlists.Keys,
+                action: async selected => await this.MainViewModel.AddToPlaylistAsync(selected, items.SelectMany(item => item.ContainedComics()))
+            );
+
+            _ = await new PagedContentDialog { Title = "Add items to a playlist " }.NavigateAndShowAsync(typeof(ItemPickerDialogContent), arguments);
+        }
+
         #endregion
 
         #region Controlling from MainPage

@@ -18,8 +18,20 @@ namespace ComicsViewer.Pages {
         }
 
         // Note: we can't use generic types in a xaml, so we do this
-        public static ItemPickerDialogNavigationArguments New<T>(ItemPickerDialogProperties properties, IEnumerable<T> items, Action<T> action) where T: ISelectable {
+        public static ItemPickerDialogNavigationArguments New<T>(ItemPickerDialogProperties properties, IEnumerable<T> items, Action<T> action) where T : ISelectable {
             return new ItemPickerDialogNavigationArguments(properties, items.Cast<ISelectable>(), x => action((T)x));
+        }
+
+        public static ItemPickerDialogNavigationArguments New(ItemPickerDialogProperties properties, IEnumerable<string> items, Action<string> action) {
+            return new ItemPickerDialogNavigationArguments(properties, items.Select(s => new SelectableString(s)), x => action(x.Name));
+        }
+
+        private class SelectableString : ISelectable {
+            public string Name { get; }
+
+            public SelectableString(string name) {
+                this.Name = name;
+            }
         }
     }
 

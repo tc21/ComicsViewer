@@ -298,7 +298,7 @@ namespace ComicsViewer.Pages {
             // Popup dialog to add to playlist
             this.AddToPlaylistCommand = new ComicItemGridCommand(parent,
                 name: "Add to playlist...",
-                execute: e => throw new NotImplementedException()
+                execute: async e => await e.Grid.ShowAddItemsToPlaylistDialogAsync(e.Items)
             );
 
             // Removes an item from the currently active playlist
