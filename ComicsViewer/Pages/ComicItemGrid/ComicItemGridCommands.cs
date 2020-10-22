@@ -65,40 +65,48 @@ namespace ComicsViewer.Pages {
         #region Dynamic context menu items
 
         private void ComicItemGridContextFlyout_Opening(object sender, object e) {
-            if (!(sender is MenuFlyout)) {
+            if (!(sender is MenuFlyout flyout)) {
                 throw new ProgrammerError("Only MenuFlyout should be allowed to call this handler");
             }
 
-            // you can right click on empty space, but we don't want anything to happen
-            if (this.VisibleComicsGrid.SelectedItems.Count == 0) {
-                return;
-            }
-
             // Update dynamic text when opening flyout
-            _ = UpdateFlyoutItems(this.ComicItemGridContextFlyout.Items!);
+            _ = UpdateFlyoutItems(flyout.Items!);
 
             static bool UpdateFlyoutItems(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
                 var anyItemsEnabled = false;
-
+                var showNextSeparator = false;
                 foreach (var item in flyoutItems) {
                     switch (item) {
                         case MenuFlyoutSubItem subitem:
-                            subitem.Visibility = UpdateFlyoutItems(subitem.Items!)
-                                ? Windows.UI.Xaml.Visibility.Visible
-                                : Windows.UI.Xaml.Visibility.Collapsed;
+                            if (UpdateFlyoutItems(subitem.Items!)) {
+                                subitem.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                                showNextSeparator = true;
+                            } else {
+                                subitem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                            }
 
-                            continue;
-                        case ComicsMenuFlyoutItem flyoutItem when flyoutItem.Command is IManuallyManagedCommand command: {
+                            break;
+
+                        case ComicsMenuFlyoutItem flyoutItem when flyoutItem.Command is IManuallyManagedCommand command:
                             if (command.CanExecute()) {
                                 flyoutItem.Text = command.GetName();
                                 flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Visible;
                                 anyItemsEnabled = true;
+                                showNextSeparator = true;
                             } else {
                                 flyoutItem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
                             }
 
                             break;
-                        }
+
+                        case MenuFlyoutSeparator separator:
+                            separator.Visibility = showNextSeparator
+                                ? Windows.UI.Xaml.Visibility.Visible
+                                : Windows.UI.Xaml.Visibility.Collapsed;
+
+                            showNextSeparator = false;
+
+                            break;
                     }
                 }
 
@@ -132,10 +140,6 @@ namespace ComicsViewer.Pages {
                 }
 
                 var args = new ComicItemGrid.CommandArgs<T, TItem>(grid);
-                if (args.Count == 0) {
-                    return false;
-                }
-
                 return canExecute?.Invoke(args) ?? true;
             };
 
@@ -183,14 +187,15 @@ namespace ComicsViewer.Pages {
             // Opens selected comics
             this.OpenItemsCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => DescribeItem("Open", e.ComicCount),
-                execute: async e => await e.ViewModel.OpenItemsAsync(e.Items)
+                execute: async e => await e.ViewModel.OpenItemsAsync(e.Items),
+                canExecute: e => e.Count > 0
             );
 
             // Generates and executes a search limiting visible items to those selected
             this.SearchSelectedCommand = new ComicItemGridCommand(parent,
                 name: "Search selected",
                 execute: e => e.MainViewModel.FilterToSelected(e.Items),
-                canExecute: e => e.IsNavItems || e.Count > 1
+                canExecute: e => (e.IsNavItems && e.Count > 0) || e.Count > 1
             );
 
             // Removes comics by asking the view model to do it for us
@@ -203,13 +208,16 @@ namespace ComicsViewer.Pages {
 
                     var comics = e.Items.SelectMany(item => item.ContainedComics()).ToList();
                     await e.MainViewModel.RemoveComicsAsync(comics);
-                }
+                },
+                canExecute: e => e.Count > 0
             );
 
             // Opens a flyout to move items between categories
             this.MoveFilesCommand = new ComicItemGridCommand(parent,
                 getName: e => DescribeItem("Move", e.ComicCount),
-                execute: async e => await e.Grid.ShowMoveFilesDialogAsync(e.Items));
+                execute: async e => await e.Grid.ShowMoveFilesDialogAsync(e.Items),
+                canExecute: e => e.Count > 0
+            );
 
             // For work items: opens the comic info flyout to the "Edit Info" page
             // For nav items: Renames a tag, etc.
@@ -236,13 +244,16 @@ namespace ComicsViewer.Pages {
                     foreach (var item in e.Items) {
                         _ = Startup.OpenContainingFolderAsync(item.Comic);
                     }
-                }
+                },
+                canExecute: e => e.Count > 0
             );
 
             // Opens the containing folder in Windows Explorer
             this.GenerateThumbnailCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => e.Count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {e.Count} items",
-                execute: e => e.ViewModel.StartRequestGenerateThumbnailsTask(e.Items, replace: true));
+                execute: e => e.ViewModel.StartRequestGenerateThumbnailsTask(e.Items, replace: true),
+                canExecute: e => e.Count > 0
+            );
 
             // Opens the comic info flyout to the "Edit Info" page
             this.RedefineThumbnailCommand = new ComicWorkItemGridCommand(parent,
@@ -254,7 +265,9 @@ namespace ComicsViewer.Pages {
             // Loves, or unloves comics
             this.LoveComicsCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => e.Items.All(i => i.IsLoved) ? DescribeItem("No longer love", e.Count) : DescribeItem("Love", e.Count),
-                execute: async e => await e.ViewModel.ToggleLovedStatusForComicsAsync(e.Items));
+                execute: async e => await e.ViewModel.ToggleLovedStatusForComicsAsync(e.Items),
+                canExecute: e => e.Count > 0
+            );
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Show all items by {e.Items.First().Comic.Author}",
@@ -296,20 +309,22 @@ namespace ComicsViewer.Pages {
                     foreach (var item in e.Items) {
                         await e.MainViewModel.DeletePlaylistAsync(item.Title);
                     }
-                }
+                },
+                canExecute: e => e.Count > 0
             );
 
             // Popup dialog to add to playlist
             this.AddToPlaylistCommand = new ComicItemGridCommand(parent,
                 name: "Add to playlist...",
-                execute: async e => await e.Grid.ShowAddItemsToPlaylistDialogAsync(e.Items)
+                execute: async e => await e.Grid.ShowAddItemsToPlaylistDialogAsync(e.Items),
+                canExecute: e => e.Count > 0
             );
 
             // Removes an item from the currently active playlist
             this.RemoveFromSelectedPlaylistCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'", 
                 execute: async e => await e.MainViewModel.RemoveFromPlaylistAsync(e.ViewModel.Properties.PlaylistName!, e.Items.Select(item => item.Comic)),
-                canExecute: e => e.ViewModel.Properties.ParentType == NavigationTag.Playlist
+                canExecute: e => e.Count > 0 && e.ViewModel.Properties.ParentType == NavigationTag.Playlist
             );
 
         }

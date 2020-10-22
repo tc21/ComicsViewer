@@ -143,16 +143,15 @@ namespace ComicsViewer.Pages {
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
 
-            if (!(tappedElement.DataContext is ComicItem comicItem)) {
-                this.VisibleComicsGrid.SelectedItems.Clear();
+            if (tappedElement.DataContext is ComicItem comicItem) {
+                // Selection logic that behaves like most other reasonable apps
+                if (!grid.SelectedItems.Contains(comicItem)) {
+                    grid.SelectedItems.Clear();
+                    grid.SelectedItems.Add(comicItem);
+                }
+            } else {
                 // The right click happened on an empty space
-                return;
-            }
-
-            // Selection logic that behaves like most other reasonable apps
-            if (!grid.SelectedItems.Contains(comicItem)) {
-                grid.SelectedItems.Clear();
-                grid.SelectedItems.Add(comicItem);
+                this.VisibleComicsGrid.SelectedItems.Clear();
             }
 
             this.ComicItemGridContextFlyout.ShowAt(tappedElement, new FlyoutShowOptions {
