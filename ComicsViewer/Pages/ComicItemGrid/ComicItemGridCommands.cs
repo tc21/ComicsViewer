@@ -43,13 +43,13 @@ namespace ComicsViewer.Pages {
         // This class defined within ComicItemGrid to have access to VisibleComicsGrid
         public class CommandArgs<T, TItem> where T : ComicItemGridViewModel where TItem : ComicItem {
             public ComicItemGrid Grid { get; }
-            public T ViewModel => (T)this.Grid.ViewModel;
-            public MainViewModel MainViewModel => this.Grid.MainViewModel;
-            public int Count => this.Grid.VisibleComicsGrid.SelectedItems.Count;
-            public IEnumerable<TItem> Items => this.Grid.VisibleComicsGrid.SelectedItems.Cast<TItem>();
-            public bool IsWorkItems => this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
-            public bool IsNavItems => !this.IsWorkItems;
-            public int ComicCount => this.Items.SelectMany(i => i.ContainedComics()).Count();
+            public T ViewModel { get; }
+            public MainViewModel MainViewModel { get; }
+            public int Count { get; }
+            public IEnumerable<TItem> Items { get; }
+            public bool IsWorkItems { get; }
+            public bool IsNavItems { get; }
+            public int ComicCount { get; }
 
             public CommandArgs(ComicItemGrid grid) {
                 if (!(grid.ViewModel is T)) {
@@ -57,7 +57,17 @@ namespace ComicsViewer.Pages {
                 }
 
                 this.Grid = grid;
-            }
+
+                // Note: these properties are generated in the constructor, instead of dynamically, 
+                // since operations within commands may be able to change grid selections
+                this.ViewModel = (T)grid.ViewModel;
+                this.MainViewModel = grid.MainViewModel;
+                this.Count = grid.VisibleComicsGrid.SelectedItems.Count;
+                this.Items = grid.VisibleComicsGrid.SelectedItems.Cast<TItem>().ToList();
+                this.IsWorkItems = this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
+                this.IsNavItems = !this.IsWorkItems;
+                this.ComicCount = this.Items.SelectMany(i => i.ContainedComics()).Count();
+        }
         }
 
         #endregion
