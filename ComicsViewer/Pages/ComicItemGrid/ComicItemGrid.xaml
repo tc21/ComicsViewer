@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
+    xmlns:library="using:ComicsLibrary"
     mc:Ignorable="d"    
     d:RequestedTheme="Dark"
     Background="Transparent">
@@ -221,11 +222,36 @@
             </GridView>
         </Grid>
 
+        <Border x:Name="DragAndDropShortcuts"
+                Margin="10" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Background="{ThemeResource SystemControlAcrylicElementBrush}"
+                BorderBrush="{ThemeResource SystemControlTransientBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="Collapsed"
+                d:Visibility="Visible">
+            <StackPanel>
+                <TextBlock Margin="12" FontSize="12" Text="ADD TO PLAYLIST" FontWeight="Bold"/>
+                <ListView x:Name="DragAndDropPlaylists"
+                          SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="library:Playlist">
+                            <TextBlock Text="{x:Bind Name}" 
+                                       MinWidth="240"
+                                       AllowDrop="True" Drop="DragAndDropPlaylistItem_Drop"
+                                       DragOver="DragAndDropPlaylistItem_DragOver" DragLeave="DragAndDropPlaylistItem_DragLeave"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </Border>
+
         <ContentDialog x:Name="ConfirmRemoveItemDialog" 
                        Title="Confirm remove items"
                        Content="Are you sure you want to remove these items? You will have to import them again if you want them to show up in this library."
                        PrimaryButtonText="Remove"
                        CloseButtonText="Cancel"
-                       DefaultButton="Close"/>
+                       DefaultButton="Close"
+                       d:Visibility="Collapsed"/>
     </Grid>
 </Page>

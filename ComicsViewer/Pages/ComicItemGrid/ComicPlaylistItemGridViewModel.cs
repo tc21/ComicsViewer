@@ -34,7 +34,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var comics = new ComicList();
 
             foreach (var playlist in playlists) {
-                comics.Add(playlist.Comics);
+                comics.UnionWith(playlist);
             }
 
             return comics;

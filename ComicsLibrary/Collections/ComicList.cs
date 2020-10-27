@@ -32,12 +32,22 @@ namespace ComicsLibrary.Collections {
             }
         }
 
+        /// <summary>
+        /// Will throw exception when adding duplicate comics
+        /// </summary>
         public void Add(IEnumerable<Comic> comics) {
             var add = comics.ToList();
             this.AddComics(add);
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: add));
         }
 
+        public void UnionWith(IEnumerable<Comic> comics) {
+            this.Add(comics.Where(comic => !this.Contains(comic)));
+        }
+
+        /// <summary>
+        /// Will throw exception when removing a comic that doesn't already exist
+        /// </summary>
         public void Remove(IEnumerable<Comic> comics) {
             var remove = comics.ToList();
             this.RemoveComics(remove);

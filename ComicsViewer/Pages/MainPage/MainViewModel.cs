@@ -735,7 +735,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var playlist = this.Playlists[playlistName];
 
-            playlist.Remove(comics);
+            playlist.ExceptWith(comics);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsFromPlaylistAsync(playlistName, comics);
@@ -748,7 +748,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var playlist = this.Playlists[playlistName];
 
-            playlist.Add(comics);
+            playlist.UnionWith(comics);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddComicsToPlaylistAsync(playlistName, comics);

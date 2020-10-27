@@ -419,14 +419,17 @@ namespace ComicsViewer.Pages {
         #region Drag and drop
 
         private void VisibleComicsGrid_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args) {
-            Debug.Write("DragItemsCompleted");
+            this.DragAndDropShortcuts.Visibility = Visibility.Collapsed;
+            this.DragAndDropPlaylists.ItemsSource = null;
         }
 
         private void VisibleComicsGrid_DragItemsStarting(object sender, DragItemsStartingEventArgs e) {
             var comicItems = e.Items.Cast<ComicItem>().ToList();
+            var comicUniqueIds = comicItems.SelectMany(item => item.ContainedComics()).Select(comic => comic.UniqueIdentifier).ToArray();
 
             e.Data.RequestedOperation = DataPackageOperation.Copy;
             e.Data.Properties.Add("tc.comics.send_items", true);
+            e.Data.Properties.Add("tc.comics.unique_ids", comicUniqueIds);
             e.Data.SetDataProvider(StandardDataFormats.StorageItems, async request => {
                 var items = new List<IStorageItem>();
 
@@ -444,7 +447,10 @@ namespace ComicsViewer.Pages {
                 deferral.Complete();
             });
 
-            Debug.Write("DragItemsStarting");
+            e.Data.SetText(string.Join("\n", comicItems.SelectMany(item => item.ContainedComics()).Select(comic => comic.UniqueIdentifier)));
+
+            this.DragAndDropShortcuts.Visibility = Visibility.Visible;
+            this.DragAndDropPlaylists.ItemsSource = this.MainViewModel.Playlists.Values.ToList();
         }
 
         private void VisibleComicsGrid_DragOver(object sender, DragEventArgs e) {
@@ -470,6 +476,38 @@ namespace ComicsViewer.Pages {
                                .Cast<StorageFolder>();
 
             await this.MainViewModel.StartLoadComicsFromFoldersTaskAsync(folders);
+        }
+
+        private void DragAndDropPlaylistItem_DragOver(object sender, DragEventArgs e) {
+            var element = (FrameworkElement)sender;
+
+            if (!(element.DataContext is Playlist playlist)) {
+                throw ProgrammerError.Auto();
+            }
+
+            if (!e.Data.Properties.ContainsKey("tc.comics.send_items") || !e.Data.Properties.ContainsKey("tc.comics.unique_ids")) {
+                return;
+            }
+
+            this.DragAndDropPlaylists.SelectedItem = playlist;
+            e.AcceptedOperation = DataPackageOperation.Copy;
+        }
+
+        private void DragAndDropPlaylistItem_DragLeave(object sender, DragEventArgs e) {
+            this.DragAndDropPlaylists.SelectedItem = null;
+        }
+
+        private async void DragAndDropPlaylistItem_Drop(object sender, DragEventArgs e) {
+            var element = (FrameworkElement)sender;
+
+            if (!(element.DataContext is Playlist playlist)) {
+                throw ProgrammerError.Auto();
+            }
+
+            var uniqueIds = (string[])e.Data.Properties["tc.comics.unique_ids"];
+            var comics = uniqueIds.Select(id => this.MainViewModel.ComicView.GetStored(id));
+
+            await this.MainViewModel.AddToPlaylistAsync(playlist.Name, comics);
         }
 
         #endregion

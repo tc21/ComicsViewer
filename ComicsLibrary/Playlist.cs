@@ -21,14 +21,14 @@ namespace ComicsLibrary {
             return new Playlist(parent, name, new HashSet<string>(uniqueIds));
         }
 
-        public void Add(IEnumerable<Comic> comics) {
+        public void UnionWith(IEnumerable<Comic> comics) {
             comics = comics.ToList();
 
             this.uniqueIds.UnionWith(comics.Select(comic => comic.UniqueIdentifier));
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
         }
 
-        public void Remove(IEnumerable<Comic> comics) {
+        public void ExceptWith(IEnumerable<Comic> comics) {
             comics = comics.ToList();
 
             this.uniqueIds.ExceptWith(comics.Select(comic => comic.UniqueIdentifier));
