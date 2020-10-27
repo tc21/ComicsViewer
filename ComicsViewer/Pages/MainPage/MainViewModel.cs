@@ -809,6 +809,19 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         #endregion
+
+
+        public string GetProposedPlaylistName() {
+            return GetProposedPlaylistNames().Where(name => !this.Playlists.ContainsKey(name)).First();
+        }
+
+        private static IEnumerable<string> GetProposedPlaylistNames() {
+            yield return "New Playlist";
+
+            for (var i = 1; /* forever */; i++) {
+                yield return $"New Playlist {i}";
+            }
+        }
     }
 
     public class ProfileChangedEventArgs {

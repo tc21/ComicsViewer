@@ -217,7 +217,7 @@ namespace ComicsViewer.Pages {
         public async Task ShowCreatePlaylistDialogAsync() {
             var arguments = new TextInputDialogNavigationArguments(
                 properties: TextInputDialogProperties.ForNewItem("Playlist name"),
-                initialValue: GetProposedPlaylistName(),
+                initialValue: this.MainViewModel.GetProposedPlaylistName(),
                 asyncAction: name => this.MainViewModel.CreatePlaylistAsync(name),
                 validate: ValidatePlaylistName
             );
@@ -230,18 +230,6 @@ namespace ComicsViewer.Pages {
                 }
 
                 return ValidateResult.Ok();
-            }
-
-            string GetProposedPlaylistName() {
-                return GetProposedPlaylistNames().Where(name => !this.MainViewModel.Playlists.ContainsKey(name)).First();
-            }
-
-            static IEnumerable<string> GetProposedPlaylistNames() {
-                yield return "New Playlist";
-
-                for (var i = 1; /* forever */; i++) {
-                    yield return $"New Playlist {i}";
-                }
             }
         }
 
@@ -449,8 +437,29 @@ namespace ComicsViewer.Pages {
 
             e.Data.SetText(string.Join("\n", comicItems.SelectMany(item => item.ContainedComics()).Select(comic => comic.UniqueIdentifier)));
 
+            var playlistItems = this.MainViewModel.Playlists.Values.Select(
+                playlist => new DragAndDropShortcutItem(
+                    playlist.Name,
+                    async comics => await this.MainViewModel.AddToPlaylistAsync(playlist.Name, comics)
+                )
+            ).ToList();
+
+            playlistItems.Add(
+                new DragAndDropShortcutItem(
+                "> create new playlist...",
+                    async comics => {
+                        var existingPlaylists = this.MainViewModel.Playlists.Keys.ToHashSet();
+                        await this.ShowCreatePlaylistDialogAsync();
+
+                        if (this.MainViewModel.Playlists.Keys.Except(existingPlaylists).FirstOrDefault() is { } newPlaylist) {
+                            await this.MainViewModel.AddToPlaylistAsync(newPlaylist, comics);
+                        }
+                    }
+                )
+            );
+
             this.DragAndDropShortcuts.Visibility = Visibility.Visible;
-            this.DragAndDropPlaylists.ItemsSource = this.MainViewModel.Playlists.Values.ToList();
+            this.DragAndDropPlaylists.ItemsSource = playlistItems;
         }
 
         private void VisibleComicsGrid_DragOver(object sender, DragEventArgs e) {
@@ -481,7 +490,7 @@ namespace ComicsViewer.Pages {
         private void DragAndDropPlaylistItem_DragOver(object sender, DragEventArgs e) {
             var element = (FrameworkElement)sender;
 
-            if (!(element.DataContext is Playlist playlist)) {
+            if (!(element.DataContext is DragAndDropShortcutItem item)) {
                 throw ProgrammerError.Auto();
             }
 
@@ -489,7 +498,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            this.DragAndDropPlaylists.SelectedItem = playlist;
+            this.DragAndDropPlaylists.SelectedItem = item;
             e.AcceptedOperation = DataPackageOperation.Copy;
         }
 
@@ -497,17 +506,17 @@ namespace ComicsViewer.Pages {
             this.DragAndDropPlaylists.SelectedItem = null;
         }
 
-        private async void DragAndDropPlaylistItem_Drop(object sender, DragEventArgs e) {
+        private void DragAndDropPlaylistItem_Drop(object sender, DragEventArgs e) {
             var element = (FrameworkElement)sender;
 
-            if (!(element.DataContext is Playlist playlist)) {
+            if (!(element.DataContext is DragAndDropShortcutItem item)) {
                 throw ProgrammerError.Auto();
             }
 
             var uniqueIds = (string[])e.Data.Properties["tc.comics.unique_ids"];
             var comics = uniqueIds.Select(id => this.MainViewModel.ComicView.GetStored(id));
 
-            await this.MainViewModel.AddToPlaylistAsync(playlist.Name, comics);
+            item.OnDrop(comics);
         }
 
         #endregion

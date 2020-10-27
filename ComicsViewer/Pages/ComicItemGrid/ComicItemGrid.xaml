@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
-    xmlns:library="using:ComicsLibrary"
     mc:Ignorable="d"    
     d:RequestedTheme="Dark"
     Background="Transparent">
@@ -235,7 +234,7 @@
                 <ListView x:Name="DragAndDropPlaylists"
                           SelectionMode="Single">
                     <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="library:Playlist">
+                        <DataTemplate x:DataType="vm:DragAndDropShortcutItem">
                             <TextBlock Text="{x:Bind Name}" 
                                        MinWidth="240"
                                        AllowDrop="True" Drop="DragAndDropPlaylistItem_Drop"
