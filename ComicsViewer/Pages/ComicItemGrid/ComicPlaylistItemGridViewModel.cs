@@ -20,6 +20,17 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void MainViewModel_PlaylistChanged(MainViewModel source, MainViewModel.PlaylistChangedArguments e) {
+            switch (e.Type) {
+                case MainViewModel.PlaylistChangeType.Add:
+                    e.Playlist.ComicsChanged += this.Comics_ComicsChanged;
+                    break;
+                case MainViewModel.PlaylistChangeType.Remove:
+                    e.Playlist.ComicsChanged -= this.Comics_ComicsChanged;
+                    break;
+                default:
+                    throw ProgrammerError.Auto();
+            }
+
             this.RefreshComicItems();
         }
 
