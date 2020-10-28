@@ -82,11 +82,46 @@ namespace ComicsViewer.Pages {
             // Update dynamic text when opening flyout
             _ = UpdateFlyoutItems(flyout.Items!);
 
-            static bool UpdateFlyoutItems(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
+            bool UpdateFlyoutItems(IEnumerable<MenuFlyoutItemBase> flyoutItems) {
                 var anyItemsEnabled = false;
                 var showNextSeparator = false;
                 foreach (var item in flyoutItems) {
                     switch (item) {
+                        case MenuFlyoutSubItem subitem when subitem == GoToPlaylistFlyoutMenuSubitem:
+                            if (!(this.ViewModel is ComicWorkItemGridViewModel)) {
+                                subitem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                                break;
+                            }
+
+                            var items = this.VisibleComicsGrid.SelectedItems.Cast<ComicWorkItem>().Select(item => item.Comic);
+                            var playlists = this.MainViewModel.Playlists.Values.Where(playlist => items.Any(playlist.Contains)).ToList();
+
+                            if (!playlists.Any()) {
+                                subitem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                                break;
+                            }
+
+                            subitem.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                            subitem.Items.Clear();
+
+                            foreach (var playlist in playlists) {
+                                // note: we might want to consider moving this logic to MainViewModel
+                                var flyoutItem = new ComicsMenuFlyoutItem { Text = playlist.Name };
+                                flyoutItem.Click += async (a, e) => {
+                                    // TODO: See SearchAuthorCommand
+                                    if (this.ViewModel.NavigationTag == NavigationTag.Detail) {
+                                        this.MainViewModel.NavigateOut();
+                                        await Task.Delay(150);
+                                    }
+
+                                    var view = new ComicNavigationItem(playlist.Name, playlist);
+                                    this.MainViewModel.NavigateInto(view);
+                                };
+                                subitem.Items.Add(flyoutItem);
+                            }
+
+                            break;
+
                         case MenuFlyoutSubItem subitem:
                             if (UpdateFlyoutItems(subitem.Items!)) {
                                 subitem.Visibility = Windows.UI.Xaml.Visibility.Visible;

@@ -111,7 +111,7 @@
                 </uc:ComicsMenuFlyoutItem>
                 <MenuFlyoutSeparator/>
 
-                <MenuFlyoutSubItem Text="Playlist">
+                <MenuFlyoutSubItem Text="Edit playlists">
                     <MenuFlyoutSubItem.Icon>
                         <FontIcon Glyph="&#xE8FD;"/>
                     </MenuFlyoutSubItem.Icon>
@@ -124,6 +124,12 @@
                                              Command="{x:Bind ContextMenuCommands.CreatePlaylistCommand}"/>
                     <uc:ComicsMenuFlyoutItem FontIcon="&#xE74D;"
                                              Command="{x:Bind ContextMenuCommands.DeletePlaylistCommand}"/>
+                </MenuFlyoutSubItem>
+
+                <MenuFlyoutSubItem x:Name="GoToPlaylistFlyoutMenuSubitem" Text="Go to playlist">
+                    <MenuFlyoutSubItem.Icon>
+                        <FontIcon Glyph="&#xE8F1;"/>
+                    </MenuFlyoutSubItem.Icon>
                 </MenuFlyoutSubItem>
                 
                 <MenuFlyoutSubItem Text="Thumbnails">
