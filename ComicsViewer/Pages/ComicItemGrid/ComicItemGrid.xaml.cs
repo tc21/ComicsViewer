@@ -3,6 +3,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;

@@ -3,6 +3,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
@@ -35,8 +36,8 @@ namespace ComicsViewer.Pages {
             }
         }
 
-        public IAsyncOperation<ContentDialogResult> ShowConfirmRemoveItemDialogAsync()
-            => this.ConfirmRemoveItemDialog.ShowAsync();
+        public Task<ContentDialogResult> ShowConfirmRemoveItemDialogAsync()
+            => this.ConfirmRemoveItemDialog.ScheduleShowAsync();
 
         #region Supporting classes
 

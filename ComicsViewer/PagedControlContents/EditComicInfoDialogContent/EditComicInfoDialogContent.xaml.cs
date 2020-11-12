@@ -8,6 +8,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
 
 #nullable enable
 
@@ -61,7 +62,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (!items[0].IsOfType(StorageItemTypes.File) || !UserProfile.IsImage(items[0].Name)) {
-                _ = await new ContentDialog { Content = "Please select an image as the new thumbnail.", Title = "Invalid thumbnail file" }.ShowAsync();
+                _ = await new ContentDialog { Content = "Please select an image as the new thumbnail.", Title = "Invalid thumbnail file" }.ScheduleShowAsync();
                 return;
             }
 

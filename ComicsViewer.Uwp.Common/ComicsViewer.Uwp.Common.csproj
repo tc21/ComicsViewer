@@ -130,6 +130,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ContentDialog_ScheduleShowAsync.cs" />
     <Compile Include="ExpectedExceptions.cs" />
     <Compile Include="NaturalOrder.cs" />
     <Compile Include="Win32Interop\General.cs" />

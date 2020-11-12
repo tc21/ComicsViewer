@@ -1,6 +1,7 @@
 ﻿using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace ComicsViewer.Pages {
         #region Creating a new profile 
 
         private async void NewProfileButton_Click(object sender, RoutedEventArgs e) {
-            var result = await this.NewProfileDialog.ShowAsync();
+            var result = await this.NewProfileDialog.ScheduleShowAsync();
             if (result != ContentDialogResult.Primary) {
                 return;
             }
@@ -85,7 +86,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void ReloadAllCategoriesButton_Click(object sender, RoutedEventArgs e) {
-            var result = await this.ReloadConfirmationContentDialog.ShowAsync();
+            var result = await this.ReloadConfirmationContentDialog.ScheduleShowAsync();
 
             if (result != ContentDialogResult.Primary) {
                 return;
@@ -95,7 +96,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void ReloadCategoryButton_Click(object sender, RoutedEventArgs e) {
-            var result = await this.ReloadConfirmationContentDialog.ShowAsync();
+            var result = await this.ReloadConfirmationContentDialog.ScheduleShowAsync();
 
             if (result != ContentDialogResult.Primary) {
                 return;

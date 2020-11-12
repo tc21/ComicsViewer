@@ -51,7 +51,7 @@ namespace ComicsViewer.Features {
                         return;
                     }
 
-                    await ExpectedExceptions.IntendedBehaviorAsync(
+                    await ComicExpectedExceptions.IntendedBehaviorAsync(
                         title: "Cannot open item",
                         message: "The application could not open this item in a built-in viewer, " +
                             $"because it doesn't recognize its extension: '{Path.GetExtension(testFile)}'.",
@@ -78,7 +78,7 @@ namespace ComicsViewer.Features {
                 };
 
                 if (!await Launcher.LaunchUriAsync(new Uri(uri), opt, data)) {
-                    await ExpectedExceptions.IntendedBehaviorAsync(
+                    await ComicExpectedExceptions.IntendedBehaviorAsync(
                         title: "Cannot open item",
                         message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",
                         cancelled: false
@@ -89,7 +89,7 @@ namespace ComicsViewer.Features {
 
         public static async Task OpenContainingFolderAsync(Comic comic) {
             if (!IO.FileOrDirectoryExists(comic.Path)) {
-                await ExpectedExceptions.ComicNotFoundAsync(comic);
+                await ComicExpectedExceptions.ComicNotFoundAsync(comic);
             }
 
             _ = await Launcher.LaunchFolderPathAsync(comic.Path);

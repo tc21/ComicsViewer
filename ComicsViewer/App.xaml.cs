@@ -25,13 +25,13 @@ namespace ComicsViewer {
          *
          *
          * Feature Requests:
-         *   1. Grouping, and the ability to navigate to the start of a group (see Groove Music) (also this is apparently really hard)
-         *   5. Add an expiration date to generated thumbnails, so they don't just pile up
+         *   5. Add an expiration date to generated thumbnails, so they don't just pile up (Also, make sure thumbnails are
+         *      actually generated when an item is added.)
          *   6. Assign "related works", allowing any two works to be related in the database and to show up in each other's
          *      single-click flyout (see also major proposal "subworks")
          *   7. Add the ability to save filters into a list of bookmarks
-         *  12. User-definable playlists that can be added or deleted at any time (unlike tags, which are difficult to
-         *      add/remove en masse and are intended to be permanent, playlists are intended to be temporary). 
+         *  13. Deprecate rowid-based database indexing in favor of a proper ID.
+         *  14. Add search/navigate to related tags/authors/playlists in an items's onTap flyout
          *
          * Major proposal: subworks (and notes on related works)
          *   One decision of Comics.UWP is to remove subworks at the database level, instead treating each folder as a

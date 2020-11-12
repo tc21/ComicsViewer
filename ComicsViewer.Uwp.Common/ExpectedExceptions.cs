@@ -39,7 +39,7 @@ namespace ComicsViewer.Uwp.Common {
                 Title = title ?? "An operation was unsuccessful",
                 Content = message,
                 CloseButtonText = "OK"
-            }.ShowAsync();
+            }.ScheduleShowAsync();
         }
 
         public static async Task<bool> HandleFileRelatedExceptionsAsync(Exception e) {

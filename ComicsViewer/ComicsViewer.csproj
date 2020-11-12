@@ -145,7 +145,7 @@
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModelProperties.cs" />
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\CommentedType.cs" />
-    <Compile Include="Support\ExpectedExceptions.cs" />
+    <Compile Include="Support\ComicExpectedExceptions.cs" />
     <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Support\ISelectable.cs" />
     <Compile Include="Support\NamedPath.cs" />

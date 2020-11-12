@@ -4,6 +4,7 @@ using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

@@ -7,6 +7,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Pages;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using Microsoft.Data.Sqlite;
 using System;
@@ -333,7 +334,7 @@ namespace ComicsViewer.ViewModels.Pages {
                             Content = task.StoredException.ToString(),
                             Title = $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}",
                             CloseButtonText = "OK"
-                        }.ShowAsync();
+                        }.ScheduleShowAsync();
                     }
                 }
 
@@ -379,7 +380,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     Content = $"A task with tag '{tag}' is already running. Please wait for it to finish.",
                     Title = "Cannot start task",
                     CloseButtonText = "OK"
-                }.ShowAsync();
+                }.ScheduleShowAsync();
             }
         }
 
@@ -640,7 +641,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 message += $"\n{comic.UniqueIdentifier}";
             }
 
-            _ = await new ContentDialog { Content = message, Title = "Warning: items not added", CloseButtonText = "OK" }.ShowAsync();
+            _ = await new ContentDialog { Content = message, Title = "Warning: items not added", CloseButtonText = "OK" }.ScheduleShowAsync();
         }
 
         private static async Task<bool> PromptRemoveComicsAsync(IEnumerable<Comic> comics) {
@@ -651,7 +652,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 Content = message,
                 PrimaryButtonText = "Remove",
                 CloseButtonText = "Do not remove"
-            }.ShowAsync();
+            }.ScheduleShowAsync();
 
             return result == ContentDialogResult.Primary;
         }
