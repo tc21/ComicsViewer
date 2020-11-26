@@ -12,6 +12,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using ComicsLibrary.Collections;
 using ComicsViewer.Common;
+using ComicsLibrary.Sorting;
 
 #nullable enable
 
@@ -103,10 +104,23 @@ namespace ComicsViewer.ViewModels.Pages {
             if (appViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
                 return new ComicWorkItemGridViewModel(appViewModel, appViewModel.ComicView);
             } else if (appViewModel.ActiveNavigationTag == NavigationTag.Playlist) {
-                return ComicPlaylistItemGridViewModel.ForViewModel(appViewModel, appViewModel.Playlists.Values);
+                return ComicNavigationItemGridViewModel.ForViewModel(appViewModel, appViewModel.Playlists);
             } else {
-                return ComicNavigationItemGridViewModel.ForViewModel(appViewModel, appViewModel.ComicView);
+                return ComicNavigationItemGridViewModel.ForViewModel(appViewModel,  // TODO check ComicCollectionSortSelector
+                    GetSortedProperties(appViewModel.ComicView, appViewModel.ActiveNavigationTag, ComicCollectionSortSelector.Random));
             }
+        }
+
+        private static ComicPropertiesCollectionView GetSortedProperties(ComicView comics, NavigationTag navigationTag, ComicCollectionSortSelector sortSelector) {
+            return comics.SortedProperties(
+                navigationTag switch {
+                    NavigationTag.Author => comic => new[] { comic.Author },
+                    NavigationTag.Category => comic => new[] { comic.Category },
+                    NavigationTag.Tags => comic => comic.Tags,
+                    _ => throw new ProgrammerError("unhandled switch case")
+                },
+                sortSelector
+            );
         }
 
         public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(

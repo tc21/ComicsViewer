@@ -21,7 +21,6 @@ namespace ComicsViewer.Pages {
     using ComicItemGridCommand = ComicItemGridCommand<ComicItemGridViewModel, ComicItem>;
     using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
     using ComicNavigationItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
-    using ComicPlaylistItemGridCommand = ComicItemGridCommand<ComicPlaylistItemGridViewModel, ComicNavigationItem>;
 
     public partial class ComicItemGrid {
         /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 
@@ -51,6 +50,7 @@ namespace ComicsViewer.Pages {
             public bool IsWorkItems { get; }
             public bool IsNavItems { get; }
             public int ComicCount { get; }
+            public NavigationTag NavigationTag { get; }
 
             public CommandArgs(ComicItemGrid grid) {
                 if (!(grid.ViewModel is T)) {
@@ -68,7 +68,8 @@ namespace ComicsViewer.Pages {
                 this.IsWorkItems = this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
                 this.IsNavItems = !this.IsWorkItems;
                 this.ComicCount = this.Items.SelectMany(i => i.ContainedComics()).Count();
-        }
+                this.NavigationTag = grid.ViewModel.NavigationTag;
+            }
         }
 
         #endregion
@@ -95,7 +96,7 @@ namespace ComicsViewer.Pages {
                             }
 
                             var items = this.VisibleComicsGrid.SelectedItems.Cast<ComicWorkItem>().Select(item => item.Comic);
-                            var playlists = this.MainViewModel.Playlists.Values.Where(playlist => items.Any(playlist.Contains)).ToList();
+                            var playlists = this.MainViewModel.Playlists.Where(playlist => items.Any(playlist.Comics.Contains)).ToList();
 
                             if (!playlists.Any()) {
                                 subitem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
@@ -115,7 +116,7 @@ namespace ComicsViewer.Pages {
                                         await Task.Delay(150);
                                     }
 
-                                    var view = new ComicNavigationItem(playlist.Name, playlist);
+                                    var view = new ComicNavigationItem(playlist.Name, playlist.Comics);
                                     this.MainViewModel.NavigateInto(view);
                                 };
                                 subitem.Items.Add(flyoutItem);
@@ -223,8 +224,8 @@ namespace ComicsViewer.Pages {
 
         public ComicNavigationItemGridCommand NavigateIntoCommand { get; }
 
-        public ComicPlaylistItemGridCommand CreatePlaylistCommand { get; }
-        public ComicPlaylistItemGridCommand DeletePlaylistCommand { get; }
+        public ComicNavigationItemGridCommand CreatePlaylistCommand { get; }
+        public ComicNavigationItemGridCommand DeletePlaylistCommand { get; }
 
         private static string DescribeItem(string action, int count)
             => count == 1 ? action : $"{action} {count} items";
@@ -343,20 +344,21 @@ namespace ComicsViewer.Pages {
             );
 
             // Creates a playlist
-            this.CreatePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
+            this.CreatePlaylistCommand = new ComicNavigationItemGridCommand(parent,
                 name: $"Create playlist...",
-                execute: async e => await e.Grid.ShowCreatePlaylistDialogAsync()
+                execute: async e => await e.Grid.ShowCreatePlaylistDialogAsync(),
+                canExecute: e => e.NavigationTag == NavigationTag.Playlist
             );
 
             // Removes a playlist
-            this.DeletePlaylistCommand = new ComicPlaylistItemGridCommand(parent,
+            this.DeletePlaylistCommand = new ComicNavigationItemGridCommand(parent,
                 getName: e => $"Delete {e.Count.PluralString("playlist", simple: true)}",
                 execute: async e => {
                     foreach (var item in e.Items) {
                         await e.MainViewModel.DeletePlaylistAsync(item.Title);
                     }
                 },
-                canExecute: e => e.Count > 0
+                canExecute: e => e.NavigationTag == NavigationTag.Playlist && e.Count > 0
             );
 
             // Popup dialog to add to playlist

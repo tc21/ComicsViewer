@@ -21,9 +21,9 @@ namespace ComicsLibrary.Collections {
         }
     }
 
-    public abstract class ComicCollectionView : IReadOnlyCollection<ComicCollection> {
+    public abstract class ComicCollectionView : IReadOnlyCollection<IComicCollection> {
         public abstract int Count { get; }
-        public abstract IEnumerator<ComicCollection> GetEnumerator();
+        public abstract IEnumerator<IComicCollection> GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
@@ -55,7 +55,7 @@ namespace ComicsLibrary.Collections {
         public readonly IEnumerable<string> Removed;
 
         internal CollectionsChangedEventArgs(CollectionsChangeType type, IEnumerable<string>? added = null,
-                                            IEnumerable<string>? modified = null, IEnumerable<string>? removed = null) {
+                                             IEnumerable<string>? modified = null, IEnumerable<string>? removed = null) {
             this.Type = type;
             this.Added = added ?? Array.Empty<string>();
             this.Modified = modified ?? Array.Empty<string>();

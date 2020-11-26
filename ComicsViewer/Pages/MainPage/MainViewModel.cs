@@ -28,7 +28,9 @@ namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
         internal readonly MainComicList Comics = new MainComicList();
         public ComicView ComicView => this.Comics.Filtered();
-        public Dictionary<string, Playlist> Playlists { get; } = new Dictionary<string, Playlist>();
+        // TODO: we are currently using AggregateCollectionView, and casting IComicCollection to Playlist under the "promise"
+        // that we'll only put playlists into this list.
+        public AggregateCollectionView Playlists { get; } = new();
 
         public MainViewModel() {
             this.ProfileChanged += this.MainViewModel_ProfileChanged;
@@ -107,7 +109,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Playlists.Clear();
 
             foreach (var playlist in await manager.GetPlaylistsAsync(this.Comics)) {
-                this.Playlists[playlist.Name] = playlist;
+                this.Playlists.AddCollection(playlist);
             }
 
             this.Comics.Filter.Clear();
@@ -729,11 +731,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RemoveFromPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
-            if (!(this.Playlists.ContainsKey(playlistName))) {
+            if (!this.Playlists.ContainsKey(playlistName)) {
                 throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to remove from playlist '{playlistName}')");
             }
 
-            var playlist = this.Playlists[playlistName];
+            var playlist = (Playlist)this.Playlists.GetCollection(playlistName);
 
             playlist.ExceptWith(comics);
 
@@ -742,11 +744,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task AddToPlaylistAsync(string playlistName, IEnumerable<Comic> comics) {
-            if (!(this.Playlists.ContainsKey(playlistName))) {
+            if (!this.Playlists.ContainsKey(playlistName)) {
                 throw new ProgrammerError($"Adding to nonexistent playlist should not be possible (tried to add to playlist '{playlistName}')");
             }
 
-            var playlist = this.Playlists[playlistName];
+            var playlist = (Playlist)this.Playlists.GetCollection(playlistName);
 
             playlist.UnionWith(comics);
 
@@ -755,12 +757,12 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task DeletePlaylistAsync(string playlistName, bool updateDatabase = true) {
-            if (!(this.Playlists.ContainsKey(playlistName))) {
+            if (!this.Playlists.ContainsKey(playlistName)) {
                 throw new ProgrammerError($"Deleting a nonexistent playlist should not be possible (tried to delete playlist '{playlistName}')");
             }
 
-            var playlist = this.Playlists[playlistName];
-            _ = this.Playlists.Remove(playlistName);
+            var playlist = (Playlist)this.Playlists.GetCollection(playlistName);
+            this.Playlists.RemoveCollection(playlist);
             this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Remove, playlist));
 
             if (!updateDatabase) {
@@ -773,13 +775,13 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task CreatePlaylistAsync(string name, IEnumerable<Comic>? comics = null, bool updateDatabase = true) {
-            if (this.Playlists.ContainsKey(name)) {
+            if (!this.Playlists.ContainsKey(name)) {
                 throw new ArgumentException($"playlist {name} already exists");
             }
 
             var uniqueIds = comics is null ? new string[] { } : comics.Select(comic => comic.UniqueIdentifier);
             var playlist = Playlist.Make(this.Comics, name, uniqueIds);
-            this.Playlists[name] = playlist;
+            this.Playlists.AddCollection(playlist);
             this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Add, playlist));
 
             if (!updateDatabase) {
@@ -794,9 +796,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RenamePlaylistAsync(string oldName, string newName) {
-            if (!this.Playlists.TryGetValue(oldName, out var playlist)) {
+            if (!this.Playlists.ContainsKey(oldName)) {
                 throw new ProgrammerError($"playlist {oldName} does not exist");
             }
+
+            var playlist = this.Playlists.GetCollection(oldName);
 
             if (this.Playlists.ContainsKey(newName)) {
                 throw new ProgrammerError($"playlist {newName} already exists");

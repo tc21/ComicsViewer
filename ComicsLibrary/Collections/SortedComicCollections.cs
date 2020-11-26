@@ -6,24 +6,24 @@ using System.Collections.Generic;
 #nullable enable
 
 namespace ComicsLibrary.Collections {
-    internal class SortedComicCollections : IReadOnlyCollection<ComicCollection> {
+    internal class SortedComicCollections : IReadOnlyCollection<IComicCollection> {
         private readonly IComparer<IComicCollection> comparer;
         public SortedComicCollections(ComicCollectionSortSelector sortSelector) {
             this.comparer = ComicCollectionComparers.Make(sortSelector);
         }
 
         // this is a useless node that exists to simplify our code
-        private readonly Node head = new(new("<error>", ComicView.Empty));
+        private readonly Node head = new(default);
         private readonly Dictionary<string, Node> properties = new();
 
         public int Count => this.properties.Count;
 
-        public void Add(ComicCollection property) {
+        public void Add(IComicCollection property) {
             var current = this.head;
             var node = new Node(property);
 
             // if (next is not null, and should be sorted before property
-            while (current.Next is { } _next && this.comparer.Compare(_next.Value, property) < 0) {
+            while (current.Next is { } _next && this.comparer.Compare(_next.Value!, property) < 0) {
                 current = current.Next;
             }
 
@@ -43,7 +43,7 @@ namespace ComicsLibrary.Collections {
             this.properties.Clear();
         }
 
-        public ComicCollection Remove(string property) {
+        public IComicCollection Remove(string property) {
             var node = properties[property];
             _ = properties.Remove(property);
 
@@ -57,16 +57,16 @@ namespace ComicsLibrary.Collections {
                 throw new ProgrammerError();
             }
 
-            return node.Value;
+            return node.Value!;
         }
 
         public bool Contains(string property) => this.properties.ContainsKey(property);
 
-        public IEnumerator<ComicCollection> GetEnumerator() {
+        public IEnumerator<IComicCollection> GetEnumerator() {
             var current = this.head;
 
             while (current.Next is { } next) {
-                yield return next.Value;
+                yield return next.Value!;
                 current = next;
             }
         }
@@ -76,9 +76,9 @@ namespace ComicsLibrary.Collections {
         private class Node {
             public Node? Prev;
             public Node? Next;
-            public ComicCollection Value;
+            public IComicCollection? Value;
 
-            public Node(ComicCollection value) {
+            public Node(IComicCollection? value) {
                 this.Value = value;
             }
         }

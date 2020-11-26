@@ -438,7 +438,7 @@ namespace ComicsViewer.Pages {
 
             e.Data.SetText(string.Join("\n", comicItems.SelectMany(item => item.ContainedComics()).Select(comic => comic.UniqueIdentifier)));
 
-            var playlistItems = this.MainViewModel.Playlists.Values.Select(
+            var playlistItems = this.MainViewModel.Playlists.Select(
                 playlist => new DragAndDropShortcutItem(
                     playlist.Name,
                     async comics => await this.MainViewModel.AddToPlaylistAsync(playlist.Name, comics)

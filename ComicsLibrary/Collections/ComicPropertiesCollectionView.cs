@@ -36,25 +36,18 @@ namespace ComicsLibrary.Collections {
                     var modifiedProperties = new HashSet<string>();
                     var removedProperties = new HashSet<string>();
 
-                    // When a comic is modified, it is removed, then added. Thus we process removals first.
-                    // e.Remove is different from e.Add: e.Remove is the "before" comics, and e.Add is the "after".
-                    var propertiesOfRemovedComics = new HashSet<string>(e.Remove.SelectMany(this.getProperties));
-                    foreach (var property in propertiesOfRemovedComics) {
-                        var propertyView = this.properties.Remove(property);
+                    var affectedProperties = new HashSet<string>(e.Remove.Concat(e.Add).SelectMany(this.getProperties));
+                    foreach (var property in affectedProperties) {
+                        if (this.properties.Contains(property)) {
+                            var propertyView = this.properties.Remove(property);
 
-                        if (propertyView.Comics.Any()) {
-                            this.properties.Add(propertyView);
+                            if (propertyView.Comics.Any()) {
+                                this.properties.Add(propertyView);
 
-                            _ = modifiedProperties.Add(property);
-                        } else {
-                            _ = removedProperties.Add(property);
-                        }
-                    }
-
-                    var propertiesOfAddedComics = new HashSet<string>(e.Add.SelectMany(this.getProperties));
-                    foreach (var property in propertiesOfAddedComics) {
-                        if (modifiedProperties.Contains(property)) {
-                            // do nothing
+                                _ = modifiedProperties.Add(property);
+                            } else {
+                                _ = removedProperties.Add(property);
+                            }
                         } else {
                             var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
                             this.properties.Add(new ComicCollection(property, view));
@@ -63,7 +56,7 @@ namespace ComicsLibrary.Collections {
                         }
                     }
 
-                    this.PropertiesChanged?.Invoke(this, new(CollectionsChangeType.ItemsChanged, addedProperties, modifiedProperties, removedProperties));
+                    this.OnCollectionsChanged(new(CollectionsChangeType.ItemsChanged, addedProperties, modifiedProperties, removedProperties));
 
                     break;
                 case ComicChangeType.ThumbnailChanged:
@@ -91,18 +84,11 @@ namespace ComicsLibrary.Collections {
                 this.properties.Add(new ComicCollection(propertyName, view));
             }
 
-            this.PropertiesChanged?.Invoke(this, new CollectionsChangedEventArgs(CollectionsChangeType.Refresh, this.Select(p => p.Name)));
+            this.OnCollectionsChanged(new CollectionsChangedEventArgs(CollectionsChangeType.Refresh, this.Select(p => p.Name)));
         }
 
-        public override IEnumerator<ComicCollection> GetEnumerator() {
+        public override IEnumerator<IComicCollection> GetEnumerator() {
             return this.properties.GetEnumerator();
         }
-
-        /// <summary>
-        /// The PropertiesChanged event is propagated down to children views so that external classes using a ComicPropertiesView can
-        /// update their information about properties that have changed in this view.
-        /// </summary> 
-        public event PropertiesChangedEventHandler? PropertiesChanged;
-        public delegate void PropertiesChangedEventHandler(ComicPropertiesCollectionView sender, CollectionsChangedEventArgs e);
     }
 }

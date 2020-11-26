@@ -1,7 +1,6 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
-using ComicsViewer.Support;
 using System.Linq;
 
 #nullable enable
@@ -11,18 +10,17 @@ namespace ComicsViewer.ViewModels.Pages {
         public override string[] SortSelectors => SortSelectorNames.ComicCollectionSortSelectorNames;
         protected ComicCollectionSortSelector SelectedSortSelector => (ComicCollectionSortSelector)this.SelectedSortIndex;
 
-        private readonly ComicPropertiesCollectionView properties;
+        private readonly ComicCollectionView properties;
 
-        protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
+        protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicCollectionView comicCollections)
             : base(appViewModel)
         {
-            this.properties = this.GetSortedProperties(comics);
-
-            this.properties.PropertiesChanged += this.Properties_PropertiesChanged;
+            this.properties = comicCollections;
+            this.properties.CollectionsChanged += this.Properties_CollectionsChanged;
         }
-
-        public static ComicNavigationItemGridViewModel ForViewModel(MainViewModel mainViewModel, ComicView comics) {
-            var viewModel = new ComicNavigationItemGridViewModel(mainViewModel, comics);
+        
+        public static ComicNavigationItemGridViewModel ForViewModel(MainViewModel mainViewModel, ComicCollectionView comicCollections) {
+            var viewModel = new ComicNavigationItemGridViewModel(mainViewModel, comicCollections);
             // Sorts and loads the actual comic items
             viewModel.RefreshComicItems();
             return viewModel;
@@ -45,19 +43,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.NavigateInto(item, parent: this);
         }
 
-        private ComicPropertiesCollectionView GetSortedProperties(ComicView comics) {
-            return comics.SortedProperties(
-                this.NavigationTag switch {
-                    NavigationTag.Author => comic => new[] { comic.Author },
-                    NavigationTag.Category => comic => new[] { comic.Category },
-                    NavigationTag.Tags => comic => comic.Tags,
-                    _ => throw new ProgrammerError("unhandled switch case")
-                },
-                this.SelectedSortSelector
-            );
-        }
-
-        protected void Properties_PropertiesChanged(ComicPropertiesCollectionView sender, CollectionsChangedEventArgs e) {
+        private void Properties_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
                 case CollectionsChangeType.ItemsChanged:
                     // TODO
@@ -66,14 +52,14 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
 
                 default:
-                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Properties_PropertiesChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Properties_CollectionsChanged)}: unhandled switch case");
             }
         }
 
         public override void Dispose() {
             base.Dispose();
 
-            this.properties.PropertiesChanged -= this.Properties_PropertiesChanged;
+            this.properties.CollectionsChanged -= this.Properties_CollectionsChanged;
         }
     }
 }

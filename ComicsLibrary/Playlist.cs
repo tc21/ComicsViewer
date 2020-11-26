@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using ComicsLibrary.Collections;
@@ -22,14 +21,14 @@ namespace ComicsLibrary {
         }
 
         public void UnionWith(IEnumerable<Comic> comics) {
-            comics = comics.ToList();
+            comics = comics.Where(comic => !this.uniqueIds.Contains(comic.UniqueIdentifier)).ToList();
 
             this.uniqueIds.UnionWith(comics.Select(comic => comic.UniqueIdentifier));
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
         }
 
         public void ExceptWith(IEnumerable<Comic> comics) {
-            comics = comics.ToList();
+            comics = comics.Where(comic => this.uniqueIds.Contains(comic.UniqueIdentifier)).ToList();
 
             this.uniqueIds.ExceptWith(comics.Select(comic => comic.UniqueIdentifier));
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
