@@ -2,14 +2,26 @@
 using ComicsViewer.Common;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
 namespace ComicsLibrary.Collections {
     internal class SortedComicCollections : IReadOnlyCollection<IComicCollection> {
-        private readonly IComparer<IComicCollection> comparer;
-        public SortedComicCollections(ComicCollectionSortSelector sortSelector) {
-            this.comparer = ComicCollectionComparers.Make(sortSelector);
+        // we'll use null to mark Random
+        private readonly IComparer<IComicCollection>? comparer;
+        public SortedComicCollections(ComicCollectionSortSelector sortSelector, IEnumerable<IComicCollection> initialItems) {
+            var items = initialItems.ToList();
+
+            if (sortSelector == ComicCollectionSortSelector.Random) {
+                this.comparer = null;
+                General.Shuffle(items);
+            } else {
+                this.comparer = ComicCollectionComparers.Make(sortSelector);
+                items.Sort(this.comparer);
+            }
+
+            this.Initialize(items);
         }
 
         // this is a useless node that exists to simplify our code
@@ -18,13 +30,31 @@ namespace ComicsLibrary.Collections {
 
         public int Count => this.properties.Count;
 
+        private void Initialize(IEnumerable<IComicCollection> items) {
+            var current = head;
+            foreach (var item in items) {
+                var next = new Node(item);
+                current.Next = next;
+                next.Prev = current;
+                current = next;
+            }
+        }
+
         public void Add(IComicCollection property) {
             var current = this.head;
             var node = new Node(property);
 
-            // if (next is not null, and should be sorted before property
-            while (current.Next is { } _next && this.comparer.Compare(_next.Value!, property) < 0) {
-                current = current.Next;
+            // advance to before where we insert the new item 
+            if (this.comparer is null) {
+                var index = General.Randomizer.Next(0, this.Count + 1);
+
+                while (index-- > 0) {
+                    current = current.Next!;
+                }
+            } else {
+                while (current.Next is { } _next && this.comparer.Compare(_next.Value!, property) < 0) {
+                    current = current.Next;
+                }
             }
 
             if (current.Next is { } next) {

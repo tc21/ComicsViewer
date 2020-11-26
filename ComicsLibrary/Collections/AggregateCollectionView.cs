@@ -6,23 +6,20 @@ using System.Linq;
 
 namespace ComicsLibrary.Collections {
     public class AggregateCollectionView : ComicCollectionView {
-        internal override SortedComicCollections Properties { get; }
-
         public override int Count => this.Properties.Count;
         private readonly Dictionary<string, (IComicCollection collection, ComicView.ComicsChangedEventHandler handler)> collections = new();
 
         public AggregateCollectionView() : this(Array.Empty<IComicCollection>()) {}
 
         public AggregateCollectionView(IEnumerable<IComicCollection> collections) {
-            this.Properties = new SortedComicCollections(this.Sort);
-
             foreach (var collection in collections) {
                 void handler(ComicView sender, ComicsChangedEventArgs e) => this.Collection_ComicsChanged(collection, e);
 
-                this.Properties.Add(collection);
                 this.collections.Add(collection.Name, (collection, (ComicView.ComicsChangedEventHandler)handler));
                 collection.Comics.ComicsChanged += handler;
             }
+
+            this.Properties = new(this.Sort, collections);
         }
 
         public void AddCollection(IComicCollection collection) {
@@ -64,14 +61,6 @@ namespace ComicsLibrary.Collections {
             this.Properties.Clear();
 
             this.OnCollectionsChanged(new(CollectionsChangeType.Refresh));
-        }
-
-        protected override void SortChanged() {
-            this.Properties.Clear();
-
-            foreach(var (collection, _) in this.collections.Values) {
-                this.Properties.Add(collection);
-            }
         }
 
         private void Collection_ComicsChanged(IComicCollection collection, ComicsChangedEventArgs e) {

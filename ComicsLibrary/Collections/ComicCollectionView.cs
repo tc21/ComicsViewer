@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
@@ -24,7 +25,8 @@ namespace ComicsLibrary.Collections {
     public abstract class ComicCollectionView : IReadOnlyCollection<IComicCollection> {
         public abstract int Count { get; }
         public abstract IEnumerator<IComicCollection> GetEnumerator();
-        internal abstract SortedComicCollections Properties { get; }
+
+        internal SortedComicCollections Properties { get; set; } = new(default, Array.Empty<IComicCollection>());
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
@@ -32,12 +34,16 @@ namespace ComicsLibrary.Collections {
 
         public void SetSort(ComicCollectionSortSelector sortSelector) {
             this.Sort = sortSelector;
-            this.SortChanged();
+
+            var previous = this.Properties.ToList();
+            this.Properties = new(sortSelector, previous);
+
+            previous.Clear();
+
+            this.OnCollectionsChanged(new(CollectionsChangeType.Refresh));
         }
 
         public ComicView GetView(string name) => this.Properties.Get(name).Comics;
-
-        protected abstract void SortChanged();
 
         /// <summary>
         /// The PropertiesChanged event is propagated down to children views so that external classes using a ComicPropertiesView can

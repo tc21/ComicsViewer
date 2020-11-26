@@ -10,22 +10,14 @@ namespace ComicsLibrary.Collections {
         private readonly ComicView parent;
         private readonly Func<Comic, IEnumerable<string>> getProperties;
 
-        internal override SortedComicCollections Properties { get; }
-
         public override int Count => this.Properties.Count;
 
         public ComicPropertiesCollectionView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties) {
             this.parent = parent;
             this.getProperties = getProperties;
-            this.Properties = new SortedComicCollections(this.Sort);
 
             parent.ViewChanged += this.ParentComicView_ViewChanged;
 
-            this.InitializeProperties();
-        }
-
-        protected override void SortChanged() {
-            this.Properties.Clear();
             this.InitializeProperties();
         }
 
@@ -79,10 +71,12 @@ namespace ComicsLibrary.Collections {
                 propertyNames.UnionWith(getProperties(comic));
             }
 
-            foreach (var propertyName in propertyNames) {
-                var view = this.parent.Filtered(comic => getProperties(comic).Contains(propertyName));
-                this.Properties.Add(new ComicCollection(propertyName, view));
-            }
+            var collections = propertyNames.Select(name => {
+                var view = this.parent.Filtered(comic => getProperties(comic).Contains(name));
+                return new ComicCollection(name, view);
+            });
+
+            this.Properties = new(this.Sort, collections);
 
             this.OnCollectionsChanged(new CollectionsChangedEventArgs(CollectionsChangeType.Refresh, this.Select(p => p.Name)));
         }
