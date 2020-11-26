@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -32,14 +33,13 @@ namespace ComicsViewer.Features {
         public bool ContainsName(string name) => this.paths.ContainsKey(name);
         public bool ContainsPath(string path) => this.paths.ContainsValue(path);
         public bool Remove(string name) => this.paths.Remove(name);
-        public bool TryGetValue(string name, out NamedPath value) {
+        public bool TryGetValue(string name, [NotNullWhen(true)] out NamedPath? value) {
             if (this.paths.TryGetValue(name, out var path)) {
                 value = new NamedPath { Name = name, Path = path };
                 return true;
             }
 
-            // again, we can't really prevent this warning in this version of .net
-            value = null!;
+            value = null;
             return false;
         }
 
