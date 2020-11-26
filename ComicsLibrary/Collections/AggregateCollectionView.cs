@@ -6,20 +6,20 @@ using System.Linq;
 
 namespace ComicsLibrary.Collections {
     public class AggregateCollectionView : ComicCollectionView {
-        private readonly SortedComicCollections properties;
+        internal override SortedComicCollections Properties { get; }
 
-        public override int Count => this.properties.Count;
+        public override int Count => this.Properties.Count;
         private readonly Dictionary<string, (IComicCollection collection, ComicView.ComicsChangedEventHandler handler)> collections = new();
 
         public AggregateCollectionView() : this(Array.Empty<IComicCollection>()) {}
 
         public AggregateCollectionView(IEnumerable<IComicCollection> collections) {
-            this.properties = new SortedComicCollections(this.Sort);
+            this.Properties = new SortedComicCollections(this.Sort);
 
             foreach (var collection in collections) {
                 void handler(ComicView sender, ComicsChangedEventArgs e) => this.Collection_ComicsChanged(collection, e);
 
-                this.properties.Add(collection);
+                this.Properties.Add(collection);
                 this.collections.Add(collection.Name, (collection, (ComicView.ComicsChangedEventHandler)handler));
                 collection.Comics.ComicsChanged += handler;
             }
@@ -28,7 +28,7 @@ namespace ComicsLibrary.Collections {
         public void AddCollection(IComicCollection collection) {
             void handler(ComicView sender, ComicsChangedEventArgs e) => this.Collection_ComicsChanged(collection, e);
 
-            this.properties.Add(collection);
+            this.Properties.Add(collection);
             this.collections.Add(collection.Name, (collection, (ComicView.ComicsChangedEventHandler)handler));
             collection.Comics.ComicsChanged += handler;
 
@@ -38,7 +38,7 @@ namespace ComicsLibrary.Collections {
         public void RemoveCollection(IComicCollection collection) {
             var (existing, handler) = this.collections[collection.Name];
             _ = this.collections.Remove(collection.Name);
-            _ = this.properties.Remove(collection.Name);
+            _ = this.Properties.Remove(collection.Name);
 
             existing.Comics.ComicsChanged -= handler;
 
@@ -61,16 +61,16 @@ namespace ComicsLibrary.Collections {
             }
 
             this.collections.Clear();
-            this.properties.Clear();
+            this.Properties.Clear();
 
             this.OnCollectionsChanged(new(CollectionsChangeType.Refresh));
         }
 
         protected override void SortChanged() {
-            this.properties.Clear();
+            this.Properties.Clear();
 
             foreach(var (collection, _) in this.collections.Values) {
-                this.properties.Add(collection);
+                this.Properties.Add(collection);
             }
         }
 
@@ -80,13 +80,13 @@ namespace ComicsLibrary.Collections {
                 case ComicChangeType.Refresh:
                     bool removed = false, added = false;
 
-                    if (this.properties.Contains(collection.Name)) {
-                        _ = this.properties.Remove(collection.Name);
+                    if (this.Properties.Contains(collection.Name)) {
+                        _ = this.Properties.Remove(collection.Name);
                         removed = true;
                     }
 
                     if (collection.Comics.Any()) {
-                        this.properties.Add(collection);
+                        this.Properties.Add(collection);
                         added = true;
                     }
 
@@ -116,7 +116,7 @@ namespace ComicsLibrary.Collections {
         }
 
         public override IEnumerator<IComicCollection> GetEnumerator() {
-            return this.properties.GetEnumerator();
+            return this.Properties.GetEnumerator();
         }
     }
 }

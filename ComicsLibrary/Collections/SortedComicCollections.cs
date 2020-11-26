@@ -62,6 +62,8 @@ namespace ComicsLibrary.Collections {
 
         public bool Contains(string property) => this.properties.ContainsKey(property);
 
+        public IComicCollection Get(string property) => this.properties[property].Value!;
+
         public IEnumerator<IComicCollection> GetEnumerator() {
             var current = this.head;
 

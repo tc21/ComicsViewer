@@ -20,16 +20,48 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => this.Comics;
 
-        public ComicNavigationItem(string name, ComicView comics, bool allowEmptyItems = false) {
-            if (!allowEmptyItems && !comics.Any()) {
-                throw new ProgrammerError("ComicNavigationItem should not receive an empty ComicView in its constructor.");
-            }
+        private Comic? thumbnailComic;
 
+        public ComicNavigationItem(string name, ComicView comics) {
             this.Title = name;
             this.Comics = comics;
 
             if (comics.Any()) {
-                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(comics.First())) };
+                this.thumbnailComic = comics.First();
+                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
+            }
+
+            comics.ComicsChanged += this.Comics_ComicsChanged;
+        }
+
+        private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
+            switch (e.Type) {
+                case ComicChangeType.ItemsChanged:
+                    if (this.Comics.Any() && this.Comics.First() != this.thumbnailComic) {
+                        this.thumbnailComic = this.Comics.First();
+                        this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
+                        this.OnPropertyChanged(nameof(this.ThumbnailImage));
+                    }
+
+                    this.OnPropertyChanged(nameof(this.Subtitle));
+
+                    // note: title cannot be changed. Changing title means removing this item and adding a new one.
+                    break;
+
+                case ComicChangeType.ThumbnailChanged:
+                    if (this.thumbnailComic is not null && e.Modified.Contains(this.thumbnailComic)) {
+                        this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
+                        this.OnPropertyChanged(nameof(this.ThumbnailImage));
+                    }
+
+                    break;
+
+                case ComicChangeType.Refresh:
+                    // the parent's job, not ours
+                    break;
+
+                default:
+                    throw new ProgrammerError($"{nameof(this.Comics_ComicsChanged)}: unhandled switch case");
             }
         }
 
@@ -40,6 +72,7 @@ namespace ComicsViewer.ViewModels {
 
         public override void Dispose() {
             // do nothing
+            this.Comics.ComicsChanged -= this.Comics_ComicsChanged;
         }
     }
 }

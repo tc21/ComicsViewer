@@ -775,7 +775,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task CreatePlaylistAsync(string name, IEnumerable<Comic>? comics = null, bool updateDatabase = true) {
-            if (!this.Playlists.ContainsKey(name)) {
+            if (this.Playlists.ContainsKey(name)) {
                 throw new ArgumentException($"playlist {name} already exists");
             }
 

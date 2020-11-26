@@ -24,6 +24,7 @@ namespace ComicsLibrary.Collections {
     public abstract class ComicCollectionView : IReadOnlyCollection<IComicCollection> {
         public abstract int Count { get; }
         public abstract IEnumerator<IComicCollection> GetEnumerator();
+        internal abstract SortedComicCollections Properties { get; }
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
@@ -33,6 +34,8 @@ namespace ComicsLibrary.Collections {
             this.Sort = sortSelector;
             this.SortChanged();
         }
+
+        public ComicView GetView(string name) => this.Properties.Get(name).Comics;
 
         protected abstract void SortChanged();
 

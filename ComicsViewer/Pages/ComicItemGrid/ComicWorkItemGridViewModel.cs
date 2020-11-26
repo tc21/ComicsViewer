@@ -85,6 +85,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         var addedItems = this.MakeComicItems(e.Added).ToList();
 
                         foreach (var item in addedItems) {
+                            // TODO implement live sorting
                             this.ComicItems.Insert(0, item);
                         }
 

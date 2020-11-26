@@ -1,6 +1,8 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
+using Microsoft.Toolkit.Uwp.UI.Controls.TextToolbarSymbols;
+using System.Collections.Generic;
 using System.Linq;
 
 #nullable enable
@@ -46,7 +48,35 @@ namespace ComicsViewer.ViewModels.Pages {
         private void Properties_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
                 case CollectionsChangeType.ItemsChanged:
-                    // TODO
+                    if (e.Added.Any()) {
+                        var addedItems = e.Added.Select(name => new ComicNavigationItem(name, sender.GetView(name)));
+
+                        foreach (var item in addedItems) {
+                            this.ComicItems.Insert(0, item);
+                        }
+                    }
+
+                    if (e.Removed.Any()) {
+                        var removedTitles = e.Removed.ToHashSet();
+                        var removeIndices = new List<int>();
+
+                        var index = 0;
+                        foreach (var item in this.ComicItems) {
+                            if (removedTitles.Contains(item.Title)) {
+                                removeIndices.Insert(0, index);
+                            }
+
+                            index += 1;
+                        };
+
+                        foreach (var i in removeIndices) {
+                            this.ComicItems.RemoveAt(i);
+                        }
+
+                    }
+
+                    break;
+
                 case CollectionsChangeType.Refresh:
                     this.RefreshComicItems();
                     break;

@@ -10,14 +10,14 @@ namespace ComicsLibrary.Collections {
         private readonly ComicView parent;
         private readonly Func<Comic, IEnumerable<string>> getProperties;
 
-        private readonly SortedComicCollections properties;
+        internal override SortedComicCollections Properties { get; }
 
-        public override int Count => this.properties.Count;
+        public override int Count => this.Properties.Count;
 
         public ComicPropertiesCollectionView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties) {
             this.parent = parent;
             this.getProperties = getProperties;
-            this.properties = new SortedComicCollections(this.Sort);
+            this.Properties = new SortedComicCollections(this.Sort);
 
             parent.ViewChanged += this.ParentComicView_ViewChanged;
 
@@ -25,7 +25,7 @@ namespace ComicsLibrary.Collections {
         }
 
         protected override void SortChanged() {
-            this.properties.Clear();
+            this.Properties.Clear();
             this.InitializeProperties();
         }
 
@@ -38,11 +38,11 @@ namespace ComicsLibrary.Collections {
 
                     var affectedProperties = new HashSet<string>(e.Remove.Concat(e.Add).SelectMany(this.getProperties));
                     foreach (var property in affectedProperties) {
-                        if (this.properties.Contains(property)) {
-                            var propertyView = this.properties.Remove(property);
+                        if (this.Properties.Contains(property)) {
+                            var propertyView = this.Properties.Remove(property);
 
                             if (propertyView.Comics.Any()) {
-                                this.properties.Add(propertyView);
+                                this.Properties.Add(propertyView);
 
                                 _ = modifiedProperties.Add(property);
                             } else {
@@ -50,7 +50,7 @@ namespace ComicsLibrary.Collections {
                             }
                         } else {
                             var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
-                            this.properties.Add(new ComicCollection(property, view));
+                            this.Properties.Add(new ComicCollection(property, view));
 
                             _ = addedProperties.Add(property);
                         }
@@ -62,7 +62,7 @@ namespace ComicsLibrary.Collections {
                 case ComicChangeType.ThumbnailChanged:
                     break;
                 case ComicChangeType.Refresh:
-                    this.properties.Clear();
+                    this.Properties.Clear();
                     this.InitializeProperties();
 
                     break;
@@ -81,14 +81,14 @@ namespace ComicsLibrary.Collections {
 
             foreach (var propertyName in propertyNames) {
                 var view = this.parent.Filtered(comic => getProperties(comic).Contains(propertyName));
-                this.properties.Add(new ComicCollection(propertyName, view));
+                this.Properties.Add(new ComicCollection(propertyName, view));
             }
 
             this.OnCollectionsChanged(new CollectionsChangedEventArgs(CollectionsChangeType.Refresh, this.Select(p => p.Name)));
         }
 
         public override IEnumerator<IComicCollection> GetEnumerator() {
-            return this.properties.GetEnumerator();
+            return this.Properties.GetEnumerator();
         }
     }
 }
