@@ -221,8 +221,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void FilterToAuthor(string author) {
-            var properties = this.Comics.SortedProperties(c => new[] { c.Author }, ComicsLibrary.Sorting.ComicPropertySortSelector.Random);
-            var authorView = properties.PropertyView(author);
+            var authorView = this.Comics.Filtered(c => c.Author == author);
             var placeholder = new ComicNavigationItem(author, authorView);
 
             this.NavigateInto(placeholder);

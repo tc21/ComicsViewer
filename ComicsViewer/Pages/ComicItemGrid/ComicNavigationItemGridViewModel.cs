@@ -34,10 +34,10 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private protected override void SortOrderChanged() {
-            var view = this.GetOneTimeSortedProperties();
+            var view = this.GetSortedProperties();
 
             var items = view.Select(property => 
-                new ComicNavigationItem(property.Name, view.PropertyView(property.Name))
+                new ComicNavigationItem(property.Name, property.Comics)
             );
 
             this.SetComicItems(items, view.Count);
@@ -47,7 +47,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.NavigateInto(item, parent: this);
         }
 
-        private OneTimeComicPropertiesView GetOneTimeSortedProperties() {
+        private ComicPropertiesView GetSortedProperties() {
             return this.comics.SortedProperties(
                 this.NavigationTag switch {
                     NavigationTag.Author => comic => new[] { comic.Author },

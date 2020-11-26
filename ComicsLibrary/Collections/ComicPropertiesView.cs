@@ -15,107 +15,172 @@ namespace ComicsLibrary.Collections {
 
     public class ComicProperty : IComicProperty {
         public string Name { get; }
-        public IEnumerable<Comic> Comics { get; }
+        public ComicView Comics { get; }
 
-        public ComicProperty(string name, IEnumerable<Comic> comics) {
-            this.Comics = comics.ToList();
+        IEnumerable<Comic> IComicProperty.Comics => this.Comics;
+
+        public ComicProperty(string name, ComicView comics) {
+            this.Comics = comics;
             this.Name = name;
         }
     }
 
-    /// <summary>
-    /// A ComicPropertiesView represents a collection of lists of comics, where each list represents a comics that
-    /// have the same property. This property represents authors, categories, and tags in ComicsViewer.
-    /// For convenience, we refer to the name of a property as a "key".
-    /// 
-    /// <para>
-    /// A ComicPropertiesView exists in a ComicView hierarchy, but its direct parent and children can only be 
-    /// ComicViews not ComicPropertyViews.
-    /// 
-    /// </para>
-    /// <para>
-    /// We have no need for non-sorted, or modifiable ComicPropertyViews, so this is the only class of its kind.
-    /// 
-    /// </para>
-    /// </summary>
-    public class OneTimeComicPropertiesView : IReadOnlyCollection<ComicProperty> {
-        /* optimization notes:
-         * - we can simplify some calls by allowing a variant of a Func<Comic, string> getProperties
-         * - we can make our children more efficent with a custom ComicPropertyView : ComicView subclass instead of filtering from parent;
-         * 
-         * but we don't need these optimizations yet at the scale we're at. */
-        private readonly ComicView parent;
-        // As an implementation detail, the List<Comic> stored in accessor and the IReadOnlyList<Comic> stored in sortedComicProperties are the same list
-        private readonly Dictionary<string, List<Comic>> accessor = new Dictionary<string, List<Comic>>();
-        private readonly List<ComicProperty> sortedComicProperties = new List<ComicProperty>();
+    internal class SortedPropertyCollection : IReadOnlyCollection<ComicProperty> {
+        private readonly IComparer<IComicProperty> comparer;
+        public SortedPropertyCollection(ComicPropertySortSelector sortSelector) {
+            this.comparer = ComicPropertyComparers.Make(sortSelector);
+        }
 
-        private readonly Func<Comic, IEnumerable<string>> getProperties;
+        // this is a useless node that exists to simplify our code
+        private readonly Node head = new(new("<error>", ComicView.Empty));
+        private readonly Dictionary<string, Node> properties = new();
 
-        public OneTimeComicPropertiesView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties, ComicPropertySortSelector sortSelector) {
-            this.parent = parent;
-            this.getProperties = getProperties;
+        public int Count => this.properties.Count;
 
-            foreach (var comic in parent) {
-                this.AddComic(comic);
+        public void Add(ComicProperty property) {
+            var current = this.head;
+            var node = new Node(property);
+
+            // if (next is not null, and should be sorted before property
+            while (current.Next is { } _next && this.comparer.Compare(_next.Value, property) < 0) {
+                current = current.Next;
             }
 
-            this.Sort(sortSelector);
+            if (current.Next is { } next) {
+                next.Prev = node;
+                node.Next = next;
+            }
+
+            node.Prev = current;
+            current.Next = node;
+
+            properties.Add(property.Name, node);
         }
 
-        public ComicView PropertyView(string property) {
-            // used to throw an ArgumentException if property doesn't exist
-            _ = this[property];
-
-            return this.parent.Filtered(c => this.getProperties(c).Contains(property));
+        public void Clear() {
+            this.head.Next = null;
+            this.properties.Clear();
         }
 
-        /// <summary>
-        /// Sorts this view in-place.
-        /// </summary>
-        private void Sort(ComicPropertySortSelector sortSelector) {
-            if (sortSelector == ComicPropertySortSelector.Random) {
-                General.Shuffle(this.sortedComicProperties);
+        public ComicProperty Remove(string property) {
+            var node = properties[property];
+            _ = properties.Remove(property);
+
+            if (node.Next is { } next) {
+                next.Prev = node.Prev;
+            }
+
+            if (node.Prev is { } prev) {
+                prev.Next = node.Next;
             } else {
-                this.sortedComicProperties.Sort(ComicPropertyComparers.Make(sortSelector));
+                throw new ProgrammerError();
+            }
+
+            return node.Value;
+        }
+
+        public bool Contains(string property) => this.properties.ContainsKey(property);
+
+        public IEnumerator<ComicProperty> GetEnumerator() {
+            var current = this.head;
+
+            while (current.Next is { } next) {
+                yield return next.Value;
+                current = next;
             }
         }
 
-        /// <summary>
-        /// Adds a comic. Sorting is not preserced, and you must call Sort() again manually to ensure
-        /// the view stays sorted.
-        /// </summary>
-        private void AddComic(Comic comic) {
-            // ToHashSet isn't a thing in .net standard 2.0...
-            foreach (var property in this.getProperties(comic)) {
-                if (this.ContainsProperty(property)) {
-                    this.accessor[property].Add(comic);
-                } else {
-                    this.AddProperty(property, new List<Comic> { comic });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds a property. Sorting is not preserced, and you must call Sort() again manually to ensure
-        /// the view stays sorted.
-        /// </summary>
-        private void AddProperty(string name, List<Comic> comics) {
-            if (this.ContainsProperty(name)) {
-                throw new ProgrammerError("comic already exists in this collection");
-            }
-
-            var property = new ComicProperty(name, comics);
-            this.sortedComicProperties.Add(property);
-            this.accessor[property.Name] = comics;
-        }
-
-        private ComicProperty this[string key] => new ComicProperty(key, this.accessor[key]);
-        private bool ContainsProperty(string property) => this.accessor.ContainsKey(property);
-
-        public int Count => this.sortedComicProperties.Count;
-
-        public IEnumerator<ComicProperty> GetEnumerator() => this.sortedComicProperties.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        private class Node {
+            public Node? Prev;
+            public Node? Next;
+            public ComicProperty Value;
+
+            public Node(ComicProperty value) {
+                this.Value = value;
+            }
+        }
     }
 
+    public class ComicPropertiesView : IReadOnlyCollection<ComicProperty> {
+        private readonly ComicView parent;
+        private readonly Func<Comic, IEnumerable<string>> getProperties;
+
+        private ComicPropertySortSelector sortProperty;
+        private readonly SortedPropertyCollection properties;
+
+        public int Count => this.properties.Count;
+
+        public ComicPropertiesView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties) {
+            this.parent = parent;
+            this.getProperties = getProperties;
+            this.properties = new SortedPropertyCollection(this.sortProperty);
+
+            parent.ViewChanged += this.ParentComicView_ViewChanged;
+
+            this.InitializeProperties();
+        }
+
+        public void Sort(ComicPropertySortSelector sortProperty) {
+            this.sortProperty = sortProperty;
+
+            this.properties.Clear();
+            this.InitializeProperties();
+        }
+
+        private void ParentComicView_ViewChanged(ComicView sender, ComicView.ViewChangedEventArgs e) {
+            switch (e.Type) {
+                case ComicChangeType.ItemsChanged:
+                    // When a comic is modified, it is removed, then added. Thus we process removals first.
+                    // e.Remove is different from e.Add: e.Remove is the "before" comics, and e.Add is the "after".
+                    var newProperties = new HashSet<string>(e.Remove.Concat(e.Add).SelectMany(this.getProperties));
+
+                    var existingProperties = new HashSet<string>(newProperties.Where(this.properties.Contains));
+                    newProperties.ExceptWith(existingProperties);
+
+                    foreach (var property in existingProperties) {
+                        this.properties.Add(this.properties.Remove(property));
+
+                    }
+
+                    foreach (var property in newProperties) {
+                        var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
+                        this.properties.Add(new ComicProperty(property, view));
+                    }
+
+                    break;
+                case ComicChangeType.ThumbnailChanged:
+                    break;
+                case ComicChangeType.Refresh:
+                    this.properties.Clear();
+                    this.InitializeProperties();
+
+                    break;
+
+                default:
+                    throw new ProgrammerError("unhandled switch case");
+            }
+        }
+
+        private void InitializeProperties() {
+            var propertyNames = new HashSet<string>();
+
+            foreach (var comic in this.parent) {
+                propertyNames.UnionWith(getProperties(comic));
+            }
+
+            foreach (var propertyName in propertyNames) {
+                var view = this.parent.Filtered(comic => getProperties(comic).Contains(propertyName));
+                this.properties.Add(new ComicProperty(propertyName, view));
+
+            }
+        }
+
+        public IEnumerator<ComicProperty> GetEnumerator() {
+            return this.properties.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+    }
 }

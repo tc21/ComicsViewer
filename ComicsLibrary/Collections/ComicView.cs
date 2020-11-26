@@ -44,10 +44,12 @@ namespace ComicsLibrary.Collections {
         public FilteredComicView Filtered(Func<Comic, bool> filter)
             => new FilteredComicView(this, filter);
 
-        public OneTimeComicPropertiesView SortedProperties(
+        public ComicPropertiesView SortedProperties(
             Func<Comic, IEnumerable<string>> getProperties, Sorting.ComicPropertySortSelector sortSelector
         ) {
-            return new OneTimeComicPropertiesView(this, getProperties, sortSelector);
+            var view = new ComicPropertiesView(this, getProperties);
+            view.Sort(sortSelector);
+            return view;
         }
 
         /// <summary>
