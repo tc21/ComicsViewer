@@ -82,9 +82,9 @@ namespace ComicsViewer.ViewModels.Pages {
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
-        private protected ComicItemGridViewModel(MainViewModel appViewModel) {
-            this.MainViewModel = appViewModel;
-            this.NavigationTag = appViewModel.ActiveNavigationTag;
+        private protected ComicItemGridViewModel(MainViewModel mainViewModel) {
+            this.MainViewModel = mainViewModel;
+            this.NavigationTag = mainViewModel.ActiveNavigationTag;
 
             this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
 
@@ -96,18 +96,26 @@ namespace ComicsViewer.ViewModels.Pages {
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
         }
 
-        public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel appViewModel) {
-            if (appViewModel.ActiveNavigationTag == NavigationTag.Detail) {
-                throw new ProgrammerError($"ForTopLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
+        public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel mainViewModel) {
+            if (mainViewModel.ActiveNavigationTag == NavigationTag.Detail) {
+                throw new ProgrammerError($"ForTopLevelNavigationTag was called when navigationTag was {mainViewModel.ActiveNavigationTag}");
             }
 
-            if (appViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(appViewModel, appViewModel.ComicView);
-            } else if (appViewModel.ActiveNavigationTag == NavigationTag.Playlist) {
-                return ComicNavigationItemGridViewModel.ForViewModel(appViewModel, appViewModel.Playlists);
+            if (mainViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
+                return new ComicWorkItemGridViewModel(mainViewModel, mainViewModel.ComicView);
             } else {
-                return ComicNavigationItemGridViewModel.ForViewModel(appViewModel,  // TODO check ComicCollectionSortSelector
-                    GetSortedProperties(appViewModel.ComicView, appViewModel.ActiveNavigationTag, ComicCollectionSortSelector.Random));
+                var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(mainViewModel.ActiveNavigationTag);
+
+                ComicCollectionView comicCollections;
+
+                if (mainViewModel.ActiveNavigationTag == NavigationTag.Playlist) {
+                    comicCollections = mainViewModel.Playlists;
+                    comicCollections.SetSort(initialSort);
+                } else {
+                    comicCollections = GetSortedProperties(mainViewModel.ComicView, mainViewModel.ActiveNavigationTag, initialSort);
+                }
+
+                return ComicNavigationItemGridViewModel.ForViewModel(mainViewModel, comicCollections);
             }
         }
 
