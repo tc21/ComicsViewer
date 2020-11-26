@@ -132,22 +132,38 @@ namespace ComicsLibrary.Collections {
         private void ParentComicView_ViewChanged(ComicView sender, ComicView.ViewChangedEventArgs e) {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
+                    var addedProperties = new HashSet<string>();
+                    var modifiedProperties = new HashSet<string>();
+                    var removedProperties = new HashSet<string>();
+
                     // When a comic is modified, it is removed, then added. Thus we process removals first.
                     // e.Remove is different from e.Add: e.Remove is the "before" comics, and e.Add is the "after".
-                    var newProperties = new HashSet<string>(e.Remove.Concat(e.Add).SelectMany(this.getProperties));
+                    var propertiesOfRemovedComics = new HashSet<string>(e.Remove.SelectMany(this.getProperties));
+                    foreach (var property in propertiesOfRemovedComics) {
+                        var propertyView = this.properties.Remove(property);
 
-                    var existingProperties = new HashSet<string>(newProperties.Where(this.properties.Contains));
-                    newProperties.ExceptWith(existingProperties);
+                        if (propertyView.Comics.Any()) {
+                            this.properties.Add(propertyView);
 
-                    foreach (var property in existingProperties) {
-                        this.properties.Add(this.properties.Remove(property));
-
+                            _ = modifiedProperties.Add(property);
+                        } else {
+                            _ = removedProperties.Add(property);
+                        }
                     }
 
-                    foreach (var property in newProperties) {
-                        var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
-                        this.properties.Add(new ComicProperty(property, view));
+                    var propertiesOfAddedComics = new HashSet<string>(e.Add.SelectMany(this.getProperties));
+                    foreach (var property in propertiesOfAddedComics) {
+                        if (modifiedProperties.Contains(property)) {
+                            // do nothing
+                        } else {
+                            var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
+                            this.properties.Add(new ComicProperty(property, view));
+
+                            _ = addedProperties.Add(property);
+                        }
                     }
+
+                    this.PropertiesChanged?.Invoke(this, new(PropertiesChangeType.ItemsChanged, addedProperties, modifiedProperties, removedProperties));
 
                     break;
                 case ComicChangeType.ThumbnailChanged:
@@ -173,8 +189,9 @@ namespace ComicsLibrary.Collections {
             foreach (var propertyName in propertyNames) {
                 var view = this.parent.Filtered(comic => getProperties(comic).Contains(propertyName));
                 this.properties.Add(new ComicProperty(propertyName, view));
-
             }
+
+            this.PropertiesChanged?.Invoke(this, new PropertiesChangedEventArgs(PropertiesChangeType.Refresh, this.Select(p => p.Name)));
         }
 
         public IEnumerator<ComicProperty> GetEnumerator() {
@@ -182,5 +199,31 @@ namespace ComicsLibrary.Collections {
         }
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        /// <summary>
+        /// The PropertiesChanged event is propagated down to children views so that external classes using a ComicPropertiesView can
+        /// update their information about properties that have changed in this view.
+        /// </summary> 
+        public event PropertiesChangedEventHandler? PropertiesChanged;
+        public delegate void PropertiesChangedEventHandler(ComicPropertiesView sender, PropertiesChangedEventArgs e);
+    }
+
+    public class PropertiesChangedEventArgs {
+        public readonly PropertiesChangeType Type;
+        public readonly IEnumerable<string> Added;
+        public readonly IEnumerable<string> Modified;
+        public readonly IEnumerable<string> Removed;
+
+        internal PropertiesChangedEventArgs(PropertiesChangeType type, IEnumerable<string>? added = null,
+                                            IEnumerable<string>? modified = null, IEnumerable<string>? removed = null) {
+            this.Type = type;
+            this.Added = added ?? Array.Empty<string>();
+            this.Modified = modified ?? Array.Empty<string>();
+            this.Removed = removed ?? Array.Empty<string>();
+        }
+    }
+
+    public enum PropertiesChangeType {
+        ItemsChanged, Refresh
     }
 }

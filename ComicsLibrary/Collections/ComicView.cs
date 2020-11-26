@@ -123,7 +123,7 @@ namespace ComicsLibrary.Collections {
         public readonly ComicView Removed;
 
         internal ComicsChangedEventArgs(ComicChangeType type, ComicView? added = null,
-                                      ComicView? modified = null, ComicView? removed = null) {
+                                        ComicView? modified = null, ComicView? removed = null) {
             this.Type = type;
             this.Added = added ?? ComicView.Empty;
             this.Modified = modified ?? ComicView.Empty;

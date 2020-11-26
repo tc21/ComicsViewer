@@ -12,26 +12,26 @@ namespace ComicsViewer.ViewModels.Pages {
         private Dictionary<string, Playlist> Playlists => this.MainViewModel.Playlists;
 
         protected ComicPlaylistItemGridViewModel(MainViewModel mainViewModel, List<Playlist> playlists) : base(mainViewModel, ComicsInPlaylists(playlists)) {
-            foreach (var playlist in this.Playlists.Values) {
-                playlist.ComicsChanged += this.Comics_ComicsChanged;
-            }
+            //foreach (var playlist in this.Playlists.Values) {
+            //    playlist.ComicsChanged += this.Comics_ComicsChanged;
+            //}
 
-            mainViewModel.PlaylistChanged += this.MainViewModel_PlaylistChanged;
+            //mainViewModel.PlaylistChanged += this.MainViewModel_PlaylistChanged;
         }
 
         private void MainViewModel_PlaylistChanged(MainViewModel source, MainViewModel.PlaylistChangedArguments e) {
-            switch (e.Type) {
-                case MainViewModel.PlaylistChangeType.Add:
-                    e.Playlist.ComicsChanged += this.Comics_ComicsChanged;
-                    break;
-                case MainViewModel.PlaylistChangeType.Remove:
-                    e.Playlist.ComicsChanged -= this.Comics_ComicsChanged;
-                    break;
-                default:
-                    throw ProgrammerError.Auto();
-            }
+            //switch (e.Type) {
+            //    case MainViewModel.PlaylistChangeType.Add:
+            //        e.Playlist.ComicsChanged += this.Comics_ComicsChanged;
+            //        break;
+            //    case MainViewModel.PlaylistChangeType.Remove:
+            //        e.Playlist.ComicsChanged -= this.Comics_ComicsChanged;
+            //        break;
+            //    default:
+            //        throw ProgrammerError.Auto();
+            //}
 
-            this.RefreshComicItems();
+            //this.RefreshComicItems();
         }
 
         public static ComicPlaylistItemGridViewModel ForViewModel(MainViewModel mainViewModel, IEnumerable<Playlist> playlists) {

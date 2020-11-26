@@ -11,15 +11,14 @@ namespace ComicsViewer.ViewModels.Pages {
         public override string[] SortSelectors => SortSelectorNames.ComicPropertySortSelectorNames;
         protected ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
 
-        private readonly ComicView comics;
+        private readonly ComicPropertiesView properties;
 
         protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
             : base(appViewModel)
         {
-            this.comics = comics;
+            this.properties = this.GetSortedProperties(comics);
 
-            // TODO implement events for ComicPropertiesView and replace this logic with more sophisticated logic.
-            this.comics.ComicsChanged += this.Comics_ComicsChanged;
+            this.properties.PropertiesChanged += this.Properties_PropertiesChanged;
         }
 
         public static ComicNavigationItemGridViewModel ForViewModel(MainViewModel mainViewModel, ComicView comics) {
@@ -30,25 +29,24 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         protected void RefreshComicItems() {
-            this.SortOrderChanged();
-        }
-
-        private protected override void SortOrderChanged() {
-            var view = this.GetSortedProperties();
-
-            var items = view.Select(property => 
+            var items = this.properties.Select(property =>
                 new ComicNavigationItem(property.Name, property.Comics)
             );
 
-            this.SetComicItems(items, view.Count);
+            this.SetComicItems(items, this.properties.Count);
+        }
+
+        private protected override void SortOrderChanged() {
+            this.RefreshComicItems();
+            
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
             this.MainViewModel.NavigateInto(item, parent: this);
         }
 
-        private ComicPropertiesView GetSortedProperties() {
-            return this.comics.SortedProperties(
+        private ComicPropertiesView GetSortedProperties(ComicView comics) {
+            return comics.SortedProperties(
                 this.NavigationTag switch {
                     NavigationTag.Author => comic => new[] { comic.Author },
                     NavigationTag.Category => comic => new[] { comic.Category },
@@ -59,25 +57,23 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        protected void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
+        protected void Properties_PropertiesChanged(ComicPropertiesView sender, PropertiesChangedEventArgs e) {
             switch (e.Type) {
-                case ComicChangeType.ItemsChanged:
-                case ComicChangeType.Refresh:
+                case PropertiesChangeType.ItemsChanged:
+                    // TODO
+                case PropertiesChangeType.Refresh:
                     this.RefreshComicItems();
                     break;
 
-                case ComicChangeType.ThumbnailChanged:
-                    break;
-
                 default:
-                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Comics_ComicsChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Properties_PropertiesChanged)}: unhandled switch case");
             }
         }
 
         public override void Dispose() {
             base.Dispose();
 
-            this.comics.ComicsChanged -= this.Comics_ComicsChanged;
+            this.properties.PropertiesChanged -= this.Properties_PropertiesChanged;
         }
     }
 }
