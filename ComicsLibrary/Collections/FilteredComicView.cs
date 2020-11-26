@@ -13,15 +13,22 @@ namespace ComicsLibrary.Collections {
         private readonly ComicView filteredFrom;
         private readonly Func<Comic, bool> filter;
 
+        private readonly ComicList cache = new();
+
         internal FilteredComicView(ComicView filteredFrom, Func<Comic, bool> filter) : base(filteredFrom) {
             this.filteredFrom = filteredFrom;
             this.filter = filter;
+
+            this.GenerateCache();
         }
 
-        public override bool Contains(string uniqueIdentifier)
-            => this.filteredFrom.Contains(uniqueIdentifier) && this.filter(this.filteredFrom.GetStored(uniqueIdentifier));
-        public override int Count() => this.filteredFrom.Where(this.filter).Count();
-        public override IEnumerator<Comic> GetEnumerator() => this.filteredFrom.Where(this.filter).GetEnumerator();
+        private void GenerateCache() {
+            this.cache.Refresh(this.filteredFrom.Where(this.filter));
+        }
+
+        public override bool Contains(string uniqueIdentifier) => this.cache.Contains(uniqueIdentifier);
+        public override int Count => this.cache.Count;
+        public override IEnumerator<Comic> GetEnumerator() => this.cache.GetEnumerator();
 
         public override Comic GetStored(string uniqueIdentifier) {
             if (!this.Contains(uniqueIdentifier)) {
@@ -34,6 +41,8 @@ namespace ComicsLibrary.Collections {
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
+                    this.GenerateCache();
+
                     var add = e.Add.Where(this.filter).ToList();
                     var remove = e.Remove.Where(this.filter).ToList(); 
 
@@ -44,6 +53,8 @@ namespace ComicsLibrary.Collections {
                     return;
 
                 case ComicChangeType.Refresh:
+                    this.GenerateCache();
+
                     this.OnComicChanged(e);
                     return;
 

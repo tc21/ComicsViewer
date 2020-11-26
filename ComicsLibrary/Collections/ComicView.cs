@@ -23,9 +23,7 @@ namespace ComicsLibrary.Collections {
         public abstract IEnumerator<Comic> GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        public virtual int Count() {
-            return ((IEnumerable<Comic>)this).Count();
-        }
+        public abstract int Count { get; }
 
         private protected ComicView(ComicView? trackChangesFrom = null) {
             if (trackChangesFrom != null) {

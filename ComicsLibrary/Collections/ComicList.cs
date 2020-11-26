@@ -77,7 +77,7 @@ namespace ComicsLibrary.Collections {
 
         public override bool Contains(string uniqueIdentifier) => this.comics.ContainsKey(uniqueIdentifier);
         public override Comic GetStored(string uniqueIdentifier) => this.comics[uniqueIdentifier];
-        public override int Count() => this.comics.Count;
+        public override int Count => this.comics.Count;
         public override IEnumerator<Comic> GetEnumerator() => this.comics.Values.GetEnumerator();
     }
 }

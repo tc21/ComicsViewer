@@ -71,7 +71,7 @@ namespace ComicsLibrary.Collections {
             int index;
 
             if (this.sortSelector == ComicSortSelector.Random) {
-                index = General.Randomizer.Next(this.Count() + 1);
+                index = General.Randomizer.Next(this.Count + 1);
             } else {
                 index = this.sortedComics.BinarySearch(comic, ComicComparers.Make(this.sortSelector));
                 if (index <= 0) {
@@ -114,7 +114,7 @@ namespace ComicsLibrary.Collections {
 
         public override bool Contains(string uniqueIdentifier) => this.comicAccessor.ContainsKey(uniqueIdentifier);
         public override Comic GetStored(string uniqueIdentifier) => this.comicAccessor[uniqueIdentifier];
-        public override int Count() => this.sortedComics.Count;
+        public override int Count => this.sortedComics.Count;
         public override IEnumerator<Comic> GetEnumerator() => this.sortedComics.GetEnumerator();
     }
 }
