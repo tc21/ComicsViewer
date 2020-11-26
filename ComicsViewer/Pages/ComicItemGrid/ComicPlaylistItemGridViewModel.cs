@@ -61,7 +61,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private List<Playlist> GetSortedPlaylists() {
             var copy = new List<Playlist>(this.Playlists.Values);
-            copy.Sort(ComicPropertyComparers.Make(this.SelectedSortSelector));
+            copy.Sort(ComicCollectionComparers.Make(this.SelectedSortSelector));
             return copy;
         }
     }

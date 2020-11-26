@@ -148,10 +148,10 @@ namespace ComicsViewer.Features {
             ["LastProfile"] = "",
             ["SortSelections"] = new Dictionary<string, int>() {
                 [NavigationTag.Comics.ToTagName()] = (int)ComicSortSelector.Author,
-                [NavigationTag.Author.ToTagName()] = (int)ComicPropertySortSelector.Name,
-                [NavigationTag.Tags.ToTagName()] = (int)ComicPropertySortSelector.Name,
-                [NavigationTag.Category.ToTagName()] = (int)ComicPropertySortSelector.Name,
-                [NavigationTag.Playlist.ToTagName()] = (int)ComicPropertySortSelector.Name,
+                [NavigationTag.Author.ToTagName()] = (int)ComicCollectionSortSelector.Name,
+                [NavigationTag.Tags.ToTagName()] = (int)ComicCollectionSortSelector.Name,
+                [NavigationTag.Category.ToTagName()] = (int)ComicCollectionSortSelector.Name,
+                [NavigationTag.Playlist.ToTagName()] = (int)ComicCollectionSortSelector.Name,
                 [NavigationTag.Detail.ToTagName()] =(int)ComicSortSelector.Author
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...

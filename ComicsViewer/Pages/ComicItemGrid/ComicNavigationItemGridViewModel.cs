@@ -8,10 +8,10 @@ using System.Linq;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class ComicNavigationItemGridViewModel : ComicItemGridViewModel {
-        public override string[] SortSelectors => SortSelectorNames.ComicPropertySortSelectorNames;
-        protected ComicPropertySortSelector SelectedSortSelector => (ComicPropertySortSelector)this.SelectedSortIndex;
+        public override string[] SortSelectors => SortSelectorNames.ComicCollectionSortSelectorNames;
+        protected ComicCollectionSortSelector SelectedSortSelector => (ComicCollectionSortSelector)this.SelectedSortIndex;
 
-        private readonly ComicPropertiesView properties;
+        private readonly ComicPropertiesCollectionView properties;
 
         protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicView comics)
             : base(appViewModel)
@@ -45,7 +45,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.MainViewModel.NavigateInto(item, parent: this);
         }
 
-        private ComicPropertiesView GetSortedProperties(ComicView comics) {
+        private ComicPropertiesCollectionView GetSortedProperties(ComicView comics) {
             return comics.SortedProperties(
                 this.NavigationTag switch {
                     NavigationTag.Author => comic => new[] { comic.Author },
@@ -57,11 +57,11 @@ namespace ComicsViewer.ViewModels.Pages {
             );
         }
 
-        protected void Properties_PropertiesChanged(ComicPropertiesView sender, PropertiesChangedEventArgs e) {
+        protected void Properties_PropertiesChanged(ComicPropertiesCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
-                case PropertiesChangeType.ItemsChanged:
+                case CollectionsChangeType.ItemsChanged:
                     // TODO
-                case PropertiesChangeType.Refresh:
+                case CollectionsChangeType.Refresh:
                     this.RefreshComicItems();
                     break;
 

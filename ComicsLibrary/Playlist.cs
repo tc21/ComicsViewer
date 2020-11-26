@@ -6,9 +6,9 @@ using System.Linq;
 using ComicsLibrary.Collections;
 
 namespace ComicsLibrary {
-    public class Playlist : FilteredComicView, IComicProperty {
+    public class Playlist : FilteredComicView, IComicCollection {
         public string Name { get; }
-        public IEnumerable<Comic> Comics => this;
+        public ComicView Comics => this;
 
         private readonly HashSet<string> uniqueIds = new HashSet<string>();
 
