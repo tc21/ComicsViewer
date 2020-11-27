@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
@@ -13,7 +14,7 @@ namespace ComicsLibrary {
         private ComicMetadata Metadata { get; }
 
         public Comic(string path, string title, string author, string category, ComicMetadata? metadata = null) {
-            var names = path.Split(System.IO.Path.DirectorySeparatorChar);
+            var names = path.Split(System.IO.Path.DirectorySeparatorChar).Select(name => name.Trim()).ToArray();
             if (names.Length < 2) {
                 throw new ArgumentException("Invalid path: must have at least two levels");
             }
