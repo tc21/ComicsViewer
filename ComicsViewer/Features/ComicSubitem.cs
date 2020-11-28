@@ -11,14 +11,16 @@ namespace ComicsViewer.Features {
         private readonly List<string> files;
 
         public Comic Comic { get; }
+        public string RootPath { get; }
         private int ItemCount => this.files.Count;
         // ReSharper disable once UnusedMember.Global
         // This is used via CallerMemberPath in ComicInfoFlyout
         public string DisplayName => $"{this.displayName} ({this.ItemCount} items)";
         public IEnumerable<string> Files => this.files;
 
-        public ComicSubitem(Comic comic, string displayName, IEnumerable<string> files) {
+        public ComicSubitem(Comic comic, string displayName, string root, IEnumerable<string> files) {
             this.Comic = comic;
+            this.RootPath = root;
             this.displayName = displayName;
             this.files = files.ToList();
         }

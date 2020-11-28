@@ -14,8 +14,9 @@ using Windows.System;
 #nullable enable
 
 namespace ComicsViewer.Features {
+    // TODO: build a settings option to choose this
     public enum StartupApplicationType {
-        OpenFirstFile, BuiltinViewer
+        OpenFirstFile, BuiltinViewer, OpenContainingFolder
     }
 
     public static class Startup {
@@ -25,6 +26,10 @@ namespace ComicsViewer.Features {
                     // The if statement checks that the return value is not null
                     var file = await StorageFile.GetFileFromPathAsync(subitem.Files.First());
                     _ = await Launcher.LaunchFileAsync(file);
+                    return;
+
+                case StartupApplicationType.OpenContainingFolder:
+                    _ = await Launcher.LaunchFolderPathAsync(subitem.RootPath);
                     return;
 
                 case StartupApplicationType.BuiltinViewer:

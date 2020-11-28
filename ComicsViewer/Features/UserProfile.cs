@@ -137,7 +137,7 @@ namespace ComicsViewer.Features {
 
             if (this.StartupApplicationType == StartupApplicationType.BuiltinViewer && subitems.Count > 1) {
                 var allFiles = subitems.SelectMany(s => s.Files).ToList();
-                subitems.Insert(0, new ComicSubitem(comic, "(all items)", allFiles));
+                subitems.Insert(0, new ComicSubitem(comic, "(all items)", comic.Path, allFiles));
             }
 
             return subitems;
@@ -150,7 +150,7 @@ namespace ComicsViewer.Features {
                 return null;
             }
 
-            return new ComicSubitem(comic, displayName ?? Path.GetFileName(folder), files);
+            return new ComicSubitem(comic, displayName ?? Path.GetFileName(folder), folder, files);
         }
     }
 }
