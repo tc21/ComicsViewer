@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <GridView x:Name="ThumbnailGrid">
+        <GridView x:Name="ThumbnailGrid" ItemsSource="{x:Bind ThumbnailGridSource}">
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="local:ThumbnailGridItem">
                     <Border Width="120" Height="120" Margin="4" Padding="4">

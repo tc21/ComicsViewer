@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Uwp.Common;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -82,41 +83,38 @@ namespace ComicsViewer.Features {
                 }
             }
 
-            var comicFolder = await StorageFolder.GetFolderFromPathAsync(comic.Path);
-            return await TryGetFirstValidThumbnailFileAsync(comicFolder);
+            return await TryGetFirstValidThumbnailFileAsync(comic.Path);
         }
 
-        private static async Task<StorageFile?> TryGetFirstValidThumbnailFileAsync(StorageFolder folder) {
-            var files = await GetPossibleThumbnailFilesAsync(folder);
-            return files.FirstOrDefault();
+        private static async Task<StorageFile?> TryGetFirstValidThumbnailFileAsync(string folder) {
+            return await GetPossibleThumbnailFilesAsync(folder).FirstOrDefaultAsync();
         }
 
-        public static async Task<IEnumerable<StorageFile>> GetPossibleThumbnailFilesAsync(StorageFolder folder) {
-            var files = new List<StorageFile>();
-
-            // we can allow for customization in the future
+        public static async IAsyncEnumerable<StorageFile> GetPossibleThumbnailFilesAsync(string folder) {
+            var files = IO.GetDirectoryContents(folder);
+            var subfolders = new List<string>();
             var maxFiles = 5;
-            foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {
-                if (!IsValidThumbnailFile(file.Name)) {
-                    continue;
+
+            foreach (var file in files) {
+                if (file.ItemType == IO.FileOrDirectoryType.FileOrLink && IsValidThumbnailFile(file.Name) && maxFiles > 0) {
+                    maxFiles -= 1;
+                    yield return await StorageFile.GetFileFromPathAsync(file.Path);
                 }
 
-                files.Add(file);
-
-                if (--maxFiles <= 0) {
-                    break;
+                if (file.ItemType == IO.FileOrDirectoryType.Directory) {
+                    subfolders.Add(file.Path);
                 }
             }
 
-            foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
-                files.AddRange(await GetPossibleThumbnailFilesAsync(subfolder));
+            foreach (var subfolder in subfolders) {
+                await foreach (var file in GetPossibleThumbnailFilesAsync(subfolder)) {
+                    yield return file;
+                }
             }
-
-            return files;
 
             static bool IsValidThumbnailFile(string filename) {
                 // Windows media player/groove music creates these files which we can see but can't (and don't want to) use.
-                if (filename == "AlbumArtSmall.jpg" || filename == "Folder.jpg") {
+                if (filename is "AlbumArtSmall.jpg" or "Folder.jpg") {
                     return false;
                 }
 

@@ -357,15 +357,13 @@ namespace ComicsViewer.Pages {
         #region Redefining thumbnails
 
         public async Task RedefineThumbnailAsync(ComicWorkItem item) {
-            if (!(await ExpectedExceptions.TryGetFolderWithPermission(item.Comic.Path) is { } folder)) {
+            if (await ExpectedExceptions.TryGetFolderWithPermission(item.Comic.Path) is not { } folder) {
                 return;
             }
 
-            var images = await Thumbnail.GetPossibleThumbnailFilesAsync(folder);
-
             _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
                 typeof(RedefineThumbnailDialogContent),
-                new RedefineThumbnailDialogNavigationArguments(images, item, this.ViewModel)
+                new RedefineThumbnailDialogNavigationArguments(folder.Path, item, this.ViewModel)
             );
         }
 

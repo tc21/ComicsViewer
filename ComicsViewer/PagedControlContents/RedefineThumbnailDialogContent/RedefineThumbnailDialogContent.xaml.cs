@@ -1,9 +1,11 @@
 ﻿using ComicsViewer.Common;
 using ComicsViewer.Controls;
+using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
@@ -27,6 +29,8 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
+        private readonly ObservableCollection<ThumbnailGridItem> ThumbnailGridSource = new();
+
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             var (accessor, args) = PagedControlAccessor.FromNavigationArguments<RedefineThumbnailDialogNavigationArguments>(
                 e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
@@ -36,21 +40,17 @@ namespace ComicsViewer.Pages {
             this._item = args.Item;
             this._parentViewModel = args.ParentViewModel;
 
-            var items = new List<ThumbnailGridItem>();
-
             // Note: this loop takes up a lot of memory
-            foreach (var file in args.Files) {
+            await foreach (var file in Thumbnail.GetPossibleThumbnailFilesAsync(args.Path)) {
                 var image = new BitmapImage();
                 var stream = await file.GetScaledImageAsThumbnailAsync(Windows.Storage.FileProperties.ThumbnailMode.SingleItem);
                 await image.SetSourceAsync(stream);
-                items.Add(new ThumbnailGridItem(file, image));
+                this.ThumbnailGridSource.Add(new ThumbnailGridItem(file, image));
             }
-
-            this.ThumbnailGrid.ItemsSource = items;
         }
 
         private async void SaveButton_Click(object sender, RoutedEventArgs e) {
-            if (!(this.ThumbnailGrid.SelectedItem is ThumbnailGridItem item)) {
+            if (this.ThumbnailGrid.SelectedItem is not ThumbnailGridItem item) {
                 throw new ProgrammerError();
             }
 
@@ -79,12 +79,12 @@ namespace ComicsViewer.Pages {
     }
 
     public class RedefineThumbnailDialogNavigationArguments {
-        public IEnumerable<StorageFile> Files { get; }
+        public string Path { get; }
         public ComicWorkItem Item { get; }
         public ComicItemGridViewModel ParentViewModel { get; }
 
-        public RedefineThumbnailDialogNavigationArguments(IEnumerable<StorageFile> files, ComicWorkItem item, ComicItemGridViewModel parentViewModel) {
-            this.Files = files;
+        public RedefineThumbnailDialogNavigationArguments(string files, ComicWorkItem item, ComicItemGridViewModel parentViewModel) {
+            this.Path = files;
             this.Item = item;
             this.ParentViewModel = parentViewModel;
         }
