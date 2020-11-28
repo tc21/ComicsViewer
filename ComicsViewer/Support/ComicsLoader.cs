@@ -147,7 +147,7 @@ namespace ComicsViewer.Support {
             }
 
             // Assume we received a comic folder
-            if (await profile.FolderContainsValidComicAsync(folder)) {
+            if (await profile.FolderContainsValidComicAsync(folder.Path)) {
                 var names = folder.Path.Split(Path.DirectorySeparatorChar);
                 var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
                 var comic = new Comic(folder.Path, folder.Name, author, "Unknown Category");
@@ -201,7 +201,7 @@ namespace ComicsViewer.Support {
                     continue;
                 }
 
-                if (await profile.FolderContainsValidComicAsync(comicFolder)) {
+                if (await profile.FolderContainsValidComicAsync(comicFolder.Path)) {
                     var comic = new Comic(comicFolder.Path, comicFolder.Name, author, category);
                     comics.Add(comic);
                     progress?.Report(comics.Count);

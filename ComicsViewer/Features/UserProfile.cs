@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Uwp.Common;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -68,20 +69,31 @@ namespace ComicsViewer.Features {
         }
 
         // Profile helper methods
-        private async Task<IEnumerable<StorageFile>> GetTopLevelFilesForFolderAsync(StorageFolder folder) {
-            var files = await folder.GetFilesInNaturalOrderAsync();
-            return files.Where(file => this.FileExtensions.Contains(Path.GetExtension(file.Name)));
+        private Task<IEnumerable<IO.FileOrDirectoryInfo>> GetTopLevelFilesForFolderAsync(string folder) {
+            // Note: IO.GetDirectoryContents is a synchronous action, but sometimes comics can contain 
+            // large amounts of files, so we are manually running in async. Perhaps we should write a GetDirectoryContentsAsync
+            // helper function in the future.
+            return Task.Run(() =>
+                IO.GetDirectoryContents(folder)
+                    .InNaturalOrder()
+                    .Where(file => file.ItemType == IO.FileOrDirectoryType.FileOrLink && 
+                                   this.FileExtensions.Contains(Path.GetExtension(file.Name))));
         }
 
         /// <summary>
         /// returns null if this comic contains no files
         /// </summary>
-        private async Task<StorageFile?> GetFirstFileForComicAsync(StorageFolder folder) {
+        private async Task<IO.FileOrDirectoryInfo?> GetFirstFileForComicAsync(string folder) {
             foreach (var file in await this.GetTopLevelFilesForFolderAsync(folder)) {
                 return file;
             }
 
-            var subfolders = await folder.GetFoldersInNaturalOrderAsync();
+            var subfolders = await Task.Run(() =>
+                IO.GetDirectoryContents(folder)
+                    .InNaturalOrder()
+                    .Where(file => file.ItemType == IO.FileOrDirectoryType.Directory)
+                    .Select(file => file.Path));
+
             foreach (var subfolder in subfolders) {
                 foreach (var file in await this.GetTopLevelFilesForFolderAsync(subfolder)) {
                     return file;
@@ -91,7 +103,7 @@ namespace ComicsViewer.Features {
             return null;
         }
 
-        public async Task<bool> FolderContainsValidComicAsync(StorageFolder folder) {
+        public async Task<bool> FolderContainsValidComicAsync(string folder) {
             return (await this.GetFirstFileForComicAsync(folder)) != null;
         }
 
@@ -104,15 +116,21 @@ namespace ComicsViewer.Features {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
 
-            if (!(await ExpectedExceptions.TryGetFolderWithPermission(comic.Path) is { } comicFolder)) {
+            if (await ExpectedExceptions.TryGetFolderWithPermission(comic.Path) is null) {
                 return null;
             }
 
-            if (await this.ComicSubitemForFolderAsync(comic, comicFolder, "(root item)") is { } rootItem) {
+            if (await this.ComicSubitemForFolderAsync(comic, comic.Path, "(root item)") is { } rootItem) {
                 subitems.Add(rootItem);
             }
 
-            var childrenSubitemTasks = (await comicFolder.GetFoldersInNaturalOrderAsync()).Select(f => this.ComicSubitemForFolderAsync(comic, f));
+            var subfolders = await Task.Run(() => 
+                IO.GetDirectoryContents(comic.Path)
+                    .InNaturalOrder()
+                    .Where(file => file.ItemType == IO.FileOrDirectoryType.Directory)
+                    .Select(file => file.Path));
+
+            var childrenSubitemTasks = subfolders.Select(f => this.ComicSubitemForFolderAsync(comic, f));
             var childrenSubitems = (await Task.WhenAll(childrenSubitemTasks)).OfType<ComicSubitem>();
 
             subitems.AddRange(childrenSubitems);
@@ -125,14 +143,14 @@ namespace ComicsViewer.Features {
             return subitems;
         }
 
-        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, StorageFolder folder, string? displayName = null) {
-            var files = (await this.GetTopLevelFilesForFolderAsync(folder)).ToList();
+        private async Task<ComicSubitem?> ComicSubitemForFolderAsync(Comic comic, string folder, string? displayName = null) {
+            var files = (await this.GetTopLevelFilesForFolderAsync(folder)).Select(file => file.Path).ToList();
 
             if (!files.Any()) {
                 return null;
             }
 
-            return new ComicSubitem(comic, displayName ?? folder.Name, files);
+            return new ComicSubitem(comic, displayName ?? Path.GetFileName(folder), files);
         }
     }
 }

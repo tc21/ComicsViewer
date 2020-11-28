@@ -23,12 +23,13 @@ namespace ComicsViewer.Features {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
-                    _ = await Launcher.LaunchFileAsync(subitem.Files.First());
+                    var file = await StorageFile.GetFileFromPathAsync(subitem.Files.First());
+                    _ = await Launcher.LaunchFileAsync(file);
                     return;
 
                 case StartupApplicationType.BuiltinViewer:
-                    var testFile = subitem.Files.First().Path;
-                    var files = subitem.Files.Select(f => f.Path);
+                    var files = subitem.Files.ToList();
+                    var testFile = files[0];
 
                     if (ImageExtensions.Contains(Path.GetExtension(testFile))) {
                         await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);

@@ -24,5 +24,11 @@ namespace ComicsViewer.Uwp.Common {
             items.Sort((left, right) => NaturalOrder.Comparer.Compare(left.Name, right.Name));
             return items;
         }
+
+        public static IReadOnlyList<Win32Interop.IO.FileOrDirectoryInfo> InNaturalOrder(this IEnumerable<Win32Interop.IO.FileOrDirectoryInfo> list) {
+            var items = list.ToList();
+            items.Sort((left, right) => NaturalOrder.Comparer.Compare(left.Name, right.Name));
+            return items;
+        }
     }
 }
