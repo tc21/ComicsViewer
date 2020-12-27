@@ -67,32 +67,19 @@ namespace ComicsLibrary.Collections {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                 case ComicChangeType.Refresh:
-                    bool removed = false, added = false;
+                    string[]? removed = null, added = null;
 
                     if (this.Properties.Contains(collection.Name)) {
                         _ = this.Properties.Remove(collection.Name);
-                        removed = true;
+                        removed = new[] { collection.Name };
                     }
 
                     if (collection.Comics.Any()) {
                         this.Properties.Add(collection);
-                        added = true;
+                        added = new[] { collection.Name };
                     }
 
-                    var names = new[] { collection.Name };
-                    CollectionsChangedEventArgs notification;
-
-                    if (removed && added) {
-                        notification = new(CollectionsChangeType.ItemsChanged, modified: names);
-                    } else if (removed) {
-                        notification = new(CollectionsChangeType.ItemsChanged, removed: names);
-                    } else if (added) {
-                        notification = new(CollectionsChangeType.ItemsChanged, added: names);
-                    } else {
-                        break;
-                    }
-
-                    this.OnCollectionsChanged(notification);
+                    this.OnCollectionsChanged(new(CollectionsChangeType.ItemsChanged, added, removed));
 
                     break;
 

@@ -48,14 +48,6 @@ namespace ComicsViewer.ViewModels.Pages {
         private void Properties_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
                 case CollectionsChangeType.ItemsChanged:
-                    if (e.Added.Any()) {
-                        var addedItems = e.Added.Select(name => new ComicNavigationItem(name, sender.GetView(name)));
-
-                        foreach (var item in addedItems) {
-                            this.ComicItems.Insert(0, item);
-                        }
-                    }
-
                     if (e.Removed.Any()) {
                         var removedTitles = e.Removed.ToHashSet();
                         var removeIndices = new List<int>();
@@ -72,7 +64,14 @@ namespace ComicsViewer.ViewModels.Pages {
                         foreach (var i in removeIndices) {
                             this.ComicItems.RemoveAt(i);
                         }
+                    }
 
+                    if (e.Added.Any()) {
+                        var addedItems = e.Added.Select(name => new ComicNavigationItem(name, sender.GetView(name)));
+
+                        foreach (var item in addedItems) {
+                            this.ComicItems.Insert(0, item);
+                        }
                     }
 
                     break;

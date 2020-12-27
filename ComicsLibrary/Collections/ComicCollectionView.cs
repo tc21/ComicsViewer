@@ -60,14 +60,11 @@ namespace ComicsLibrary.Collections {
     public class CollectionsChangedEventArgs {
         public readonly CollectionsChangeType Type;
         public readonly IEnumerable<string> Added;
-        public readonly IEnumerable<string> Modified;
         public readonly IEnumerable<string> Removed;
 
-        internal CollectionsChangedEventArgs(CollectionsChangeType type, IEnumerable<string>? added = null,
-                                             IEnumerable<string>? modified = null, IEnumerable<string>? removed = null) {
+        internal CollectionsChangedEventArgs(CollectionsChangeType type, IEnumerable<string>? added = null, IEnumerable<string>? removed = null) {
             this.Type = type;
             this.Added = added ?? Array.Empty<string>();
-            this.Modified = modified ?? Array.Empty<string>();
             this.Removed = removed ?? Array.Empty<string>();
         }
     }

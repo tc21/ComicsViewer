@@ -28,12 +28,17 @@ namespace ComicsLibrary.Collections {
         private readonly Node head = new(default);
         private readonly Dictionary<string, Node> properties = new();
 
-        public int Count => this.properties.Count;
+        // Note: for some reason we'd get an ExecutionEngineException when Count was pointed to this.properties.Count,
+        // so we're doing it manually
+        public int Count { get; private set; }
 
         private void Initialize(IEnumerable<IComicCollection> items) {
             var current = head;
             foreach (var item in items) {
                 var next = new Node(item);
+                this.properties.Add(item.Name, next);
+                this.Count += 1;
+
                 current.Next = next;
                 next.Prev = current;
                 current = next;
@@ -66,16 +71,19 @@ namespace ComicsLibrary.Collections {
             current.Next = node;
 
             properties.Add(property.Name, node);
+            this.Count += 1;
         }
 
         public void Clear() {
             this.head.Next = null;
             this.properties.Clear();
+            this.Count = 0;
         }
 
         public IComicCollection Remove(string property) {
             var node = properties[property];
             _ = properties.Remove(property);
+            this.Count -= 1;
 
             if (node.Next is { } next) {
                 next.Prev = node.Prev;

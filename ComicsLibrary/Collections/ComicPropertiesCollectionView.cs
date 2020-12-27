@@ -16,39 +16,62 @@ namespace ComicsLibrary.Collections {
             this.parent = parent;
             this.getProperties = getProperties;
 
+            // note: because this.Properties[...].Comics are created after this, ViewChanged gets called for them
+            // after it gets called for this. We have to monitor ComicsChanged for this.
             parent.ViewChanged += this.ParentComicView_ViewChanged;
+            parent.ComicsChanged += this.ParentComicView_ComicsChanged;
 
             this.InitializeProperties();
         }
 
+        private ComicView.ViewChangedEventArgs? lastChange;
+
         private void ParentComicView_ViewChanged(ComicView sender, ComicView.ViewChangedEventArgs e) {
+            this.lastChange = e;
+        }
+
+        private void ParentComicView_ComicsChanged(ComicView sender, ComicsChangedEventArgs __) {
+            if (this.lastChange is not { } e) {
+                return;
+            }
+            
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
+                    // here we get a list of added/removed/modified comics, and we need to create a list of
+                    // added/removed/modified properties. 
+
+                    // note: we can do some proper deduction in terms of which properties are added/removed/modified,
+                    // but we're keeping it simple for now: basically, modified = removed + added
+                    var tryAddProperties = e.Add.SelectMany(this.getProperties);
+                    var tryRemoveProperties = e.Remove.SelectMany(this.getProperties);
+
                     var addedProperties = new HashSet<string>();
-                    var modifiedProperties = new HashSet<string>();
                     var removedProperties = new HashSet<string>();
 
-                    var affectedProperties = new HashSet<string>(e.Remove.Concat(e.Add).SelectMany(this.getProperties));
-                    foreach (var property in affectedProperties) {
+                    foreach (var property in tryRemoveProperties) {
                         if (this.Properties.Contains(property)) {
                             var propertyView = this.Properties.Remove(property);
+                            _ = removedProperties.Add(property);
 
                             if (propertyView.Comics.Any()) {
                                 this.Properties.Add(propertyView);
-
-                                _ = modifiedProperties.Add(property);
-                            } else {
-                                _ = removedProperties.Add(property);
+                                _ = addedProperties.Add(property);
                             }
-                        } else {
-                            var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
-                            this.Properties.Add(new ComicCollection(property, view));
-
-                            _ = addedProperties.Add(property);
                         }
                     }
 
-                    this.OnCollectionsChanged(new(CollectionsChangeType.ItemsChanged, addedProperties, modifiedProperties, removedProperties));
+                    foreach (var property in tryAddProperties) {
+                        if (this.Properties.Contains(property)) {
+                            _ = removedProperties.Add(property);
+                        } else {
+                            var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
+                            this.Properties.Add(new ComicCollection(property, view));
+                        }
+
+                        _ = addedProperties.Add(property);
+                    }
+
+                    this.OnCollectionsChanged(new(CollectionsChangeType.ItemsChanged, addedProperties, removedProperties));
 
                     break;
                 case ComicChangeType.ThumbnailChanged:
