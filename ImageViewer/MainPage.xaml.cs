@@ -48,6 +48,7 @@ namespace ImageViewer {
 
             // Zoom level indicator
             this.ImageContainer.ViewChanged += this.ImageContainer_ViewChanged;
+            this.ImageContainer.ViewChanging += this.ImageContainer_ViewChanging;
         }
 
         private void ImageContainer_Loaded(object sender, RoutedEventArgs e) {
@@ -162,7 +163,7 @@ namespace ImageViewer {
                 }
 
                 scale = zoomTo / this.ImageContainer.ZoomFactor;
-
+                
                 /* zoomOriginX is the origin of the zoom relative to (0, 0), in the extent coordinate space
                  * (i.e. if a 100x100 image is zoomed at 200%, then ExtentSize = 200x200, while ActualSize = 100x100
                  * 
@@ -184,26 +185,18 @@ namespace ImageViewer {
         }
 
         private const int InteractionDelay = 100;
-        private object resizeIdentifier;
 
         // We could alternatively use converters and implement INotifyPropertyChanged, but not for just one text block
-        private async void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
+        private void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
             this.ZoomFactorTextBlock.Text = (100 * this.ImageContainer.ZoomFactor).ToString("N0") + "%";
             this.ZoomFactorButton.Visibility = Math.Abs(1 - this.ImageContainer.ZoomFactor) < 0.001
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-
-            if (this.ViewModel.DecodeImageHeight is null) {
-                return;
-            }
-
-            var myResizeIdentifier = this.resizeIdentifier = new object();
-            await Task.Delay(InteractionDelay);
-            if (this.resizeIdentifier == myResizeIdentifier) {
-                this.UpdateDecodeImageHeight();
-            }
         }
 
+        private void ImageContainer_ViewChanging(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangingEventArgs e) {
+            this.UpdateDecodeImageHeight(e.FinalView.ZoomFactor);
+        }
 
         private void ZoomFactorButton_Click(object sender, RoutedEventArgs e) {
             this.ResetZoom();
@@ -318,12 +311,10 @@ namespace ImageViewer {
             this.UpdateDecodeImageHeight();
         }
 
-        private void UpdateDecodeImageHeight() {
+        private void UpdateDecodeImageHeight(double? overrideZoomFactor = null) {
+            var zoomFactor = overrideZoomFactor ?? this.ImageContainer.ZoomFactor;
             var resolutionScale = (double)DisplayInformation.GetForCurrentView().ResolutionScale / 100;
-            var imageContainerHeight = this.ImageContainer.ExtentHeight == 0
-                ? this.ImageContainer.ActualHeight * this.ImageContainer.ZoomFactor
-                : this.ImageContainer.ExtentHeight;
-            this.ViewModel.DecodeImageHeight = (int)(imageContainerHeight * resolutionScale);
+            this.ViewModel.DecodeImageHeight = (int)(this.ImageContainer.ActualHeight * zoomFactor * resolutionScale);
         }
     }
 }
