@@ -292,6 +292,11 @@ namespace ImageViewer {
                 result = false;
             } catch (FileNotFoundException) {
                 result = false;
+            } catch (Exception) {
+                // TODO Something weird happened. We don't really know how to solve this, so we ignore it for now.
+                // This path is easily entered by constantly scrolling the scroll wheel why pressing and releasing ctrl
+                // (quickly alternating between zoom/seek)
+                result = true;
             }
 
             this.updatingBitmapSource = false;
