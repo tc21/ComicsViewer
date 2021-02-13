@@ -129,6 +129,9 @@
     <Compile Include="Controls\EditItemTextBox.xaml.cs">
       <DependentUpon>EditItemTextBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\HighlightedComicItem.xaml.cs">
+      <DependentUpon>HighlightedComicItem.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CSharpFeatures\IsExternalInit.cs" />
     <Compile Include="CSharpFeatures\Nullable.cs" />
     <Compile Include="Features\ComicSubitem.cs" />
@@ -292,6 +295,10 @@
     <Page Include="Controls\EditItemTextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\HighlightedComicItem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml">
       <SubType>Designer</SubType>

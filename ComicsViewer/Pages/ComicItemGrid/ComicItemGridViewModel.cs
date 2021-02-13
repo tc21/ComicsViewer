@@ -55,7 +55,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return;
             }
 
-            for (var i = 0; i < 100; i++) {
+            while (true) {
                 if (this.comicItemSource.MoveNext()) {
                     this.ComicItems.Add(this.comicItemSource.Current);
                 } else {

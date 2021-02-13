@@ -14,6 +14,7 @@ using MUXC = Microsoft.UI.Xaml.Controls;
 using ComicsViewer.Support;
 using ComicsViewer.Common;
 using Windows.UI.Xaml.Media.Animation;
+using ComicsViewer.ViewModels;
 
 #nullable enable
 
@@ -99,12 +100,12 @@ namespace ComicsViewer {
                         throw new ProgrammerError("NavigationPageType must be NavigationItem or WorkItem when navigating in");
                     }
 
-                    if (e.Comics is null) {
-                        throw new ProgrammerError("Comics must not be null when navigating in");
+                    if (e.ComicItem is not ComicNavigationItem item) {
+                        throw new ProgrammerError("ComicItem must be a navigation item");
                     }
 
                     var transitionInfo = e.TransitionInfo ?? new DrillInNavigationTransitionInfo();
-                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(this.ViewModel, e.NavigationTag, e.Comics, e.Properties);
+                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(this.ViewModel, e.NavigationTag, item, e.Properties);
 
                     _ = this.ContentFrame.Navigate(typeof(ComicNavigationItemPage), navigationArguments, transitionInfo);
 

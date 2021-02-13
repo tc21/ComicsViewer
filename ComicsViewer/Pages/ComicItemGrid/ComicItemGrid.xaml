@@ -6,9 +6,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
     mc:Ignorable="d"    
-    d:RequestedTheme="Dark"
-    Background="Transparent">
+    d:RequestedTheme="Dark">
 
     <Page.Resources>
         <ResourceDictionary>
@@ -197,14 +197,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
-            
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
-                <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}"
-                          Style="{StaticResource InlineComboBoxStyle}" />
-            </StackPanel>
-
             <GridView x:Name="VisibleComicsGrid"
                       Grid.Row="1"
                       SelectionMode="Extended"
@@ -224,6 +216,24 @@
                       ItemTemplate="{StaticResource ComicItemTemplate}"
                       ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                       ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}">
+                <GridView.Header>
+                    <controls:ScrollHeader Mode="QuickReturn">
+                        <Border Background="{ThemeResource AppBarBackgroundThemeBrush}">
+                            <StackPanel>
+                                <uc:HighlightedComicItem x:Name="HighlightedComicItemControl"
+                                                         Item="{x:Bind HighlightedComicItem}" 
+                                                         ImageHeight="{x:Bind ViewModel.ImageHeight}" 
+                                                         ImageWidth="{x:Bind ViewModel.ImageWidth}"/>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
+                                    <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
+                                          SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}"
+                                          Style="{StaticResource InlineComboBoxStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </controls:ScrollHeader>
+                </GridView.Header>
             </GridView>
         </Grid>
 

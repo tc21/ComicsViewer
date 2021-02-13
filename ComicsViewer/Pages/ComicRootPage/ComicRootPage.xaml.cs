@@ -3,6 +3,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels.Pages;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -20,6 +21,13 @@ namespace ComicsViewer.Pages {
             }
 
             if (this.IsInitialized) {
+                if (e.NavigationMode is NavigationMode.Back) {
+                    var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateOut");
+                    if (animation is not null && this.ComicItemGrid is not null) {
+                        await this.ComicItemGrid.FinishNavigateOutConnectedAnimation(animation);
+                    }
+                }
+
                 return;
             }
 

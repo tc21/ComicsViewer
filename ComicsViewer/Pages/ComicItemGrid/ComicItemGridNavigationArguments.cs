@@ -1,4 +1,5 @@
-﻿using ComicsViewer.ViewModels.Pages;
+﻿using ComicsViewer.ViewModels;
+using ComicsViewer.ViewModels.Pages;
 using System;
 using Windows.UI.Xaml.Navigation;
 
@@ -7,6 +8,7 @@ using Windows.UI.Xaml.Navigation;
 namespace ComicsViewer.Pages {
     public class ComicItemGridNavigationArguments {
         public ComicItemGridViewModel? ViewModel { get; set; }
+        public ComicItem? HighlightedComicItem { get; set; }
         public Action<ComicItemGrid, NavigationEventArgs>? OnNavigatedTo { get; set; }
     }
 }

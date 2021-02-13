@@ -185,7 +185,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return;
             }
 
-            of?.PrepareNavigateOut();
+            //of?.PrepareNavigateOut();
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Out });
         }
 
@@ -195,7 +195,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 NavigationTag = this.ActiveNavigationTag,
                 NavigationType = NavigationType.In,
 
-                Comics = item.Comics,
+                ComicItem = item,
                 Title = item.Title
             });
         }
@@ -821,7 +821,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public ComicItemGridViewModelProperties? Properties { get; set; }
 
         public string? Title { get; set; }
-        public ComicView? Comics { get; set; }
+        public ComicItem? ComicItem { get; set; }
     }
 
     public enum NavigationType {
