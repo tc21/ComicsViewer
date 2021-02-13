@@ -317,25 +317,30 @@ namespace ComicsViewer.Pages {
 
         public ComicItem? HighlightedComicItem;
 
-        public void FinishNavigateInConnectedAnimation(ConnectedAnimation animation) {
-            var animationStarted = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(animation);
-
-            if (!animationStarted) {
-                animation.Cancel();
+        public void FinishNavigateInConnectedAnimationIfExists(ComicItem item) {
+            if (!ConnectedAnimationHelper.AnimationExists("navigateIn")) {
+                return;
             }
+
+            _ = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
         }
 
-        public async Task FinishNavigateOutConnectedAnimation(ConnectedAnimation animation) {
-            var animationStarted = await this.VisibleComicsGrid.TryStartConnectedAnimationAsync(animation,
-                this.VisibleComicsGrid.SelectedItem, "ComicItemThumbnailContainer");
-
-            if (!animationStarted) {
-                animation.Cancel();
+        public async Task FinishNavigateOutConnectedAnimationIfExistsAsync() {
+            if (!ConnectedAnimationHelper.AnimationExists("navigateOut")) {
+                return;
             }
+
+            if (this.VisibleComicsGrid.SelectedItem is not ComicItem item) {
+                ConnectedAnimationHelper.CancelAnimation("navigateOut");
+                return;
+            }
+
+            _ = await ConnectedAnimationHelper.TryStartAnimationToListViewAsync(
+                this.VisibleComicsGrid, "ComicItemThumbnailContainer", item, "navigateOut");
         }
 
-        public ConnectedAnimation PrepareNavigateOutConnectedAnimation() {
-            return this.HighlightedComicItemControl.PrepareConnectedAnimationFromThumbnail();
+        public ConnectedAnimation PrepareNavigateOutConnectedAnimation(ComicItem item) {
+            return this.HighlightedComicItemControl.PrepareConnectedAnimationFromThumbnail(item);
         }
 
         internal void ManuallyNavigatedTo(NavigationEventArgs e) {
@@ -354,7 +359,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            _ = this.VisibleComicsGrid.PrepareConnectedAnimation("navigateIn", item, "ComicItemThumbnailContainer");
+            _ = ConnectedAnimationHelper.PrepareAnimationFromListView(this.VisibleComicsGrid, "ComicItemThumbnailContainer", item, "navigateIn");
         }
 
         #endregion

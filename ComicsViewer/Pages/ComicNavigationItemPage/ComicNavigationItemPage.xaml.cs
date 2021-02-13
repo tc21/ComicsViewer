@@ -24,14 +24,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (this.IsInitialized) {
-                if (e.NavigationMode is NavigationMode.Back) {
-                    var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateOut");
-                    if (animation is not null && this.ComicItemGrid is not null) {
-                        await this.ComicItemGrid.FinishNavigateOutConnectedAnimation(animation);
-                    }
-                }
-
-                return;
+                throw new ProgrammerError("This code should be unreachable");
             }
 
             this._navigationTag = args.NavigationTag;
@@ -53,7 +46,7 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.Back) {
-                var animation = this.ComicItemGrid.PrepareNavigateOutConnectedAnimation();
+                var animation = this.ComicItemGrid.PrepareNavigateOutConnectedAnimation(this.ComicItem);
                 animation.Configuration = new DirectConnectedAnimationConfiguration();
             }
         }
@@ -73,14 +66,10 @@ namespace ComicsViewer.Pages {
             throw new ProgrammerError();
         }
 
-        private void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
+        private async void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
             this.ComicItemGrid = (ComicItemGrid)e.Content;
-
-            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("navigateIn");
-
-            if (animation is not null) {
-                this.ComicItemGrid.FinishNavigateInConnectedAnimation(animation);
-            }
+            this.ComicItemGrid.FinishNavigateInConnectedAnimationIfExists(this.ComicItem);
+            await this.ComicItemGrid.FinishNavigateOutConnectedAnimationIfExistsAsync();
         }
     }
 }

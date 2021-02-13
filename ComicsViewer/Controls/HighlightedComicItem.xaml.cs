@@ -1,4 +1,5 @@
-﻿using ComicsViewer.ViewModels;
+﻿using ComicsViewer.Support;
+using ComicsViewer.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
@@ -49,12 +50,12 @@ namespace ComicsViewer.Controls {
             DependencyProperty.Register(nameof(ImageWidth), typeof(double), typeof(HighlightedComicItem), new PropertyMetadata(0));
 
 
-        public bool TryStartConnectedAnimationToThumbnail(ConnectedAnimation animation) {
-            return animation.TryStart(this.ThumbnailImage);
+        public bool TryStartConnectedAnimationToThumbnail(ComicItem item) {
+            return ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
         }
 
-        public ConnectedAnimation PrepareConnectedAnimationFromThumbnail() {
-            return ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("navigateOut", this.ThumbnailImage);
+        public ConnectedAnimation PrepareConnectedAnimationFromThumbnail(ComicItem item) {
+            return ConnectedAnimationHelper.PrepareAnimation(this.ThumbnailImage, item, "navigateOut");
         }
     }
 }

@@ -167,6 +167,7 @@
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\CommentedType.cs" />
     <Compile Include="Support\ComicExpectedExceptions.cs" />
+    <Compile Include="Support\ConnectedAnimationHelper.cs" />
     <Compile Include="Support\ISelectable.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogNavigationArguments.cs" />
