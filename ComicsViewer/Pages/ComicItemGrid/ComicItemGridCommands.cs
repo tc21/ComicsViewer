@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
@@ -48,12 +47,13 @@ namespace ComicsViewer.Pages {
             public int Count { get; }
             public IEnumerable<TItem> Items { get; }
             public bool IsWorkItems { get; }
-            public bool IsNavItems { get; }
+            public bool IsNavItems => !this.IsWorkItems;
             public int ComicCount { get; }
             public NavigationTag NavigationTag { get; }
+            public NavigationPageType NavigationPageType { get; }
 
             public CommandArgs(ComicItemGrid grid) {
-                if (!(grid.ViewModel is T)) {
+                if (grid.ViewModel is not T) {
                     throw new ProgrammerError($"A wrong {nameof(CommandArgs<T, TItem>)} was created: incorrect view model type");
                 }
 
@@ -65,10 +65,10 @@ namespace ComicsViewer.Pages {
                 this.MainViewModel = grid.MainViewModel;
                 this.Count = grid.VisibleComicsGrid.SelectedItems.Count;
                 this.Items = grid.VisibleComicsGrid.SelectedItems.Cast<TItem>().ToList();
-                this.IsWorkItems = this.ViewModel.NavigationTag.IsWorkItemNavigationTag();
-                this.IsNavItems = !this.IsWorkItems;
+                this.IsWorkItems = this.ViewModel is ComicWorkItemGridViewModel;
                 this.ComicCount = this.Items.SelectMany(i => i.ContainedComics()).Count();
                 this.NavigationTag = grid.ViewModel.NavigationTag;
+                this.NavigationPageType = grid.ViewModel.NavigationPageType;
             }
         }
 
@@ -77,7 +77,7 @@ namespace ComicsViewer.Pages {
         #region Dynamic context menu items
 
         private void ComicItemGridContextFlyout_Opening(object sender, object e) {
-            if (!(sender is MenuFlyout flyout)) {
+            if (sender is not MenuFlyout flyout) {
                 throw new ProgrammerError("Only MenuFlyout should be allowed to call this handler");
             }
 
@@ -90,7 +90,7 @@ namespace ComicsViewer.Pages {
                 foreach (var item in flyoutItems) {
                     switch (item) {
                         case MenuFlyoutSubItem subitem when subitem == GoToPlaylistFlyoutMenuSubitem:
-                            if (!(this.ViewModel is ComicWorkItemGridViewModel)) {
+                            if (this.ViewModel is not ComicWorkItemGridViewModel) {
                                 subitem.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
                                 break;
                             }
@@ -109,13 +109,7 @@ namespace ComicsViewer.Pages {
                             foreach (var playlist in playlists) {
                                 // note: we might want to consider moving this logic to MainViewModel
                                 var flyoutItem = new ComicsMenuFlyoutItem { Text = playlist.Name };
-                                flyoutItem.Click += async (a, e) => {
-                                    // TODO: See SearchAuthorCommand
-                                    if (this.ViewModel.NavigationTag == NavigationTag.Detail) {
-                                        this.MainViewModel.NavigateOut();
-                                        await Task.Delay(150);
-                                    }
-
+                                flyoutItem.Click += (a, e) => {
                                     var view = new ComicNavigationItem(playlist.Name, playlist.Comics);
                                     this.MainViewModel.NavigateInto(view);
                                 };
@@ -318,17 +312,9 @@ namespace ComicsViewer.Pages {
 
             this.SearchAuthorCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => $"Show all items by {e.Items.First().Comic.Author}",
-                execute: async e => {
+                execute: e => {
                     var item = e.Items.First();
                     e.Grid.PrepareNavigateIn(item);
-
-                    // TODO: the current program assumes that you cannot navigate into anything from a detail view.
-                    // Much of the code is implemented with this assumption, causing navigating out of a detail view into 
-                    // another detail view to crash the app. Therefore we have to navigate out first.
-                    if (e.ViewModel.NavigationTag == NavigationTag.Detail) {
-                        e.MainViewModel.NavigateOut();
-                        await Task.Delay(150);
-                    }
 
                     e.MainViewModel.FilterToAuthor(item.Comic.Author);
                 },

@@ -29,7 +29,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 // turns out if for unforseen reasons this was set to an invalid value, it would crash the app
                 if (value >= this.SortSelectors.Length) {
-                    value = Defaults.SettingsAccessor.DefaultSortSelection(this.NavigationTag);
+                    value = Defaults.SettingsAccessor.DefaultSortSelection(this.NavigationTag, this.NavigationPageType);
                 }
 
                 this._selectedSortIndex = value;
@@ -77,16 +77,19 @@ namespace ComicsViewer.ViewModels.Pages {
         internal readonly MainViewModel MainViewModel;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
-        internal readonly NavigationTag NavigationTag;
+        private readonly IMainPageContent parent;
+        internal NavigationTag NavigationTag => this.parent.NavigationTag;
+        internal NavigationPageType NavigationPageType => this.parent.NavigationPageType;
+
 
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
          * It's not pretty but it's a very tiny part of the program. */
-        private protected ComicItemGridViewModel(MainViewModel mainViewModel) {
+        private protected ComicItemGridViewModel(IMainPageContent parent, MainViewModel mainViewModel) {
             this.MainViewModel = mainViewModel;
-            this.NavigationTag = mainViewModel.ActiveNavigationTag;
+            this.parent = parent;
 
-            this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.MainViewModel.ActiveNavigationTag);
+            this.SelectedSortIndex = Defaults.SettingsAccessor.GetLastSortSelection(this.NavigationTag, this.NavigationPageType);
 
             // Note: we use this event handler to handle sorting, so that the above SelectedSortIndex assignment doesn't 
             // cause viewmodels to issue a sort before they're even properly initialized.
@@ -96,26 +99,22 @@ namespace ComicsViewer.ViewModels.Pages {
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
         }
 
-        public static ComicItemGridViewModel ForTopLevelNavigationTag(MainViewModel mainViewModel) {
-            if (mainViewModel.ActiveNavigationTag == NavigationTag.Detail) {
-                throw new ProgrammerError($"ForTopLevelNavigationTag was called when navigationTag was {mainViewModel.ActiveNavigationTag}");
-            }
-
-            if (mainViewModel.ActiveNavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(mainViewModel, mainViewModel.ComicView);
+        public static ComicItemGridViewModel ForTopLevelNavigationTag(IMainPageContent parent, MainViewModel mainViewModel) {
+            if (parent.NavigationTag.IsWorkItemNavigationTag()) {
+                return new ComicWorkItemGridViewModel(parent, mainViewModel, mainViewModel.ComicView);
             } else {
-                var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(mainViewModel.ActiveNavigationTag);
+                var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(parent.NavigationTag, parent.NavigationPageType);
 
                 ComicCollectionView comicCollections;
 
-                if (mainViewModel.ActiveNavigationTag == NavigationTag.Playlist) {
+                if (parent.NavigationTag == NavigationTag.Playlist) {
                     comicCollections = mainViewModel.Playlists;
                     comicCollections.SetSort(initialSort);
                 } else {
-                    comicCollections = GetSortedProperties(mainViewModel.ComicView, mainViewModel.ActiveNavigationTag, initialSort);
+                    comicCollections = GetSortedProperties(mainViewModel.ComicView, parent.NavigationTag, initialSort);
                 }
 
-                return ComicNavigationItemGridViewModel.ForViewModel(mainViewModel, comicCollections);
+                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections);
             }
         }
 
@@ -132,15 +131,12 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(
+            IMainPageContent parent,
             MainViewModel appViewModel, 
             ComicView comics, 
             ComicItemGridViewModelProperties? properties
         ) {
-            if (appViewModel.ActiveNavigationTag != NavigationTag.Detail) {
-                throw new ProgrammerError($"ForSecondLevelNavigationTag was called when navigationTag was {appViewModel.ActiveNavigationTag}");
-            }
-
-            return new ComicWorkItemGridViewModel(appViewModel, comics, properties);
+            return new ComicWorkItemGridViewModel(parent, appViewModel, comics, properties);
         }
 
         #region Filtering and grouping
@@ -206,7 +202,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private void ComicItemGridViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
-                    Defaults.SettingsAccessor.SetLastSortSelection(this.NavigationTag, this.SelectedSortIndex);
+                    Defaults.SettingsAccessor.SetLastSortSelection(this.NavigationTag, this.NavigationPageType, this.SelectedSortIndex);
                     this.SortOrderChanged();
 
                     break;

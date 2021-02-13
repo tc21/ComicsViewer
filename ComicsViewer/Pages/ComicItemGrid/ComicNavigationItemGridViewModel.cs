@@ -1,7 +1,6 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
-using Microsoft.Toolkit.Uwp.UI.Controls.TextToolbarSymbols;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,15 +13,15 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly ComicCollectionView properties;
 
-        protected ComicNavigationItemGridViewModel(MainViewModel appViewModel, ComicCollectionView comicCollections)
-            : base(appViewModel)
+        protected ComicNavigationItemGridViewModel(IMainPageContent parent, MainViewModel appViewModel, ComicCollectionView comicCollections)
+            : base(parent, appViewModel)
         {
             this.properties = comicCollections;
             this.properties.CollectionsChanged += this.Properties_CollectionsChanged;
         }
         
-        public static ComicNavigationItemGridViewModel ForViewModel(MainViewModel mainViewModel, ComicCollectionView comicCollections) {
-            var viewModel = new ComicNavigationItemGridViewModel(mainViewModel, comicCollections);
+        public static ComicNavigationItemGridViewModel ForViewModel(IMainPageContent parent, MainViewModel mainViewModel, ComicCollectionView comicCollections) {
+            var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
             // Sorts and loads the actual comic items
             viewModel.RefreshComicItems();
             return viewModel;
@@ -42,7 +41,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
-            this.MainViewModel.NavigateInto(item, parent: this);
+            //this.MainViewModel.NavigateInto(item, parent: this);
+            this.MainViewModel.NavigateInto(item);
         }
 
         private void Properties_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {

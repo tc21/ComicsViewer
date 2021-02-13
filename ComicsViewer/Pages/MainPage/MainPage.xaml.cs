@@ -6,7 +6,6 @@ using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.ViewManagement;
 using Windows.ApplicationModel.Core;
@@ -14,6 +13,7 @@ using Windows.UI.Core;
 using MUXC = Microsoft.UI.Xaml.Controls;
 using ComicsViewer.Support;
 using ComicsViewer.Common;
+using Windows.UI.Xaml.Media.Animation;
 
 #nullable enable
 
@@ -22,8 +22,7 @@ namespace ComicsViewer {
      * its logic, we may want a separate view model class. (This also means we are allowed to communicate a little with 
      * the models here) */
     public sealed partial class MainPage {
-        //private ComicStore comicStore = ComicStore.EmptyComicStore;
-        private ComicItemGrid? activeContent;
+        private IMainPageContent? page;
 
         // stored to update BackButtonVisibility
         private readonly SystemNavigationManager currentView = SystemNavigationManager.GetForCurrentView();
@@ -63,9 +62,6 @@ namespace ComicsViewer {
 
             // Initialize view models and fire events for the first time
             await this.ViewModel.SetDefaultProfileAsync();
-
-            // We're probably not supposed to directly access the filter but whatever
-            this.ViewModel.Comics.Filter.FilterChanged += this.Filter_FilterChanged;
         }
 
         private void ViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
@@ -75,11 +71,11 @@ namespace ComicsViewer {
 
             // update UI
             /* Here's a brief description of what ProfileNavigationViewItem is:
-                * It is a dropdown. The root element is the name of the current profile. Clicking on this element navigates
-                * to the "All Items" (named "comics" internally) page of the currently loaded profile. The dropdown 
-                * elements are the names of the other profiles that are loaded but not active. Clicking on one of those 
-                * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
-                * page */
+             * It is a dropdown. The root element is the name of the current profile. Clicking on this element navigates
+             * to the "All Items" (named "comics" internally) page of the currently loaded profile. The dropdown 
+             * elements are the names of the other profiles that are loaded but not active. Clicking on one of those 
+             * profile names switches to that profile. As a side effect switching profiles brings you to the "All Items"
+             * page */
             this.SearchBox.Text = "";
             this.ProfileNavigationViewItem.Content = e.NewProfile.Name;
             this.ProfileNavigationViewItem.MenuItems.Clear();
@@ -92,56 +88,53 @@ namespace ComicsViewer {
             this.NavigationView.SelectedItem = this.ProfileNavigationViewItem;
 
             // This will fire ViewModel.NavigationRequested. 
-            // ignoreCache: true bypasses the default behavior of scrolling up to the top when "reloading"
-            this.ViewModel.Navigate(NavigationTag.Comics, ignoreCache: true);
+            // requireRefresh: true bypasses the default behavior of scrolling up to the top when "reloading"
+            this.ViewModel.Navigate(NavigationTag.Comics, requireRefresh: true);
         }
 
         private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
             switch (e.NavigationType) {
-                case NavigationType.Back:
-                    if (!(e.Tag is { } tag)) {
-                        throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target tag type");
+                case NavigationType.In: {
+                    if (e.NavigationPageType is NavigationPageType.Root) {
+                        throw new ProgrammerError("NavigationPageType must be NavigationItem or WorkItem when navigating in");
                     }
 
-                    if (!this.ContentFrame.CanGoBack) {
-                        // It turns out this is actually possible for some unknown reason. It's pretty much a bug, but
-                        // I can't figure out why, and doing this works too:
-                        // Note: most likely it's because two separate viewModels are calling NavigateOut twice. It works because
-                        // There's enough pages in the buffer and caching is enabled. The question is: why is a top level
-                        // view modle able to call NavigateOut?
-                        this.ViewModel.Navigate(tag);
-                        return;
+                    if (e.Comics is null) {
+                        throw new ProgrammerError("Comics must not be null when navigating in");
                     }
 
+                    var transitionInfo = e.TransitionInfo ?? new DrillInNavigationTransitionInfo();
+                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(this.ViewModel, e.NavigationTag, e.Comics, e.Properties);
+
+                    _ = this.ContentFrame.Navigate(typeof(ComicNavigationItemPage), navigationArguments, transitionInfo);
+
+                    break;
+                }
+
+                case NavigationType.Out:
                     this.ContentFrame.GoBack();
+                    break;
 
-                    break;
-                case NavigationType.Scroll:
-                    this.activeContent?.ScrollToTop();
-                    break;
-                case NavigationType.New:
-                    if (e.PageType == null || (e.Tag == NavigationTag.Detail && e.Comics == null)) {
-                        throw new ProgrammerError("Navigating with NavigationType.Back must be accompanied with a target PageType and Comic list");
+                case NavigationType.New: {
+                    if (e.NavigationPageType is not NavigationPageType.Root) {
+                        throw new ProgrammerError("NavigationPageType must be Root when creating a new page");
                     }
 
-                    var navigationArguments = new ComicItemGridNavigationArguments {
-                        ViewModel = e.Tag switch {
-                            NavigationTag.Detail => ComicItemGridViewModel.ForSecondLevelNavigationTag(sender, e.Comics!, e.Properties),
-                            _ => ComicItemGridViewModel.ForTopLevelNavigationTag(sender)
-                        },
-                        OnNavigatedTo = (grid, e) => this.activeContent = grid
-                    };
+                    var transitionInfo = e.TransitionInfo ?? new EntranceNavigationTransitionInfo();
+                    var navigationArguments = new ComicRootPageNavigationArguments(this.ViewModel, e.NavigationTag);
 
-                    this.activeContent = null;
                     this.ContentFrame.BackStack.Clear();
-                    _ = this.ContentFrame.Navigate(e.PageType, navigationArguments, e.TransitionInfo);
+                    _ = this.ContentFrame.Navigate(typeof(ComicRootPage), navigationArguments, transitionInfo);
+
                     break;
-                default:
+                }
+
+                case NavigationType.ScrollToTop:
+                    break;
+
+                default: 
                     throw new ProgrammerError($"Unhandled NavigationType '{e.NavigationType}'.");
             }
-
-            this.currentView.AppViewBackButtonVisibility =
-                (sender.NavigationLevel > 0) ? AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Disabled;
         }
 
         private async void NavigationView_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args) {
@@ -156,8 +149,6 @@ namespace ComicsViewer {
                     return;
                 }
 
-                this.ViewModel.NavigationLevel = 2;
-                this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
                 _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel, this.ViewModel.Profile));
                 return;
             }
@@ -179,25 +170,43 @@ namespace ComicsViewer {
         }
 
         private void CurrentView_BackRequested(object sender, BackRequestedEventArgs e) {
-            this.ViewModel.NavigateOut(of: this.activeContent);
+            this.ViewModel.NavigateOut(of: this.page?.ComicItemGrid);
         }
 
-        private void Frame_NavigationFailed(object _, NavigationFailedEventArgs e) {
+        private void ContentFrame_NavigationFailed(object _, NavigationFailedEventArgs e) {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
+
+        private void ContentFrame_Navigated(object _, NavigationEventArgs e) {
+            // We can't just check for ContentFrame.CanGoBack, because the root page is pushed on to the back stack,
+            // and we cannot navigate "back" from it.
+            this.currentView.AppViewBackButtonVisibility = this.ContentFrame.BackStackDepth > 1
+                ? AppViewBackButtonVisibility.Visible
+                : AppViewBackButtonVisibility.Collapsed;
+
+            if (e.Content is not IMainPageContent page) {
+                // page may not be initialized, or we may be on a Settings page
+
+                this.page = null;
+                return;
+            }
+
+            if (page.IsInitialized) {
+                this.page = page;
+                this.ViewModel.ActiveNavigationPageType = page.NavigationPageType;
+                this.ViewModel.ActiveNavigationTag = page.NavigationTag;
+            } else {
+                page.Initialized += (page) => {
+                    this.page = page;
+                    this.ViewModel.ActiveNavigationPageType = page.NavigationPageType;
+                    this.ViewModel.ActiveNavigationTag = page.NavigationTag;
+                };
+            }
         }
 
         #endregion
 
         #region Search
-
-
-        private void Filter_FilterChanged(Filter filter) { 
-            if (filter.IsActive) {
-                this.FilterButton.Background = this.Resources["SystemControlAccentAcrylicElementAccentMediumHighBrush"] as Brush;
-            } else {
-                this.FilterButton.Background = null;
-            }
-        }
 
         private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
             if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) {
@@ -217,14 +226,14 @@ namespace ComicsViewer {
         }
 
         private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) {
-            if (!(Search.Compile(sender.Text) is { } search)) {
+            if (Search.Compile(sender.Text) is not { } search) {
                 return;
             }
 
             this.ViewModel.SubmitSearch(search, sender.Text);
 
             // remove focus from the search box (partially to indicate that the search succeeded)
-            _ = this.activeContent?.Focus(FocusState.Pointer);
+            _ = this.page?.Page.Focus(FocusState.Pointer);
         }
 
 
@@ -239,19 +248,6 @@ namespace ComicsViewer {
         }
 
         #endregion
-
-        private void FilterNavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e) {
-            if (this.activeContent == null) {
-                // The app isn't ready yet
-                return;
-            }
-
-            this.FilterFlyout.NavigateAndShowAt(
-                typeof(FilterFlyoutContent),
-                this.ViewModel.GetFilterPageNavigationArguments(this.activeContent.ViewModel),
-                (FrameworkElement)sender
-            );
-        }
 
         /* reference: https://docs.microsoft.com/en-us/windows/uwp/design/shell/title-bar#full-customization-example */
         private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args) {
@@ -270,13 +266,11 @@ namespace ComicsViewer {
             var properties = e.GetCurrentPoint(this.MainGrid).Properties;
 
             if (e.Pointer.PointerDeviceType != Windows.Devices.Input.PointerDeviceType.Mouse
-                    || !properties.IsXButton1Pressed
-                    || this.ViewModel.NavigationLevel <= 0) {
+                    || !properties.IsXButton1Pressed) {
                 return;
             }
 
-            this.ViewModel.NavigateOut(of: this.activeContent);
-            this.currentView.AppViewBackButtonVisibility = AppViewBackButtonVisibility.Collapsed;
+            this.ViewModel.NavigateOut(of: this.page?.ComicItemGrid);
         }
     }
 }

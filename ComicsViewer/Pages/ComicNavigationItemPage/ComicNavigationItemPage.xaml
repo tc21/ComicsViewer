@@ -1,11 +1,11 @@
 ﻿<Page
-    x:Class="ComicsViewer.Pages.ComicItemGridTopLevelContainer"
+    x:Class="ComicsViewer.Pages.ComicNavigationItemPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    NavigationCacheMode="Enabled"
-    Background="Transparent">
-    <Frame x:Name="Frame" Navigated="Frame_Navigated" />
+    mc:Ignorable="d">
+    <Frame x:Name="InnerContentFrame"
+           Navigated="InnerContentFrame_Navigated"
+           NavigationFailed="InnerContentFrame_NavigationFailed" />
 </Page>

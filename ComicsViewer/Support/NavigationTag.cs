@@ -9,14 +9,13 @@ namespace ComicsViewer.Support {
                 "categories" => NavigationTag.Category,
                 "tags" => NavigationTag.Tags,
                 "playlists" => NavigationTag.Playlist,
-                "default" => NavigationTag.Detail,
                 _ => throw new ProgrammerError("unhandled switch case")
             };
         }
     }
 
     public enum NavigationTag {
-        Comics, Author, Category, Tags, Detail, Playlist
+        Comics, Author, Category, Tags, Playlist
     }
 
     public static class NavigationTag_ToTagName {
@@ -27,7 +26,6 @@ namespace ComicsViewer.Support {
                 NavigationTag.Category => "categories",
                 NavigationTag.Tags => "tags",
                 NavigationTag.Playlist => "playlists",
-                NavigationTag.Detail => "default",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
         }
@@ -35,17 +33,16 @@ namespace ComicsViewer.Support {
         public static string Describe(this NavigationTag tag, bool capitalized = false) {
             return tag switch {
                 NavigationTag.Comics => capitalized ? "Item" : "item",
-                NavigationTag.Author => capitalized ? "Author": "author",
+                NavigationTag.Author => capitalized ? "Author" : "author",
                 NavigationTag.Category => capitalized ? "Category" : "category",
                 NavigationTag.Tags => capitalized ? "Tag" : "tag",
-                NavigationTag.Detail => capitalized ? "Item" : "item",
                 NavigationTag.Playlist => capitalized ? "Playlist" : "playlist",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
         }
 
         public static bool IsWorkItemNavigationTag(this NavigationTag tag) {
-            return tag == NavigationTag.Comics || tag == NavigationTag.Detail;
+            return tag is NavigationTag.Comics;
         }
     }
 }

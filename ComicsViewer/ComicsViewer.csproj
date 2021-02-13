@@ -140,18 +140,33 @@
     </Compile>
     <Compile Include="PagedControlContents\TextInputDialogContent\TextInputDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\TextInputDialogContent\EditNavigationItemDialogViewModel.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
+      <DependentUpon>ComicItemGrid.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\ComicItemGrid\ComicItemGridCommands.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicItemGridNavigationArguments.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
+    <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModelProperties.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicNavigationItemGridViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicWorkItemGridViewModel.cs" />
-    <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModelProperties.cs" />
+    <Compile Include="Pages\ComicNavigationItemPage\ComicNavigationItemPage.xaml.cs">
+      <DependentUpon>ComicNavigationItemPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ComicNavigationItemPage\ComicNavigationItemPageNavigationArguments.cs" />
+    <Compile Include="Pages\ComicRootPage\ComicRootPage.xaml.cs">
+      <DependentUpon>ComicRootPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ComicWorkItemPage\ComicWorkItemPage.xaml.cs">
+      <DependentUpon>ComicWorkItemPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ComicRootPage\ComicRootPageNavigationArguments.cs" />
+    <Compile Include="Pages\MainPage\IMainPageContent.cs" />
     <Compile Include="Support\ComicLists.cs" />
     <Compile Include="Support\CommentedType.cs" />
     <Compile Include="Support\ComicExpectedExceptions.cs" />
-    <Compile Include="Pages\ComicItemGrid\IComicItemGridContainer.cs" />
     <Compile Include="Support\ISelectable.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogNavigationArguments.cs" />
-    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutNavigationArguments.cs" />
     <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml.cs">
       <DependentUpon>ComicInfoFlyoutContent.xaml</DependentUpon>
     </Compile>
@@ -162,18 +177,8 @@
       <DependentUpon>EditComicInfoDialogContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogViewModel.cs" />
-    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutViewModel.cs" />
     <Compile Include="PagedControlContents\RedefineThumbnailDialogContent\RedefineThumbnailDialogContent.xaml.cs">
       <DependentUpon>RedefineThumbnailDialogContent.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\ComicItemGrid\ComicItemGridSecondLevelContainer.xaml.cs">
-      <DependentUpon>ComicItemGridSecondLevelContainer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\ComicItemGrid\ComicItemGridTopLevelContainer.xaml.cs">
-      <DependentUpon>ComicItemGridTopLevelContainer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml.cs">
-      <DependentUpon>FilterFlyoutContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogContent.xaml.cs">
       <DependentUpon>ItemPickerDialogContent.xaml</DependentUpon>
@@ -195,10 +200,6 @@
     <Compile Include="ClassExtensions\Int32_PluralString.cs" />
     <Compile Include="ClassExtensions\ObservableCollection_AddRange.cs" />
     <Compile Include="ClassExtensions\String_TruncateEnd.cs" />
-    <Compile Include="Pages\ComicItemGrid\ComicItemGrid.xaml.cs">
-      <DependentUpon>ComicItemGrid.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\ComicItemGrid\ComicItemGridNavigationArguments.cs" />
     <Compile Include="Features\Defaults.cs" />
     <Compile Include="Pages\MainPage\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -219,7 +220,6 @@
     <Compile Include="Features\Search.cs" />
     <Compile Include="Features\Thumbnail.cs" />
     <Compile Include="ViewModels\ComicItem.cs" />
-    <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModel.cs" />
     <Compile Include="Pages\MainPage\MainViewModel.cs" />
     <Compile Include="Support\CountedString.cs" />
     <Compile Include="Support\FilterViewAuxiliaryInfo.cs" />
@@ -305,23 +305,23 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\ComicItemGrid\ComicItemGrid.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\ComicItemGrid\ComicItemGridSecondLevelContainer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\ComicItemGrid\ComicItemGridTopLevelContainer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PagedControlContents\FilterFlyoutContent\FilterFlyoutContent.xaml">
+    <Page Include="Pages\ComicItemGrid\ComicItemGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ComicNavigationItemPage\ComicNavigationItemPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ComicRootPage\ComicRootPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ComicWorkItemPage\ComicWorkItemPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

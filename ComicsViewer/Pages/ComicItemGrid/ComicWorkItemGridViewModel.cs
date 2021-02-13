@@ -3,7 +3,6 @@ using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
-using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +19,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly SortedComicView comics;
 
-        public ComicWorkItemGridViewModel(MainViewModel appViewModel, ComicView comics, ComicItemGridViewModelProperties? properties = null) 
-            : base(appViewModel) 
+        public ComicWorkItemGridViewModel(IMainPageContent parent, MainViewModel appViewModel, ComicView comics, ComicItemGridViewModelProperties? properties = null) 
+            : base(parent, appViewModel) 
         {
             this.Properties = properties ?? new ComicItemGridViewModelProperties();
 
@@ -92,7 +91,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         /* Generate thumbnails for added items */
                         /* There may be many view models active at any given moment. The if statement ensures that only
                          * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
-                        if (this.NavigationTag != NavigationTag.Detail) {
+                        if (this.NavigationPageType is NavigationPageType.Root) {
                             this.StartRequestGenerateThumbnailsTask(addedItems);
                         }
                     }
@@ -131,7 +130,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
                     _ = this.ComicItems.Remove(sender);
 
-                    if (this.ComicItems.Count == 0 && this.NavigationTag == NavigationTag.Detail) {
+                    if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
                         this.MainViewModel.NavigateOut();
                     }
 

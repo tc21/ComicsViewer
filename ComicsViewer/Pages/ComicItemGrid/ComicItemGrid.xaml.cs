@@ -1,14 +1,12 @@
 ﻿using ComicsLibrary;
 using ComicsViewer.Common;
 using ComicsViewer.Controls;
-using ComicsViewer.Features;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -527,7 +525,7 @@ namespace ComicsViewer.Pages {
 
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
 
-            if (this.ViewModel.NavigationTag != NavigationTag.Detail || connectedAnimationComic == null) {
+            if (this.ViewModel.NavigationPageType is NavigationPageType.Root || connectedAnimationComic == null) {
                 return;
             }
 

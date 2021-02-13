@@ -160,62 +160,49 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Navigation
 
-        private NavigationTag selectedTopLevelNavigationTag;
-        public int NavigationLevel { get; set; }
-        public NavigationTag ActiveNavigationTag => this.NavigationLevel == 0 ? this.selectedTopLevelNavigationTag : NavigationTag.Detail;
+        public NavigationTag ActiveNavigationTag;
+        public NavigationPageType ActiveNavigationPageType;
 
-        public void Navigate(NavigationTag navigationTag, NavigationTransitionInfo? transitionInfo = null, bool ignoreCache = false) {
-            var navigationType = ignoreCache || navigationTag != this.ActiveNavigationTag 
-                ? NavigationType.New 
-                : NavigationType.Scroll;
+        public void Navigate(NavigationTag navigationTag, NavigationTransitionInfo? transitionInfo = null, bool requireRefresh = false) {
+            NavigationRequestedEventArgs navigationArguments;
+            
+            if (!requireRefresh && this.ActiveNavigationPageType is NavigationPageType.Root && this.ActiveNavigationTag == navigationTag) {
+                navigationArguments = new NavigationRequestedEventArgs { NavigationType = NavigationType.ScrollToTop };
+            } else {
+                navigationArguments = new NavigationRequestedEventArgs {
+                    NavigationType = NavigationType.New,
+                    NavigationPageType = NavigationPageType.Root,
+                    NavigationTag = navigationTag,
+                    TransitionInfo = transitionInfo
+                };
+            }
 
-            this.selectedTopLevelNavigationTag = navigationTag;
-            this.NavigationLevel = 0;
-
-            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
-                PageType = typeof(ComicItemGridTopLevelContainer),
-                Tag = navigationTag,
-                TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                NavigationType = navigationType
-            });
-
-            this.PageName = null;
+            this.NavigationRequested?.Invoke(this, navigationArguments);
         }
 
-        public void NavigateOut(bool ignoreCache = false, ComicItemGrid? of = null) {
-            of?.PrepareNavigateOut();
-
-            if (ignoreCache) {
-                this.Navigate(this.selectedTopLevelNavigationTag, ignoreCache: true);
+        public void NavigateOut(ComicItemGrid? of = null) {
+            if (this.ActiveNavigationPageType is NavigationPageType.Root) {
                 return;
             }
 
-            this.NavigationLevel = 0;
-            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { 
-                NavigationType = NavigationType.Back,
-                Tag = this.selectedTopLevelNavigationTag
-            });
-
-            this.PageName = null;
+            of?.PrepareNavigateOut();
+            this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Out });
         }
 
-        // note: we have already validateed that item is a nav item
-        public void NavigateInto(ComicNavigationItem item, NavigationTransitionInfo? transitionInfo = null, ComicItemGridViewModel? parent = null) {
-            var properties = parent is null
-                ? new ComicItemGridViewModelProperties()
-                : new ComicItemGridViewModelProperties(parent.NavigationTag, parent.NavigationTag == NavigationTag.Playlist ? item.Title : null);
-
-            this.NavigationLevel = 1;
+        public void NavigateInto(ComicNavigationItem item) {
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
-                PageType = typeof(ComicItemGridSecondLevelContainer),
-                Tag = NavigationTag.Detail,
-                NavigationType = NavigationType.New,
-                TransitionInfo = transitionInfo ?? new EntranceNavigationTransitionInfo(),
-                Comics = item.Comics,
-                Properties = properties
-            });
+                NavigationPageType = NavigationPageType.NavigationItem,
+                NavigationTag = this.ActiveNavigationTag,
+                NavigationType = NavigationType.In,
 
-            this.PageName = item.Title;
+                Comics = item.Comics,
+                Title = item.Title
+            });
+        }
+
+        public void NavigateInto(ComicWorkItem item) {
+            // TODO
+            throw new NotImplementedException();
         }
 
         public void FilterToSelected(IEnumerable<ComicItem> items) {
@@ -241,8 +228,6 @@ namespace ComicsViewer.ViewModels.Pages {
         #endregion
 
         #region Search and filtering
-
-        //internal readonly Filter Filter = new Filter();
 
         // Called when a search is successfully compiled and submitted
         // Note: this happens at AppViewModel because filters are per-app
@@ -273,16 +258,6 @@ namespace ComicsViewer.ViewModels.Pages {
                     list.RemoveAt(i);
                 }
             }
-        }
-
-        public FilterFlyoutNavigationArguments GetFilterPageNavigationArguments(ComicItemGridViewModel parentViewModel) {
-            var info = this.GetAuxiliaryInfo();
-
-            return new FilterFlyoutNavigationArguments {
-                Filter = this.Comics.Filter,
-                ParentViewModel = parentViewModel,
-                AuxiliaryInfo = info
-            };
         }
 
         private FilterViewAuxiliaryInfo GetAuxiliaryInfo() {
@@ -838,16 +813,22 @@ namespace ComicsViewer.ViewModels.Pages {
     }
 
     public class NavigationRequestedEventArgs {
-        public Type? PageType { get; set; }
-        public NavigationTag? Tag { get; set; }
-        public ComicView? Comics { get; set; }
+        public NavigationType NavigationType { get; set; }
+        public NavigationPageType NavigationPageType { get; set; }
+
+        public NavigationTag NavigationTag { get; set; }
+        public NavigationTransitionInfo? TransitionInfo { get; set; }
         public ComicItemGridViewModelProperties? Properties { get; set; }
 
-        public NavigationTransitionInfo TransitionInfo { get; set; } = new EntranceNavigationTransitionInfo();
-        public NavigationType NavigationType { get; set; } = NavigationType.New;
+        public string? Title { get; set; }
+        public ComicView? Comics { get; set; }
     }
 
     public enum NavigationType {
-        Back, New, Scroll
+        In, Out, New, ScrollToTop
+    }
+
+    public enum NavigationPageType {
+        Root, NavigationItem, WorkItem
     }
 }

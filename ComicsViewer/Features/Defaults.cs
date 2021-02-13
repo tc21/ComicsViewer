@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary.Sorting;
 using ComicsViewer.Support;
+using ComicsViewer.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -146,13 +147,11 @@ namespace ComicsViewer.Features {
     public static class Defaults {
         private static readonly Dictionary<string, object> DefaultSettings = new Dictionary<string, object> {
             ["LastProfile"] = "",
-            ["SortSelections"] = new Dictionary<string, int>() {
-                [NavigationTag.Comics.ToTagName()] = (int)ComicSortSelector.Author,
-                [NavigationTag.Author.ToTagName()] = (int)ComicCollectionSortSelector.Name,
-                [NavigationTag.Tags.ToTagName()] = (int)ComicCollectionSortSelector.Name,
-                [NavigationTag.Category.ToTagName()] = (int)ComicCollectionSortSelector.Name,
-                [NavigationTag.Playlist.ToTagName()] = (int)ComicCollectionSortSelector.Name,
-                [NavigationTag.Detail.ToTagName()] =(int)ComicSortSelector.Author
+            ["SortSelections"] = new DefaultDictionary<string, int>(() => 0) {
+                [$"{NavigationTag.Comics}.{NavigationPageType.Root}"] = (int)ComicSortSelector.Author,
+                [$"{NavigationTag.Tags}.{NavigationPageType.NavigationItem}"] = (int)ComicSortSelector.Author,
+                [$"{NavigationTag.Category}.{NavigationPageType.NavigationItem}"] = (int)ComicSortSelector.Author,
+                [$"{NavigationTag.Playlist}.{NavigationPageType.NavigationItem}"] = (int)ComicSortSelector.Author,
             },
             // Since we can't store a list, we'll use a string joined by '|' for now. Obviously will break if someone searches with the character '|'...
             ["SavedSearches"] = new DefaultDictionary<string, string>(() => ""),
@@ -166,20 +165,24 @@ namespace ComicsViewer.Features {
                 set => DefaultSettingsAccessor.Set("LastProfile", value);
             }
 
-            public static int DefaultSortSelection(NavigationTag tag)
-                => DefaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", tag.ToTagName());
+            public static int DefaultSortSelection(NavigationTag tag, NavigationPageType pageType)
+                => DefaultSettingsAccessor.GetCollectionItemDefault<int>("SortSelections", SortSelectionKey(tag, pageType));
 
-            public static int GetLastSortSelection(NavigationTag tag)
-                => DefaultSettingsAccessor.GetCollectionItem<int>("SortSelections", tag.ToTagName());
+            public static int GetLastSortSelection(NavigationTag tag, NavigationPageType pageType)
+                => DefaultSettingsAccessor.GetCollectionItem<int>("SortSelections", SortSelectionKey(tag, pageType));
 
-            public static void SetLastSortSelection(NavigationTag tag, int value)
-                => DefaultSettingsAccessor.SetCollectionItem("SortSelections", tag.ToTagName(), value);
+            public static void SetLastSortSelection(NavigationTag tag, NavigationPageType pageType, int value)
+                => DefaultSettingsAccessor.SetCollectionItem("SortSelections", SortSelectionKey(tag, pageType), value);
 
             public static List<string> GetSavedSearches(string profileName)
                 => DefaultSettingsAccessor.GetCollectionItem<string>("SavedSearches", profileName).Split('|').ToList();
 
             public static void SetSavedSearches(string profileName, IEnumerable<string> searches)
                 => DefaultSettingsAccessor.SetCollectionItem("SavedSearches", profileName, string.Join('|', searches.Take(4)));
+
+            private static string SortSelectionKey(NavigationTag tag, NavigationPageType pageType) {
+                return $"{tag}.{pageType}";
+            }
         }
 
         public static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
