@@ -3,6 +3,7 @@ using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,13 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly SortedComicView comics;
 
-        public ComicWorkItemGridViewModel(IMainPageContent parent, MainViewModel appViewModel, ComicView comics, ComicItemGridViewModelProperties? properties = null) 
-            : base(parent, appViewModel) 
-        {
+        public ComicWorkItemGridViewModel(
+            IMainPageContent parent,
+            MainViewModel appViewModel,
+            ComicView comics,
+            ComicItemGridViewModelProperties? properties = null,
+            IEnumerable<ComicItem>? cachedItems = null
+        ) : base(parent, appViewModel) {
             this.Properties = properties ?? new ComicItemGridViewModelProperties();
 
             this.comics = comics.Sorted(this.SelectedSortSelector);
@@ -34,7 +39,11 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             // Sorts and loads the actual comic items
-            this.RefreshComicItems();
+            if (cachedItems is not null) {
+                this.SetComicItems(cachedItems);
+            } else {
+                this.RefreshComicItems();
+            }
         }
 
         /* We have an unfortunate discrepancy here between work and nav items, caused by how we implemented sorting:
@@ -47,7 +56,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RefreshComicItems() {
-            this.SetComicItems(this.MakeComicItems(this.comics), this.comics.Count());
+            this.SetComicItems(this.MakeComicItems(this.comics).ToList());
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
@@ -131,7 +140,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     _ = this.ComicItems.Remove(sender);
 
                     if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
-                        this.MainViewModel.NavigateOut();
+                        this.MainViewModel.TryNavigateOut();
                     }
 
                     break;

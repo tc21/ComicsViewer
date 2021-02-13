@@ -105,7 +105,8 @@ namespace ComicsViewer {
                     }
 
                     var transitionInfo = e.TransitionInfo ?? new DrillInNavigationTransitionInfo();
-                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(this.ViewModel, e.NavigationTag, item, e.Properties);
+                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(
+                        this.ViewModel, e.NavigationTag, item, e.Properties);
 
                     _ = this.ContentFrame.Navigate(typeof(ComicNavigationItemPage), navigationArguments, transitionInfo);
 
@@ -150,6 +151,8 @@ namespace ComicsViewer {
                     return;
                 }
 
+                // We need to make sure to increment NavigationDepth since we're manually calling ContentFrame.Navigate
+                this.ViewModel.NavigationDepth += 1;
                 _ = this.ContentFrame.Navigate(typeof(SettingsPage), new SettingsPageNavigationArguments(this.ViewModel, this.ViewModel.Profile));
                 return;
             }
@@ -171,7 +174,7 @@ namespace ComicsViewer {
         }
 
         private void CurrentView_BackRequested(object sender, BackRequestedEventArgs e) {
-            this.ViewModel.NavigateOut(of: this.page?.ComicItemGrid);
+            this.ViewModel.TryNavigateOut();
         }
 
         private void ContentFrame_NavigationFailed(object _, NavigationFailedEventArgs e) {
@@ -181,9 +184,9 @@ namespace ComicsViewer {
         private void ContentFrame_Navigated(object _, NavigationEventArgs e) {
             // We can't just check for ContentFrame.CanGoBack, because the root page is pushed on to the back stack,
             // and we cannot navigate "back" from it.
-            this.currentView.AppViewBackButtonVisibility = this.ContentFrame.BackStackDepth > 1
+            this.currentView.AppViewBackButtonVisibility = this.ViewModel.NavigationDepth > 0
                 ? AppViewBackButtonVisibility.Visible
-                : AppViewBackButtonVisibility.Collapsed;
+                : AppViewBackButtonVisibility.Disabled;
 
             if (e.Content is not IMainPageContent page) {
                 // page may not be initialized, or we may be on a Settings page
@@ -192,17 +195,11 @@ namespace ComicsViewer {
                 return;
             }
 
-            if (page.IsInitialized) {
+            page.Initialized += (page) => {
                 this.page = page;
                 this.ViewModel.ActiveNavigationPageType = page.NavigationPageType;
                 this.ViewModel.ActiveNavigationTag = page.NavigationTag;
-            } else {
-                page.Initialized += (page) => {
-                    this.page = page;
-                    this.ViewModel.ActiveNavigationPageType = page.NavigationPageType;
-                    this.ViewModel.ActiveNavigationTag = page.NavigationTag;
-                };
-            }
+            };
         }
 
         #endregion
@@ -271,7 +268,7 @@ namespace ComicsViewer {
                 return;
             }
 
-            this.ViewModel.NavigateOut(of: this.page?.ComicItemGrid);
+            this.ViewModel.TryNavigateOut();
         }
     }
 }

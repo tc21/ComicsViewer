@@ -20,20 +20,22 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("A ComicRootPage must receive a ComicRootPageNavigationArguments as its parameter.");
             }
 
-            if (this.IsInitialized) {
-                throw new ProgrammerError("This code should be unreachable");
-            }
-
             this._navigationTag = args.NavigationTag;
 
-            var viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel);
+            var cachedItems = ComicItemGridCache.GetRoot(args.NavigationTag);
+            var viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, cachedItems);
             this.ComicsCount = viewModel.TotalItemCount;
 
-            this.IsInitialized = true;
             this.Initialized?.Invoke(this);
 
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { ViewModel = viewModel }));
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
+            if (this.ComicItemGrid is not null) {
+                ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.ViewModel.ComicItems);
+            }
         }
 
         private NavigationTag? _navigationTag;
@@ -44,7 +46,6 @@ namespace ComicsViewer.Pages {
         public int ComicsCount { get; private set; } = 0;
         public ComicItemGrid? ComicItemGrid { get; private set; }
 
-        public bool IsInitialized { get; private set; }
         public event Action<IMainPageContent>? Initialized;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {

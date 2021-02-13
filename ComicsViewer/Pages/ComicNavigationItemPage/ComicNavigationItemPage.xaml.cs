@@ -23,17 +23,18 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("A ComicRootPage must receive a ComicNavigationItemPageNavigationArguments as its parameter.");
             }
 
-            if (this.IsInitialized) {
-                throw new ProgrammerError("This code should be unreachable");
-            }
-
             this._navigationTag = args.NavigationTag;
             this._comicItem = args.ComicItem;
 
-            var viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties);
+            var cachedItems = e.NavigationMode switch {
+                NavigationMode.New => null,
+                NavigationMode.Back => ComicItemGridCache.PopStack(this.NavigationTag, this.ComicItem.Title),
+                _ => throw new ProgrammerError("Unexpected switch case"),
+            };
+
+            var viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, cachedItems);
             this.ComicsCount = viewModel.TotalItemCount;
 
-            this.IsInitialized = true;
             this.Initialized?.Invoke(this);
 
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
@@ -49,6 +50,10 @@ namespace ComicsViewer.Pages {
                 var animation = this.ComicItemGrid.PrepareNavigateOutConnectedAnimation(this.ComicItem);
                 animation.Configuration = new DirectConnectedAnimationConfiguration();
             }
+
+            if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.New) {
+                ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.ViewModel.ComicItems);
+            }
         }
 
         private NavigationTag? _navigationTag;
@@ -59,7 +64,6 @@ namespace ComicsViewer.Pages {
         public int ComicsCount { get; private set; } = 0;
         public ComicItemGrid? ComicItemGrid { get; private set; }
 
-        public bool IsInitialized { get; private set; }
         public event Action<IMainPageContent>? Initialized;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {

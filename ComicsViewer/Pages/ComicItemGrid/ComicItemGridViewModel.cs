@@ -39,32 +39,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* semi-manually managed properties */
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
-        private IEnumerator<ComicItem>? comicItemSource;
 
-        private protected void SetComicItems(IEnumerable<ComicItem> items, int itemCount) {
+        private protected void SetComicItems(IEnumerable<ComicItem> items) {
             this.ComicItems.Clear();
-            this.comicItemSource = items.GetEnumerator();
-            this.RequestComicItems();
-
-            this.TotalItemCount = itemCount;
+            this.ComicItems.AddRange(items);
             this.OnPropertyChanged(nameof(this.TotalItemCount));
-        }
-
-        public void RequestComicItems() {
-            if (this.comicItemSource == null) {
-                return;
-            }
-
-            while (true) {
-                if (this.comicItemSource.MoveNext()) {
-                    this.ComicItems.Add(this.comicItemSource.Current);
-                } else {
-                    this.comicItemSource = null;
-                    break;
-                }
-            }
-
-            this.OnPropertyChanged(nameof(this.VisibleItemCount));
         }
 
         /* manually managed properties */
@@ -72,8 +51,7 @@ namespace ComicsViewer.ViewModels.Pages {
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public string ProfileName => this.MainViewModel.Profile.Name;
-        public int VisibleItemCount => this.ComicItems.Count;
-        public int TotalItemCount { get; private set; }
+        public int TotalItemCount => this.ComicItems.Count;
         internal readonly MainViewModel MainViewModel;
 
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
@@ -99,9 +77,9 @@ namespace ComicsViewer.ViewModels.Pages {
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
         }
 
-        public static ComicItemGridViewModel ForTopLevelNavigationTag(IMainPageContent parent, MainViewModel mainViewModel) {
+        public static ComicItemGridViewModel ForTopLevelNavigationTag(IMainPageContent parent, MainViewModel mainViewModel, IEnumerable<ComicItem>? cachedItems = null) {
             if (parent.NavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(parent, mainViewModel, mainViewModel.ComicView);
+                return new ComicWorkItemGridViewModel(parent, mainViewModel, mainViewModel.ComicView, cachedItems: cachedItems);
             } else {
                 var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(parent.NavigationTag, parent.NavigationPageType);
 
@@ -114,7 +92,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     comicCollections = GetSortedProperties(mainViewModel.ComicView, parent.NavigationTag, initialSort);
                 }
 
-                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections);
+                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections, cachedItems);
             }
         }
 
@@ -134,9 +112,10 @@ namespace ComicsViewer.ViewModels.Pages {
             IMainPageContent parent,
             MainViewModel appViewModel, 
             ComicView comics, 
-            ComicItemGridViewModelProperties? properties
+            ComicItemGridViewModelProperties? properties,
+            IEnumerable<ComicItem>? cachedItems = null
         ) {
-            return new ComicWorkItemGridViewModel(parent, appViewModel, comics, properties);
+            return new ComicWorkItemGridViewModel(parent, appViewModel, comics, properties, cachedItems);
         }
 
         #region Filtering and grouping

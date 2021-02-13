@@ -13,7 +13,7 @@ namespace ComicsViewer.Pages {
         public ComicItemGridViewModelProperties? Properties { get; set; }
 
         public ComicNavigationItemPageNavigationArguments(
-            MainViewModel mainViewModel, 
+            MainViewModel mainViewModel,
             NavigationTag navigationTag, 
             ComicNavigationItem comicItem, 
             ComicItemGridViewModelProperties? properties = null

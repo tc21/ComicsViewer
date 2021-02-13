@@ -13,7 +13,6 @@ namespace ComicsViewer {
         Page Page { get; }
         ComicItemGrid? ComicItemGrid { get; }
 
-        bool IsInitialized { get; }
         event Action<IMainPageContent>? Initialized;
     }
 }

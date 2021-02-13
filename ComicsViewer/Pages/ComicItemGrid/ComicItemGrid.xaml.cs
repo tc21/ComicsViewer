@@ -1,5 +1,4 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Common;
+﻿using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
@@ -21,20 +20,15 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
-using WinRTXamlToolkit.Controls.Extensions;
 
 #nullable enable
 
 namespace ComicsViewer.Pages {
     public sealed partial class ComicItemGrid {
         private ComicItemGridViewModel? _viewModel;
-        private ScrollViewer? _visibleComicsGridScrollViewer;
 
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
         public ComicItemGridViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
-
-        private ScrollViewer VisibleComicsGridScrollViewer => this._visibleComicsGridScrollViewer 
-            ?? throw new ProgrammerError("VisibleComicsGridScrollViewer must be initialized");
 
         public ComicItemGrid() {
             this.InitializeComponent();
@@ -530,18 +524,7 @@ namespace ComicsViewer.Pages {
         #endregion
 
         private void VisibleComicsGrid_Loaded(object sender, RoutedEventArgs e) {
-            // We have to access the scrollviewer programatically
-            this._visibleComicsGridScrollViewer = this.VisibleComicsGrid.GetFirstDescendantOfType<ScrollViewer>();
-            this.VisibleComicsGridScrollViewer.ViewChanged += this.VisibleComicsGridScrollViewer_ViewChanged;
-
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
-        }
-
-        private void VisibleComicsGridScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e) {
-            // we arbitrarily say 2000 pixels is close enough to the bottom.
-            if (this.VisibleComicsGridScrollViewer.ScrollableHeight - this.VisibleComicsGridScrollViewer.VerticalOffset < 2000) {
-                this._viewModel?.RequestComicItems();
-            }
         }
     }
 }

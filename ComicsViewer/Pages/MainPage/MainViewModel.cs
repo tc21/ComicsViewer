@@ -114,6 +114,14 @@ namespace ComicsViewer.ViewModels.Pages {
 
             this.Comics.Filter.Clear();
 
+            // Note: it would probably be good practice to move static helper classes like ComicItemGridCache
+            // and ConnectedAnimationHelper into instances contained in MainViewModel. Regardless, they are 
+            // per-instance and per-profile, and have to be cleared when switching profiles.
+
+            // Additionally, as more things get added (we already have playlists, filter, cache), it may be better
+            // to invert the ownership hiearchy such that e.g. we pass `this` into CIGC, which listens to the ProfileChanged 
+            // event, instead of the programmer "just knowing" that it needs to be cleared.
+            ComicItemGridCache.Clear();
 
             // Verify that we have access to the file system
             if (await this.VerifyPermissionForPathsAsync(e.NewProfile.RootPaths.Select(p => p.Path))) {
@@ -160,6 +168,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Navigation
 
+        public int NavigationDepth = 0;
         public NavigationTag ActiveNavigationTag;
         public NavigationPageType ActiveNavigationPageType;
 
@@ -177,19 +186,28 @@ namespace ComicsViewer.ViewModels.Pages {
                 };
             }
 
+            this.NavigationDepth = 0;
+            ComicItemGridCache.PruneStack(0);
+
             this.NavigationRequested?.Invoke(this, navigationArguments);
         }
 
-        public void NavigateOut(ComicItemGrid? of = null) {
-            if (this.ActiveNavigationPageType is NavigationPageType.Root) {
+        public void TryNavigateOut() {
+            if (this.NavigationDepth == 0) {
                 return;
             }
 
-            //of?.PrepareNavigateOut();
+            this.NavigationDepth -= 1;
+
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Out });
         }
 
         public void NavigateInto(ComicNavigationItem item) {
+            // navigationDepth is the amount of stack-cached pages that's in the back stack. 
+            // We substract 1 because the active page is not cached.
+            this.NavigationDepth += 1;
+            ComicItemGridCache.PruneStack(this.NavigationDepth - 1);
+
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
                 NavigationPageType = NavigationPageType.NavigationItem,
                 NavigationTag = this.ActiveNavigationTag,

@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsViewer.Common;
+using ComicsViewer.Support;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,41 +12,51 @@ namespace ComicsViewer.ViewModels.Pages {
         public override string[] SortSelectors => SortSelectorNames.ComicCollectionSortSelectorNames;
         protected ComicCollectionSortSelector SelectedSortSelector => (ComicCollectionSortSelector)this.SelectedSortIndex;
 
-        private readonly ComicCollectionView properties;
+        private readonly ComicCollectionView collections;
 
         protected ComicNavigationItemGridViewModel(IMainPageContent parent, MainViewModel appViewModel, ComicCollectionView comicCollections)
             : base(parent, appViewModel)
         {
-            this.properties = comicCollections;
-            this.properties.CollectionsChanged += this.Properties_CollectionsChanged;
+            this.collections = comicCollections;
+            this.collections.CollectionsChanged += this.Collections_CollectionsChanged;
         }
         
-        public static ComicNavigationItemGridViewModel ForViewModel(IMainPageContent parent, MainViewModel mainViewModel, ComicCollectionView comicCollections) {
+        public static ComicNavigationItemGridViewModel ForViewModel(
+            IMainPageContent parent, 
+            MainViewModel mainViewModel, 
+            ComicCollectionView comicCollections, 
+            IEnumerable<ComicItem>? cachedItems = null
+        ) {
             var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
-            // Sorts and loads the actual comic items
-            viewModel.RefreshComicItems();
+
+            if (cachedItems is not null) {
+                viewModel.SetComicItems(cachedItems);
+            } else {
+                // Sorts and loads the actual comic items
+                viewModel.RefreshComicItems();
+            }
+
             return viewModel;
         }
 
         protected void RefreshComicItems() {
-            var items = this.properties.Select(property =>
-                new ComicNavigationItem(property.Name, property.Comics)
-            );
+            var items = this.collections.Select(collection =>
+                new ComicNavigationItem(collection.Name, collection.Comics)
+            ).ToList();
 
-            this.SetComicItems(items, this.properties.Count);
+            this.SetComicItems(items);
         }
 
         private protected override void SortOrderChanged() {
-            this.properties.SetSort(this.SelectedSortSelector);
+            this.collections.SetSort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
 
         public void NavigateIntoItem(ComicNavigationItem item) {
-            //this.MainViewModel.NavigateInto(item, parent: this);
             this.MainViewModel.NavigateInto(item);
         }
 
-        private void Properties_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
+        private void Collections_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
                 case CollectionsChangeType.ItemsChanged:
                     if (e.Removed.Any()) {
@@ -81,14 +92,14 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
 
                 default:
-                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Properties_CollectionsChanged)}: unhandled switch case");
+                    throw new ProgrammerError($"{nameof(ComicNavigationItemGridViewModel)}.{nameof(this.Collections_CollectionsChanged)}: unhandled switch case");
             }
         }
 
         public override void Dispose() {
             base.Dispose();
 
-            this.properties.CollectionsChanged -= this.Properties_CollectionsChanged;
+            this.collections.CollectionsChanged -= this.Collections_CollectionsChanged;
         }
     }
 }
