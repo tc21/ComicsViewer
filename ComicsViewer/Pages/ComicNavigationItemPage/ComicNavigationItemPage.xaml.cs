@@ -46,11 +46,6 @@ namespace ComicsViewer.Pages {
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
-            if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.Back) {
-                var animation = this.ComicItemGrid.PrepareNavigateOutConnectedAnimation(this.ComicItem);
-                animation.Configuration = new DirectConnectedAnimationConfiguration();
-            }
-
             if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.New) {
                 ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.GetSaveState());
             }
@@ -70,10 +65,9 @@ namespace ComicsViewer.Pages {
             throw new ProgrammerError();
         }
 
-        private async void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
+        private void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
             this.ComicItemGrid = (ComicItemGrid)e.Content;
             this.ComicItemGrid.FinishNavigateInConnectedAnimationIfExists(this.ComicItem);
-            await this.ComicItemGrid.FinishNavigateOutConnectedAnimationIfExistsAsync();
         }
     }
 }

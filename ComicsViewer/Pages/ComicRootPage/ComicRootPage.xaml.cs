@@ -58,9 +58,8 @@ namespace ComicsViewer.Pages {
             throw new ProgrammerError();
         }
 
-        private async void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
+        private void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
             this.ComicItemGrid = (ComicItemGrid)e.Content;
-            await this.ComicItemGrid.FinishNavigateOutConnectedAnimationIfExistsAsync();
         }
     }
 }

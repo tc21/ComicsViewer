@@ -331,24 +331,6 @@ namespace ComicsViewer.Pages {
             _ = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
         }
 
-        public async Task FinishNavigateOutConnectedAnimationIfExistsAsync() {
-            if (!ConnectedAnimationHelper.AnimationExists("navigateOut")) {
-                return;
-            }
-
-            if (this.VisibleComicsGrid.SelectedItem is not ComicItem item) {
-                ConnectedAnimationHelper.CancelAnimation("navigateOut");
-                return;
-            }
-
-            _ = await ConnectedAnimationHelper.TryStartAnimationToListViewAsync(
-                this.VisibleComicsGrid, "ComicItemThumbnailContainer", item, "navigateOut");
-        }
-
-        public ConnectedAnimation PrepareNavigateOutConnectedAnimation(ComicItem item) {
-            return this.HighlightedComicItemControl.PrepareConnectedAnimationFromThumbnail(item);
-        }
-
         internal void ManuallyNavigatedTo(NavigationEventArgs e) {
             this.OnNavigatedTo(e);
         }

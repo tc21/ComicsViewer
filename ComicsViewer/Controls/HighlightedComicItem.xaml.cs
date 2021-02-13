@@ -53,9 +53,5 @@ namespace ComicsViewer.Controls {
         public bool TryStartConnectedAnimationToThumbnail(ComicItem item) {
             return ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
         }
-
-        public ConnectedAnimation PrepareConnectedAnimationFromThumbnail(ComicItem item) {
-            return ConnectedAnimationHelper.PrepareAnimation(this.ThumbnailImage, item, "navigateOut");
-        }
     }
 }
