@@ -354,6 +354,10 @@ namespace ComicsViewer.Pages {
             return new ComicItemGridState(this.ViewModel.ComicItems.ToList(), this.GetScrollOffset());
         }
 
+        private void RefreshButton_Click(object sender, RoutedEventArgs e) {
+            this.ViewModel.SortAndRefreshComicItems();
+        }
+
         #endregion
 
         #region Redefining thumbnails

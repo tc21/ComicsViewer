@@ -51,7 +51,7 @@ namespace ComicsViewer.ViewModels.Pages {
          * You are supposed to call SortedComicView.Sort, which will then trigger events that call SetComicItems. So a
          * list of workItems is already sorted here. On the other hand, we have to manually sort our ComicPropertiesView,
          * because we didn't need to waste time working out an event-based ComicPropertiesView */
-        private protected override void SortOrderChanged() {
+        public override void SortAndRefreshComicItems() {
             this.comics.Sort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }

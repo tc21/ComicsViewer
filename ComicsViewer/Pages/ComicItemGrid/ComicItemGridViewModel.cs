@@ -50,6 +50,8 @@ namespace ComicsViewer.ViewModels.Pages {
         public abstract string[] SortSelectors { get; }
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
+        public int HighlightImageHeight => this.MainViewModel.Profile.ImageHeight / 2;
+        public int HighlightImageWidth => this.MainViewModel.Profile.ImageWidth / 2;
         public string ProfileName => this.MainViewModel.Profile.Name;
         public int TotalItemCount => this.ComicItems.Count;
         internal readonly MainViewModel MainViewModel;
@@ -112,8 +114,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(
             IMainPageContent parent,
-            MainViewModel appViewModel, 
-            ComicView comics, 
+            MainViewModel appViewModel,
+            ComicView comics,
             ComicItemGridViewModelProperties? properties,
             ComicItemGridState? savedState = null
         ) {
@@ -124,7 +126,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* although these method calls can take a while, the program isn't in a useable state between the user choosing 
          * a new sort selector and the sort finishing anyway */
-        private protected abstract void SortOrderChanged();
+        public abstract void SortAndRefreshComicItems();
 
         #endregion
 
@@ -184,7 +186,7 @@ namespace ComicsViewer.ViewModels.Pages {
             switch (e.PropertyName) {
                 case nameof(this.SelectedSortIndex):
                     Defaults.SettingsAccessor.SetLastSortSelection(this.NavigationTag, this.NavigationPageType, this.SelectedSortIndex);
-                    this.SortOrderChanged();
+                    this.SortAndRefreshComicItems();
 
                     break;
             }

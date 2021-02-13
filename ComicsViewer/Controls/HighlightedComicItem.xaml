@@ -26,13 +26,13 @@
             <TextBlock Grid.Column="1" 
                            Text="{x:Bind Item.Title}" d:Text="Title"
                            TextTrimming="CharacterEllipsis" 
-                           FontSize="40" 
+                           FontSize="32" 
                            Foreground="{ThemeResource SystemControlPageTextBaseHighBrush}" />
 
             <TextBlock Grid.Column="1" 
                            Text="{x:Bind Item.Subtitle}" d:Text="Subtitle" 
                            TextTrimming="CharacterEllipsis" 
-                           FontSize="30" 
+                           FontSize="24" 
                            Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
         </StackPanel>
 

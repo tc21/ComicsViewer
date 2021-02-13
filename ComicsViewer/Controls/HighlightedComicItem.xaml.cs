@@ -32,22 +32,22 @@ namespace ComicsViewer.Controls {
             DependencyProperty.Register(nameof(Item), typeof(ComicItem), typeof(HighlightedComicItem), new PropertyMetadata(null));
 
 
-        public double ImageHeight {
-            get => (double)this.GetValue(ImageHeightProperty);
+        public int ImageHeight {
+            get => (int)this.GetValue(ImageHeightProperty);
             set => this.SetValue(ImageHeightProperty, value);
         }
 
         public static readonly DependencyProperty ImageHeightProperty =
-            DependencyProperty.Register(nameof(ImageHeight), typeof(double), typeof(HighlightedComicItem), new PropertyMetadata(0));
+            DependencyProperty.Register(nameof(ImageHeight), typeof(int), typeof(HighlightedComicItem), new PropertyMetadata(0));
 
 
-        public double ImageWidth {
-            get => (double)this.GetValue(ImageWidthProperty);
+        public int ImageWidth {
+            get => (int)this.GetValue(ImageWidthProperty);
             set => this.SetValue(ImageWidthProperty, value);
         }
 
         public static readonly DependencyProperty ImageWidthProperty =
-            DependencyProperty.Register(nameof(ImageWidth), typeof(double), typeof(HighlightedComicItem), new PropertyMetadata(0));
+            DependencyProperty.Register(nameof(ImageWidth), typeof(int), typeof(HighlightedComicItem), new PropertyMetadata(0));
 
 
         public bool TryStartConnectedAnimationToThumbnail(ComicItem item) {

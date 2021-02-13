@@ -48,7 +48,7 @@ namespace ComicsViewer.ViewModels.Pages {
             this.SetComicItems(items);
         }
 
-        private protected override void SortOrderChanged() {
+        public override void SortAndRefreshComicItems() {
             this.collections.SetSort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
