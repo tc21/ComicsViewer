@@ -25,12 +25,13 @@ namespace ComicsViewer.ViewModels.Pages {
             IMainPageContent parent, 
             MainViewModel mainViewModel, 
             ComicCollectionView comicCollections, 
-            IEnumerable<ComicItem>? cachedItems = null
+            ComicItemGridState? savedState = null
         ) {
             var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
 
-            if (cachedItems is not null) {
-                viewModel.SetComicItems(cachedItems);
+            if (savedState is not null) {
+                viewModel.SetComicItems(savedState.Items);
+                viewModel.RequestedInitialScrollOffset = savedState.ScrollOffset;
             } else {
                 // Sorts and loads the actual comic items
                 viewModel.RefreshComicItems();

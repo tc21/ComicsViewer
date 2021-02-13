@@ -6,9 +6,19 @@ using ComicsViewer.ViewModels;
 #nullable enable
 
 namespace ComicsViewer.Support {
+    public class ComicItemGridState {
+        public List<ComicItem> Items { get; set; }
+        public double ScrollOffset { get; set; }
+
+        public ComicItemGridState(List<ComicItem> items, double scrollOffset) {
+            this.Items = items;
+            this.ScrollOffset = scrollOffset;
+        }
+    }
+
     public static class ComicItemGridCache {
-        private static readonly List<(NavigationTag, string, List<ComicItem>)> stack = new();
-        private static readonly DefaultDictionary<NavigationTag, List<ComicItem>?> roots = new(() => null);
+        private static readonly List<(NavigationTag, string, ComicItemGridState)> stack = new();
+        private static readonly DefaultDictionary<NavigationTag, ComicItemGridState?> roots = new(() => null);
 
         /* A brief description of how to use this Cache:
          * I. Root pages
@@ -23,27 +33,27 @@ namespace ComicsViewer.Support {
          *  
          * (note: behavior is different while forward navigation is not yet implemented) */
 
-        public static List<ComicItem>? GetRoot(NavigationTag tag) {
+        public static ComicItemGridState? GetRoot(NavigationTag tag) {
             return roots[tag];
         }
 
-        public static void PutRoot(NavigationTag tag, IEnumerable<ComicItem> items) {
-            roots[tag] = items.ToList();
+        public static void PutRoot(NavigationTag tag, ComicItemGridState state) {
+            roots[tag] = state;
         }
 
-        public static void PushStack(NavigationTag tag, string subKey, IEnumerable<ComicItem> items) {
-            stack.Add((tag, subKey, items.ToList()));
+        public static void PushStack(NavigationTag tag, string subKey, ComicItemGridState state) {
+            stack.Add((tag, subKey, state));
         }
 
-        public static List<ComicItem> PopStack(NavigationTag tag, string? subKey) {
+        public static ComicItemGridState PopStack(NavigationTag tag, string? subKey) {
             var index = stack.Count - 1;
-            var (storedTag, storedSubKey, items) = stack[index];
+            var (storedTag, storedSubKey, state) = stack[index];
 
             if ((storedTag, storedSubKey) != (tag, subKey)) {
                 throw new ArgumentException("Item at top of stack was not the expected (key, subkey) combination");
             }
 
-            return items;
+            return state;
         }
 
         public static void PruneStack(int itemsToKeep) {

@@ -93,7 +93,7 @@ namespace ComicsViewer {
             this.ViewModel.Navigate(NavigationTag.Comics, requireRefresh: true);
         }
 
-        private void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
+        private async void ViewModel_NavigationRequested(MainViewModel sender, NavigationRequestedEventArgs e) {
             switch (e.NavigationType) {
                 case NavigationType.In: {
                     if (e.NavigationPageType is NavigationPageType.Root) {
@@ -132,6 +132,10 @@ namespace ComicsViewer {
                 }
 
                 case NavigationType.ScrollToTop:
+                    if (this.page?.ComicItemGrid is { } grid) {
+                        await grid.ScrollToAbsoluteOffsetAsync(0, true);
+                    }
+
                     break;
 
                 default: 

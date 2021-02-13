@@ -22,8 +22,14 @@ namespace ComicsViewer.Pages {
 
             this._navigationTag = args.NavigationTag;
 
-            var cachedItems = ComicItemGridCache.GetRoot(args.NavigationTag);
-            var viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, cachedItems);
+            var savedState = ComicItemGridCache.GetRoot(args.NavigationTag);
+
+            // We only want to restore the scrollviewer position if the user navigates *back* to this page.
+            if (savedState is not null && e.NavigationMode is NavigationMode.New) {
+                savedState.ScrollOffset = 0;
+            }
+
+            var viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
             this.ComicsCount = viewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
@@ -34,7 +40,7 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             if (this.ComicItemGrid is not null) {
-                ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.ViewModel.ComicItems);
+                ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.GetSaveState());
             }
         }
 

@@ -245,25 +245,37 @@ namespace ComicsViewer.Pages {
 
         #region Controlling from MainPage
 
-        internal void ScrollToTop() {
+        internal async Task ScrollToAbsoluteOffsetAsync(double offset, bool animated) {
             if (this.ViewModel.ComicItems.Count == 0) {
                 return;
             }
 
+            var scrollViewer = this.ComicsGridScrollViewer();
+
+            // A null value means the grid hasn't even loaded yet, just ignore the request
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => 
+                _ = scrollViewer?.ChangeView(null, -scrollViewer.VerticalOffset + offset, null, disableAnimation: !animated));
+        }
+
+        private ScrollViewer? ComicsGridScrollViewer() {
             // Looks like there isn't a good way to actually scroll with an animation. 
             // Both GridView.ScrollIntoView and GridView.MakeVisible scrolls instantly without animation.
             // The solution used here is a reverse-engineering that can potentially break anytime with an update to the UWP library
             if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) == null) {
                 // this means the grid hasn't even loaded yet, just ignore the request
-                return;
+                return null;
             }
 
             if (VisualTreeHelper.GetChild(this.VisibleComicsGrid, 0) is UIElement childElement &&
                 VisualTreeHelper.GetChild(childElement, 0) is ScrollViewer scrollViewer) {
-                _ = scrollViewer.ChangeView(null, -scrollViewer.VerticalOffset, null);
+                return scrollViewer;
             } else {
                 throw new ProgrammerError("Failed to obtain VisibleComicsGrid's ScrollViewer child element.");
             }
+        }
+
+        private double GetScrollOffset() {
+            return this.ComicsGridScrollViewer()?.VerticalOffset ?? 0;
         }
 
         #endregion
@@ -354,6 +366,10 @@ namespace ComicsViewer.Pages {
             }
 
             _ = ConnectedAnimationHelper.PrepareAnimationFromListView(this.VisibleComicsGrid, "ComicItemThumbnailContainer", item, "navigateIn");
+        }
+
+        public ComicItemGridState GetSaveState() {
+            return new ComicItemGridState(this.ViewModel.ComicItems.ToList(), this.GetScrollOffset());
         }
 
         #endregion
@@ -523,8 +539,12 @@ namespace ComicsViewer.Pages {
 
         #endregion
 
-        private void VisibleComicsGrid_Loaded(object sender, RoutedEventArgs e) {
+        private async void VisibleComicsGrid_Loaded(object sender, RoutedEventArgs e) {
             this.RecalculateGridItemSize(this.VisibleComicsGrid);
+
+            if (this.ViewModel.RequestedInitialScrollOffset is { } offset) {
+                await this.ScrollToAbsoluteOffsetAsync(offset, false);
+            }
         }
     }
 }

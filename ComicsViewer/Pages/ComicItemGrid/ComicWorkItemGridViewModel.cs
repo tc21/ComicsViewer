@@ -25,7 +25,7 @@ namespace ComicsViewer.ViewModels.Pages {
             MainViewModel appViewModel,
             ComicView comics,
             ComicItemGridViewModelProperties? properties = null,
-            IEnumerable<ComicItem>? cachedItems = null
+            ComicItemGridState? savedState = null
         ) : base(parent, appViewModel) {
             this.Properties = properties ?? new ComicItemGridViewModelProperties();
 
@@ -39,8 +39,9 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             // Sorts and loads the actual comic items
-            if (cachedItems is not null) {
-                this.SetComicItems(cachedItems);
+            if (savedState is not null) {
+                this.SetComicItems(savedState.Items);
+                this.RequestedInitialScrollOffset = savedState.ScrollOffset;
             } else {
                 this.RefreshComicItems();
             }

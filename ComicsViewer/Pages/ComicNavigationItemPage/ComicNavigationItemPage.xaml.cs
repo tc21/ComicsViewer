@@ -26,13 +26,13 @@ namespace ComicsViewer.Pages {
             this._navigationTag = args.NavigationTag;
             this._comicItem = args.ComicItem;
 
-            var cachedItems = e.NavigationMode switch {
+            var savedState = e.NavigationMode switch {
                 NavigationMode.New => null,
                 NavigationMode.Back => ComicItemGridCache.PopStack(this.NavigationTag, this.ComicItem.Title),
                 _ => throw new ProgrammerError("Unexpected switch case"),
             };
 
-            var viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, cachedItems);
+            var viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, savedState);
             this.ComicsCount = viewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
@@ -52,7 +52,7 @@ namespace ComicsViewer.Pages {
             }
 
             if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.New) {
-                ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.ViewModel.ComicItems);
+                ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.GetSaveState());
             }
         }
 

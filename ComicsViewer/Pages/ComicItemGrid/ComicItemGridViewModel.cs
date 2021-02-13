@@ -54,11 +54,13 @@ namespace ComicsViewer.ViewModels.Pages {
         public int TotalItemCount => this.ComicItems.Count;
         internal readonly MainViewModel MainViewModel;
 
+        // used for saving state
+        internal double? RequestedInitialScrollOffset { get; set; }
+
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         private readonly IMainPageContent parent;
         internal NavigationTag NavigationTag => this.parent.NavigationTag;
         internal NavigationPageType NavigationPageType => this.parent.NavigationPageType;
-
 
         /* pageType is used to remember the last sort by selection for each type of 
          * page (navigation tabs + details page) or to behave differently when navigating to different types of pages. 
@@ -77,9 +79,9 @@ namespace ComicsViewer.ViewModels.Pages {
             // We won't call SortOrderChanged or anything here, so view models are expected to initialize themselves already sorted.
         }
 
-        public static ComicItemGridViewModel ForTopLevelNavigationTag(IMainPageContent parent, MainViewModel mainViewModel, IEnumerable<ComicItem>? cachedItems = null) {
+        public static ComicItemGridViewModel ForTopLevelNavigationTag(IMainPageContent parent, MainViewModel mainViewModel, ComicItemGridState? savedState = null) {
             if (parent.NavigationTag.IsWorkItemNavigationTag()) {
-                return new ComicWorkItemGridViewModel(parent, mainViewModel, mainViewModel.ComicView, cachedItems: cachedItems);
+                return new ComicWorkItemGridViewModel(parent, mainViewModel, mainViewModel.ComicView, savedState: savedState);
             } else {
                 var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(parent.NavigationTag, parent.NavigationPageType);
 
@@ -92,7 +94,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     comicCollections = GetSortedProperties(mainViewModel.ComicView, parent.NavigationTag, initialSort);
                 }
 
-                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections, cachedItems);
+                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections, savedState);
             }
         }
 
@@ -113,9 +115,9 @@ namespace ComicsViewer.ViewModels.Pages {
             MainViewModel appViewModel, 
             ComicView comics, 
             ComicItemGridViewModelProperties? properties,
-            IEnumerable<ComicItem>? cachedItems = null
+            ComicItemGridState? savedState = null
         ) {
-            return new ComicWorkItemGridViewModel(parent, appViewModel, comics, properties, cachedItems);
+            return new ComicWorkItemGridViewModel(parent, appViewModel, comics, properties, savedState);
         }
 
         #region Filtering and grouping
