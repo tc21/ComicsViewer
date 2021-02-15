@@ -40,6 +40,20 @@
             </Grid>
         </DataTemplate>
 
+        <DataTemplate x:Key="ComicSubitemWithoutThumbnailTemplate" x:DataType="vm:ComicSubitemContainer">
+            <StackPanel Margin="20 16">
+                <TextBlock Text="{x:Bind Title}" 
+                           FontSize="20"
+                           HorizontalAlignment="Left"
+                           Style="{StaticResource ItemTitleStyle}"/>
+
+                <TextBlock Text="{x:Bind Subtitle}"
+                           FontSize="12"
+                           HorizontalAlignment="Left"
+                           Style="{StaticResource ItemSubtitleStyle}"/>
+            </StackPanel>
+        </DataTemplate>
+
         <!-- All ToggleButtons on this page is using this style. 
              We haven't figured out a way to selectively apply this yet. -->
         <SolidColorBrush x:Key="ToggleButtonBackground" Color="Transparent"/>
@@ -78,6 +92,16 @@
                 <VisualState x:Name="InfoVisible">
                     <VisualState.Setters>
                         <Setter Target="InfoPaneGridColumn.MaxWidth" Value="400"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+
+            <VisualStateGroup>
+                <VisualState x:Name="ThumbnailsHidden"/>
+
+                <VisualState x:Name="ThumbnailsVisible">
+                    <VisualState.Setters>
+                        <Setter Target="ComicSubitemGrid.ItemTemplate" Value="{StaticResource ComicSubitemTemplate}"/>
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -179,7 +203,7 @@
                           Loaded="ComicSubitemGrid_Loaded"
                           ItemClick="ComicSubitemGrid_ItemClick"
                           SizeChanged="ComicSubitemGrid_SizeChanged"
-                          ItemTemplate="{StaticResource ComicSubitemTemplate}"
+                          ItemTemplate="{StaticResource ComicSubitemWithoutThumbnailTemplate}"
                           ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                           ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"/>
 

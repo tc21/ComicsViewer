@@ -13,6 +13,11 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ComicsViewer.Pages {
     public sealed partial class ComicWorkItemPage : Page, IMainPageContent {
+        /* TODO
+         *  - we should indicate how many files a comic has in total (and will be opened when the user clicks 'open')
+         *  - we should implement more commands in the 'more' menu, similar to the right click menu
+         *  - we should implement scroll position saving/loading via the ComicItemGridCache
+         *  - we should have a simple style for when a comic doesn't have subitems */
         public ComicWorkItemPage() {
             this.InitializeComponent();
         }
@@ -27,6 +32,8 @@ namespace ComicsViewer.Pages {
         public ComicItemGrid? ComicItemGrid { get; }
 
         public event Action<IMainPageContent>? Initialized;
+
+        private bool useThumbnails = false;
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicWorkItemPageNavigationArguments args) {
@@ -44,13 +51,31 @@ namespace ComicsViewer.Pages {
             this.Initialized?.Invoke(this);
             await this.ViewModel.InitializeAsync();
 
+            this.useThumbnails = this.ViewModel.ShouldUseThumbnails();
+
+            // After we change the visual state here, if the grid had already loaded, it may have initialized
+            // with a wrong value for useThumbnails. So we call it again.
+            // Note: Calling VisualStateManager.GoToState will set this.ComicSubitemGrid.ItemsPanelRoot to null (temporarily). 
+            // For that purpose we must do this before setting visual state.
+            if (this.ComicSubitemGrid.IsLoaded) {
+                this.RecalculateGridItemSize(this.ComicSubitemGrid);
+            }
+
+            if (this.useThumbnails) {
+                _ = VisualStateManager.GoToState(this, "ThumbnailsVisible", false);
+            } else {
+                _ = VisualStateManager.GoToState(this, "ThumbnailsHidden", false);
+            }
+
             this.SynchronizeLovedStatusToUI();
 
             if (await this.ViewModel.TryLoadDescriptionsAsync(this.InfoTextBlock)) {
                 this.ToggleInfoPaneButton.Visibility = Visibility.Visible;
             }
 
-            await this.ViewModel.LoadThumbnailsAsync();
+            if (this.useThumbnails) {
+                await this.ViewModel.LoadThumbnailsAsync();
+            }
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
@@ -120,13 +145,18 @@ namespace ComicsViewer.Pages {
         }
 
         private void RecalculateGridItemSize(GridView grid) {
-            // TODO this code is also copied from ComicItemGrid. We should evaluate whether it needs to be generalized.
-            var idealItemWidth = this.ViewModel.ImageWidth;
-            var idealItemHeight = this.ViewModel.ImageHeight;
-            var columns = Math.Ceiling(grid.ActualWidth / idealItemWidth);
             var itemsWrapGrid = (ItemsWrapGrid)grid.ItemsPanelRoot!;
-            itemsWrapGrid.ItemWidth = grid.ActualWidth / columns;
-            itemsWrapGrid.ItemHeight = itemsWrapGrid.ItemWidth * idealItemHeight / idealItemWidth;
+
+            if (this.useThumbnails) {
+                // TODO this code is also copied from ComicItemGrid. We should evaluate whether it needs to be generalized.
+                var idealItemWidth = this.ViewModel.ImageWidth;
+                var idealItemHeight = this.ViewModel.ImageHeight;
+                var columns = Math.Ceiling(grid.ActualWidth / idealItemWidth);
+                itemsWrapGrid.ItemWidth = grid.ActualWidth / columns;
+                itemsWrapGrid.ItemHeight = itemsWrapGrid.ItemWidth * idealItemHeight / idealItemWidth;
+            } else {
+                itemsWrapGrid.ItemWidth = grid.ActualWidth;
+            }
         }
 
         private void ComicSubitemGrid_Loaded(object sender, RoutedEventArgs e) {

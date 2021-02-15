@@ -36,16 +36,16 @@ namespace ComicsViewer.Features {
                     var files = subitem.Files.ToList();
                     var testFile = files[0];
 
-                    if (ImageExtensions.Contains(Path.GetExtension(testFile))) {
+                    if (FileTypes.IsImage(testFile)) {
                         await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
                         return;
                     }
 
-                    if (MusicExtensions.Contains(Path.GetExtension(testFile))) {
+                    if (FileTypes.IsMusic(testFile)) {
                         var description = "";
                         var comicFolder = await StorageFolder.GetFolderFromPathAsync(subitem.Comic.Path);
                         foreach (var descriptionSpecification in profile.ExternalDescriptions) {
-                            if (!(await descriptionSpecification.FetchFromFolderAsync(comicFolder) is { } desc)) {
+                            if (await descriptionSpecification.FetchFromFolderAsync(comicFolder) is not { } desc) {
                                 continue;
                             }
 
@@ -100,14 +100,5 @@ namespace ComicsViewer.Features {
 
             _ = await Launcher.LaunchFolderPathAsync(comic.Path);
         }
-
-        private static readonly string[] ImageExtensions = {
-            ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
-            ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
-        };
-
-        private static readonly string[] MusicExtensions = {
-            ".mp3", ".m4a", ".wav", ".flac"
-        };
     }
 }

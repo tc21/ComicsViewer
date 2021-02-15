@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using Windows.Storage;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -22,11 +23,10 @@ namespace ComicsViewer.ViewModels {
         }
 
         public async Task InitializeAsync(int? decodePixelHeight = null) {
-            if (this.Subitem.Files.FirstOrDefault() is not { } firstFile) {
-                return;
-            }
+            // remember subitems are checked to have at least one file when they are created
+            var firstFile = this.Subitem.Files.First();
 
-            if (!ImageExtensions.Contains(Path.GetExtension(firstFile))) {
+            if (!FileTypes.IsImage(firstFile)) {
                 return;
             }
 
@@ -42,10 +42,5 @@ namespace ComicsViewer.ViewModels {
             this.ThumbnailImage = image;
             this.OnPropertyChanged(nameof(this.ThumbnailImage));
         }
-
-        private static readonly string[] ImageExtensions = {
-            ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
-            ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
-        };
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
+using ComicsViewer.Support;
 using Windows.Storage;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
@@ -63,6 +64,13 @@ namespace ComicsViewer.ViewModels.Pages {
             this.Subitems.AddRange(subitems.Skip(1).Select(subitem => new ComicSubitemContainer(subitem)));
 
             this.Initialized = true;
+        }
+
+        public bool ShouldUseThumbnails() {
+            // We just test for the first file, to be simple. 
+            // It would probably be better to do it once when we load a profile.
+            var testFile = this.PrimarySubitem.Files.First();
+            return FileTypes.IsImage(testFile);
         }
 
         public async Task LoadThumbnailsAsync() {
