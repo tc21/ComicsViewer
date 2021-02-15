@@ -16,8 +16,7 @@ namespace ComicsViewer.Pages {
         /* TODO
          *  - we should indicate how many files a comic has in total (and will be opened when the user clicks 'open')
          *  - we should implement more commands in the 'more' menu, similar to the right click menu
-         *  - we should implement scroll position saving/loading via the ComicItemGridCache
-         *  - we should have a simple style for when a comic doesn't have subitems */
+         *  - we should implement scroll position saving/loading via the ComicItemGridCache */
         public ComicWorkItemPage() {
             this.InitializeComponent();
         }
@@ -43,19 +42,6 @@ namespace ComicsViewer.Pages {
 
             this._viewModel = args.ViewModel;
 
-            switch (e.NavigationMode) {
-                case NavigationMode.New:
-                    _ = this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
-                    break;
-
-                case NavigationMode.Back:
-                    _ = ComicItemGridCache.PopStack(this.NavigationTag, this.PageName);
-                    break;
-
-                default:
-                    throw new ProgrammerError("Unexpected navigation mode");
-            }
-
             this.Initialized?.Invoke(this);
             await this.ViewModel.InitializeAsync();
 
@@ -69,10 +55,29 @@ namespace ComicsViewer.Pages {
                 this.RecalculateGridItemSize(this.ComicSubitemGrid);
             }
 
-            if (this.useThumbnails) {
-                _ = VisualStateManager.GoToState(this, "ThumbnailsVisible", false);
+            if (this.ViewModel.Subitems.Count == 0) {
+                _ = VisualStateManager.GoToState(this, "NoSubitems", false);
             } else {
-                _ = VisualStateManager.GoToState(this, "ThumbnailsHidden", false);
+                if (this.useThumbnails) {
+                    _ = VisualStateManager.GoToState(this, "ThumbnailsVisible", false);
+                } else {
+                    _ = VisualStateManager.GoToState(this, "ThumbnailsHidden", false);
+                }
+            }
+
+            switch (e.NavigationMode) {
+                case NavigationMode.New:
+                    // Note: We may change the HighlightedComicItem's thumbnail size by setting visual manager state,
+                    // so we should start the connected animation after.
+                    _ = this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
+                    break;
+
+                case NavigationMode.Back:
+                    _ = ComicItemGridCache.PopStack(this.NavigationTag, this.PageName);
+                    break;
+
+                default:
+                    throw new ProgrammerError("Unexpected navigation mode");
             }
 
             this.SynchronizeLovedStatusToUI();

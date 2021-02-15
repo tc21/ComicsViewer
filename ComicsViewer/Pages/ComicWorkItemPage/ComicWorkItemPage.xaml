@@ -104,6 +104,13 @@
                         <Setter Target="ComicSubitemGrid.ItemTemplate" Value="{StaticResource ComicSubitemTemplate}"/>
                     </VisualState.Setters>
                 </VisualState>
+
+                <VisualState x:Name="NoSubitems">
+                    <VisualState.Setters>
+                        <Setter Target="HighlightedComicItem.ImageHeight" Value="{x:Bind ViewModel.ImageHeight}"/>
+                        <Setter Target="HighlightedComicItem.ImageWidth" Value="{x:Bind ViewModel.ImageWidth}"/>
+                    </VisualState.Setters>
+                </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
 
