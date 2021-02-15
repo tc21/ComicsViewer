@@ -213,6 +213,7 @@ namespace ComicsViewer {
                 // page may not be initialized, or we may be on a Settings page
 
                 this.page = null;
+                this.ViewModel.SetPageName(null);
                 return;
             }
 
@@ -220,6 +221,7 @@ namespace ComicsViewer {
                 this.page = page;
                 this.ViewModel.ActiveNavigationPageType = page.NavigationPageType;
                 this.ViewModel.ActiveNavigationTag = page.NavigationTag;
+                this.ViewModel.SetPageName(page.PageName);
             };
         }
 

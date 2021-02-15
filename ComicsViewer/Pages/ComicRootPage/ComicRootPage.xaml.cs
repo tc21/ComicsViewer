@@ -53,6 +53,7 @@ namespace ComicsViewer.Pages {
         public Page Page => this;
         public int ComicsCount { get; private set; } = 0;
         public ComicItemGrid? ComicItemGrid { get; private set; }
+        public string? PageName => null;
 
         public event Action<IMainPageContent>? Initialized;
 

@@ -38,14 +38,12 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public string Title { get; private set; } = "Comics";
 
-        private string? PageName {
-            set {
-                this.Title = value == null
-                    ? "Comics"
-                    : $"Comics - {value}";
+        public void SetPageName(string? value) {
+            this.Title = value == null
+                ? "Comics"
+                : $"Comics - {value}";
 
-                this.OnPropertyChanged(nameof(this.Title));
-            }
+            this.OnPropertyChanged(nameof(this.Title));
         }
 
         #region Profiles 

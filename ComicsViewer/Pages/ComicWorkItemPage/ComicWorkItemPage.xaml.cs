@@ -30,6 +30,7 @@ namespace ComicsViewer.Pages {
         public NavigationPageType NavigationPageType => NavigationPageType.WorkItem;
         public Page Page => this;
         public ComicItemGrid? ComicItemGrid { get; }
+        public string PageName => this.ViewModel.ComicItem.Title;
 
         public event Action<IMainPageContent>? Initialized;
 
@@ -48,7 +49,7 @@ namespace ComicsViewer.Pages {
                     break;
 
                 case NavigationMode.Back:
-                    _ = ComicItemGridCache.PopStack(this.NavigationTag, this.ViewModel.ComicItem.Title);
+                    _ = ComicItemGridCache.PopStack(this.NavigationTag, this.PageName);
                     break;
 
                 default:
@@ -88,7 +89,7 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             // For now, we push useless information onto the cache to keep everything else working
             if (e.NavigationMode is NavigationMode.New) {
-                ComicItemGridCache.PushStack(this.NavigationTag, this.ViewModel.ComicItem.Title, new ComicItemGridState(new(), 0));
+                ComicItemGridCache.PushStack(this.NavigationTag, this.PageName, new ComicItemGridState(new(), 0));
             }
         }
 

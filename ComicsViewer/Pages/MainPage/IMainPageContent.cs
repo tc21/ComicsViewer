@@ -12,6 +12,7 @@ namespace ComicsViewer {
         NavigationPageType NavigationPageType { get; }
         Page Page { get; }
         ComicItemGrid? ComicItemGrid { get; }
+        string? PageName { get; }
 
         event Action<IMainPageContent>? Initialized;
     }
