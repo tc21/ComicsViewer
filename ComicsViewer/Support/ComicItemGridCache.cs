@@ -48,6 +48,7 @@ namespace ComicsViewer.Support {
         public static ComicItemGridState PopStack(NavigationTag tag, string? subKey) {
             var index = stack.Count - 1;
             var (storedTag, storedSubKey, state) = stack[index];
+            stack.RemoveAt(index);
 
             if ((storedTag, storedSubKey) != (tag, subKey)) {
                 throw new ArgumentException("Item at top of stack was not the expected (key, subkey) combination");

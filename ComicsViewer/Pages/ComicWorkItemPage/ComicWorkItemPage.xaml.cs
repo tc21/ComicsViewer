@@ -40,13 +40,20 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("A ComicWorkItemPage must receive a ComicWorkItemPageNavigationArguments as its parameter.");
             }
 
-            if (e.NavigationMode is NavigationMode.Back) {
-                _ = ComicItemGridCache.PopStack(this.NavigationTag, this.ViewModel.ComicItem.Title);
-            }
-
             this._viewModel = args.ViewModel;
 
-            _ = this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
+            switch (e.NavigationMode) {
+                case NavigationMode.New:
+                    _ = this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
+                    break;
+
+                case NavigationMode.Back:
+                    _ = ComicItemGridCache.PopStack(this.NavigationTag, this.ViewModel.ComicItem.Title);
+                    break;
+
+                default:
+                    throw new ProgrammerError("Unexpected navigation mode");
+            }
 
             this.Initialized?.Invoke(this);
             await this.ViewModel.InitializeAsync();
