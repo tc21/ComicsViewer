@@ -315,8 +315,7 @@ namespace ComicsViewer.Pages {
                 execute: e => {
                     var item = e.Items.First();
                     e.Grid.PrepareNavigateIn(item);
-
-                    e.MainViewModel.FilterToAuthor(item.Comic.Author);
+                    e.MainViewModel.NavigateToAuthor(item.Comic.Author);
                 },
                 canExecute: e => e.Count == 1
             );
@@ -325,7 +324,11 @@ namespace ComicsViewer.Pages {
             // Navigates into the selected navigation item
             this.NavigateIntoCommand = new ComicNavigationItemGridCommand(parent,
                 name: "Navigate into",
-                execute: e => e.ViewModel.NavigateIntoItem(e.Items.First()),
+                execute: e => {
+                    var item = e.Items.First();
+                    e.Grid.PrepareNavigateIn(item);
+                    e.MainViewModel.NavigateInto(item);
+                },
                 canExecute: e => e.Count == 1
             );
 

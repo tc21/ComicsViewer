@@ -8,8 +8,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
-using Windows.Storage;
-using Windows.Storage.Pickers;
 using ComicsLibrary.Collections;
 using ComicsViewer.Common;
 using ComicsLibrary.Sorting;
@@ -152,34 +150,6 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task TryRedefineThumbnailAsync(ComicWorkItem comicItem, StorageFile file) {
-            var comic = comicItem.Comic.WithMetadata(thumbnailSource: file.RelativeTo(comicItem.Comic.Path));
-
-            var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(comic, file, this.MainViewModel.Profile, replace: true);
-            if (success) {
-                this.MainViewModel.NotifyThumbnailChanged(comic);
-                await this.MainViewModel.UpdateComicAsync(new[] { comic });
-            }
-        }
-
-        public async Task TryRedefineThumbnailFromFilePickerAsync(ComicWorkItem comicItem) {
-            var picker = new FileOpenPicker {
-                ViewMode = PickerViewMode.Thumbnail
-            };
-
-            foreach (var extension in UserProfile.ImageFileExtensions) {
-                picker.FileTypeFilter.Add(extension);
-            }
-
-            var file = await picker.PickSingleFileAsync();
-
-            if (file == null) {
-                return;
-            }
-
-            await this.TryRedefineThumbnailAsync(comicItem, file);
-        }
-
         #endregion
 
         private void ComicItemGridViewModel_PropertyChanged(object _, PropertyChangedEventArgs e) {
@@ -195,6 +165,8 @@ namespace ComicsViewer.ViewModels.Pages {
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
             this.OnPropertyChanged(nameof(this.ImageHeight));
             this.OnPropertyChanged(nameof(this.ImageWidth));
+            this.OnPropertyChanged(nameof(this.HighlightImageHeight));
+            this.OnPropertyChanged(nameof(this.HighlightImageWidth));
             this.OnPropertyChanged(nameof(this.ProfileName));
         }
 

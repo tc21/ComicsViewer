@@ -21,7 +21,6 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-
         private EditComicInfoDialogViewModel? _viewModel;
         private EditComicInfoDialogViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
 
@@ -33,7 +32,7 @@ namespace ComicsViewer.Pages {
                     e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null"));
             this.PagedControlAccessor = controller;
 
-            this._viewModel = new EditComicInfoDialogViewModel(args.ParentViewModel, args.ComicItem);
+            this._viewModel = new EditComicInfoDialogViewModel(args.MainViewModel, args.ComicItem);
         }
 
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
@@ -66,7 +65,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            await this.ViewModel.ParentViewModel.TryRedefineThumbnailAsync(this.ViewModel.Item, (StorageFile)items[0]);
+            await this.ViewModel.MainViewModel.TryRedefineComicThumbnailAsync(this.ViewModel.Item.Comic, (StorageFile)items[0]);
         }
 
         private void ThumbnailBorder_DragEnter(object sender, DragEventArgs e) {

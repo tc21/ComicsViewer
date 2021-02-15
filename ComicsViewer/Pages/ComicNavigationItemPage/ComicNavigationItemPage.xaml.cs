@@ -46,7 +46,11 @@ namespace ComicsViewer.Pages {
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
-            if (this.ComicItemGrid is not null && e.NavigationMode is NavigationMode.New) {
+            if (this.ComicItemGrid is null) {
+                throw new ProgrammerError("Navigating out of a ComicNavigationItemPage that wasn't initialized.");
+            }
+
+            if (e.NavigationMode is NavigationMode.New) {
                 ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.GetSaveState());
             }
         }

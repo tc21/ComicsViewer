@@ -53,10 +53,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.RefreshComicItems();
         }
 
-        public void NavigateIntoItem(ComicNavigationItem item) {
-            this.MainViewModel.NavigateInto(item);
-        }
-
         private void Collections_CollectionsChanged(ComicCollectionView sender, CollectionsChangedEventArgs e) {
             switch (e.Type) {
                 case CollectionsChangeType.ItemsChanged:

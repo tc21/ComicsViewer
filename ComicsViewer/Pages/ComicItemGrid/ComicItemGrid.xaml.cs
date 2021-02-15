@@ -18,7 +18,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -70,64 +69,20 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            if (!(sender is GridView)) {
+            if (sender is not GridView) {
                 throw new ProgrammerError("Only ComicItemGrid should be able to call this event handler");
             }
 
             var tappedElement = (FrameworkElement)e.OriginalSource;
-            if (!(tappedElement.DataContext is ComicItem item)) {
+            if (tappedElement.DataContext is not ComicItem item) {
                 // The click happened on an empty space
                 this.VisibleComicsGrid.SelectedItems.Clear();
                 return;
             }
 
-            switch (this.ViewModel) {  // switch ComicItemGridViewModel
-                case ComicWorkItemGridViewModel _:
-                    var workItem = (ComicWorkItem)item;
-                    this.ComicInfoFlyout.OverlayInputPassThroughElement = this.ContainerGrid;
-                    this.ComicInfoFlyout.NavigateAndShowAt(
-                        typeof(ComicInfoFlyoutContent),
-                        new ComicInfoFlyoutNavigationArguments(this.ViewModel, workItem,
-                                async () => await this.ShowEditComicInfoDialogAsync(workItem)),
-                        tappedElement);
-                    return;
-
-                case ComicNavigationItemGridViewModel vm:
-                    this.PrepareNavigateIn(item);
-                    vm.NavigateIntoItem((ComicNavigationItem)item);
-                    return;
-
-                default:
-                    throw new ProgrammerError("unhandled switch case");
-            } 
+            this.PrepareNavigateIn(item);
+            this.MainViewModel.NavigateInto(item);
         }
-
-        private async void VisibleComicsGrid_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e) {
-            if (!(this.ViewModel is ComicWorkItemGridViewModel vm)) {
-                return;
-            }
-
-            var controlKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
-            var shiftKeyState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
-
-            if ((controlKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
-                (shiftKeyState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down) {
-                // Ctrl/Shift+right clicks are ignored, just like in SingleTapped
-                // The user is selecting something. Ignore this.
-                return;
-            }
-
-            var tappedElement = (FrameworkElement)e.OriginalSource;
-            if (!(tappedElement.DataContext is ComicWorkItem item)) {
-                // The click happened on an empty space
-                this.VisibleComicsGrid.SelectedItems.Clear();
-                return;
-            }
-
-            this.ComicInfoFlyout.Hide();
-            await vm.OpenItemsAsync(new[] { item });
-        }
-
         // Prepares the grid before the right click context menu is shown
         private void VisibleComicsGrid_RightTapped(object sender, RightTappedRoutedEventArgs e) {
             if (!(sender is GridView grid)) {
@@ -160,7 +115,7 @@ namespace ComicsViewer.Pages {
             // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
             _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
                 typeof(EditComicInfoDialogContent),
-                new EditComicInfoDialogNavigationArguments(this.ViewModel, item)
+                new EditComicInfoDialogNavigationArguments(this.MainViewModel, item)
             );
         }
 
@@ -369,7 +324,7 @@ namespace ComicsViewer.Pages {
 
             _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
                 typeof(RedefineThumbnailDialogContent),
-                new RedefineThumbnailDialogNavigationArguments(folder.Path, item, this.ViewModel)
+                new RedefineThumbnailDialogNavigationArguments(folder.Path, item, this.MainViewModel)
             );
         }
 

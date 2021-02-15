@@ -1,5 +1,4 @@
-﻿using ComicsLibrary.Collections;
-using ComicsViewer.Support;
+﻿using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 
@@ -14,8 +13,8 @@ namespace ComicsViewer.Pages {
 
         public ComicNavigationItemPageNavigationArguments(
             MainViewModel mainViewModel,
-            NavigationTag navigationTag, 
-            ComicNavigationItem comicItem, 
+            NavigationTag navigationTag,
+            ComicNavigationItem comicItem,
             ComicItemGridViewModelProperties? properties = null
         ) {
             this.MainViewModel = mainViewModel;

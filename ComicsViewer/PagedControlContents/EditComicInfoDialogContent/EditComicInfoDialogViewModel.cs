@@ -8,11 +8,10 @@ using ComicsViewer.Common;
 namespace ComicsViewer.ViewModels.Pages {
     public class EditComicInfoDialogViewModel : ViewModelBase {
         public readonly ComicWorkItem Item;
-        public readonly ComicItemGridViewModel ParentViewModel;
-        private MainViewModel MainViewModel => this.ParentViewModel.MainViewModel;
+        public MainViewModel MainViewModel { get; }
 
-        public EditComicInfoDialogViewModel(ComicItemGridViewModel parentViewModel, ComicWorkItem item) {
-            this.ParentViewModel = parentViewModel;
+        public EditComicInfoDialogViewModel(MainViewModel mainViewModel, ComicWorkItem item) {
+            this.MainViewModel = mainViewModel;
             this.Item = item;
         }
 

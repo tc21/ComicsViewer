@@ -152,10 +152,12 @@
     <Compile Include="Pages\ComicItemGrid\ComicItemGridViewModelProperties.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicNavigationItemGridViewModel.cs" />
     <Compile Include="Pages\ComicItemGrid\ComicWorkItemGridViewModel.cs" />
+    <Compile Include="Pages\ComicWorkItemPage\ComicWorkItemPageViewModel.cs" />
     <Compile Include="Pages\ComicNavigationItemPage\ComicNavigationItemPage.xaml.cs">
       <DependentUpon>ComicNavigationItemPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\ComicNavigationItemPage\ComicNavigationItemPageNavigationArguments.cs" />
+    <Compile Include="Pages\ComicWorkItemPage\ComicWorkItemPageNavigationArguments.cs" />
     <Compile Include="Pages\ComicRootPage\ComicRootPage.xaml.cs">
       <DependentUpon>ComicRootPage.xaml</DependentUpon>
     </Compile>
@@ -166,17 +168,13 @@
     <Compile Include="Pages\MainPage\IMainPageContent.cs" />
     <Compile Include="Support\ComicItemGridCache.cs" />
     <Compile Include="Support\ComicLists.cs" />
+    <Compile Include="ViewModels\ComicSubitemContainer.cs" />
     <Compile Include="Support\CommentedType.cs" />
     <Compile Include="Support\ComicExpectedExceptions.cs" />
     <Compile Include="Support\ConnectedAnimationHelper.cs" />
     <Compile Include="Support\ISelectable.cs" />
     <Compile Include="Support\NamedPath.cs" />
     <Compile Include="PagedControlContents\ItemPickerDialogContent\ItemPickerDialogNavigationArguments.cs" />
-    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml.cs">
-      <DependentUpon>ComicInfoFlyoutContent.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutNavigationArguments.cs" />
-    <Compile Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutViewModel.cs" />
     <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogNavigationArguments.cs" />
     <Compile Include="PagedControlContents\EditComicInfoDialogContent\EditComicInfoDialogContent.xaml.cs">
       <DependentUpon>EditComicInfoDialogContent.xaml</DependentUpon>
@@ -301,10 +299,6 @@
     <Page Include="Controls\HighlightedComicItem.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="PagedControlContents\ComicInfoFlyoutContent\ComicInfoFlyoutContent.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PagedControlContents\TextInputDialogContent\TextInputDialogContent.xaml">
       <SubType>Designer</SubType>

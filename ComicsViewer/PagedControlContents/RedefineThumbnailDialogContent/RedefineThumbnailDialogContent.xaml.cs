@@ -18,11 +18,11 @@ namespace ComicsViewer.Pages {
      * The result of this decision, obviously, isn't that programs won't want to open the file picker to arbitrary
      * locations, but that we will have to write our own file pickers. */
     public sealed partial class RedefineThumbnailDialogContent : IPagedControlContent {
-        private ComicItemGridViewModel? _parentViewModel;
+        private MainViewModel? _mainViewModel;
         private ComicWorkItem? _item;
 
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
-        private ComicItemGridViewModel ParentViewModel => this._parentViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        private MainViewModel MainViewModel => this._mainViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
         private ComicWorkItem Item => this._item ?? throw new ProgrammerError("Item must be initialized");
 
         public RedefineThumbnailDialogContent() {
@@ -38,7 +38,7 @@ namespace ComicsViewer.Pages {
 
             this.PagedControlAccessor = accessor;
             this._item = args.Item;
-            this._parentViewModel = args.ParentViewModel;
+            this._mainViewModel = args.MainViewModel;
 
             // Note: this loop takes up a lot of memory
             await foreach (var file in Thumbnail.GetPossibleThumbnailFilesAsync(args.Path)) {
@@ -54,12 +54,12 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError();
             }
 
-            await this.ParentViewModel.TryRedefineThumbnailAsync(this.Item, item.File);
+            await this.MainViewModel.TryRedefineComicThumbnailAsync(this.Item.Comic, item.File);
             this.PagedControlAccessor!.CloseContainer();
         }
 
         private async void CustomFileButton_Click(object sender, RoutedEventArgs e) {
-            await this.ParentViewModel.TryRedefineThumbnailFromFilePickerAsync(this.Item);
+            await this.MainViewModel.TryRedefineComicThumbnailFromFilePickerAsync(this.Item.Comic);
             this.PagedControlAccessor!.CloseContainer();
         }
 
@@ -81,12 +81,12 @@ namespace ComicsViewer.Pages {
     public class RedefineThumbnailDialogNavigationArguments {
         public string Path { get; }
         public ComicWorkItem Item { get; }
-        public ComicItemGridViewModel ParentViewModel { get; }
+        public MainViewModel MainViewModel { get; }
 
-        public RedefineThumbnailDialogNavigationArguments(string files, ComicWorkItem item, ComicItemGridViewModel parentViewModel) {
+        public RedefineThumbnailDialogNavigationArguments(string files, ComicWorkItem item, MainViewModel mainViewModel) {
             this.Path = files;
             this.Item = item;
-            this.ParentViewModel = parentViewModel;
+            this.MainViewModel = mainViewModel;
         }
     }
 }

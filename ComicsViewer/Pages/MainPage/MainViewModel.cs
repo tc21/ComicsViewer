@@ -5,7 +5,6 @@ using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
-using ComicsViewer.Pages;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
@@ -18,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
@@ -202,14 +202,18 @@ namespace ComicsViewer.ViewModels.Pages {
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Out });
         }
 
-        public void NavigateInto(ComicNavigationItem item) {
-            // navigationDepth is the amount of stack-cached pages that's in the back stack. 
-            // We substract 1 because the active page is not cached.
+        public void NavigateInto(ComicItem item) {
+            var navigationPageType = item switch {
+                ComicWorkItem _ => NavigationPageType.WorkItem,
+                ComicNavigationItem _ => NavigationPageType.NavigationItem,
+                _ => throw new ProgrammerError("Unexpected ComicItem type"),
+            };
+
             this.NavigationDepth += 1;
             ComicItemGridCache.PruneStack(this.NavigationDepth - 1);
 
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs {
-                NavigationPageType = NavigationPageType.NavigationItem,
+                NavigationPageType = navigationPageType,
                 NavigationTag = this.ActiveNavigationTag,
                 NavigationType = NavigationType.In,
 
@@ -218,16 +222,11 @@ namespace ComicsViewer.ViewModels.Pages {
             });
         }
 
-        public void NavigateInto(ComicWorkItem item) {
-            // TODO
-            throw new NotImplementedException();
-        }
-
         public void FilterToSelected(IEnumerable<ComicItem> items) {
             this.FilterToComics(items.SelectMany(item => item.ContainedComics()));
         }
 
-        public void FilterToAuthor(string author) {
+        public void NavigateToAuthor(string author) {
             var authorView = this.Comics.Filtered(c => c.Author == author);
             var placeholder = new ComicNavigationItem(author, authorView);
 
@@ -687,6 +686,35 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public void NotifyThumbnailChanged(Comic comic) {
             this.Comics.NotifyThumbnailChanged(new[] { comic });
+        }
+
+        // Helper functions accessible from anywhere
+        public async Task TryRedefineComicThumbnailAsync(Comic comic, StorageFile thumbnailFile) {
+            var newComic = comic.WithMetadata(thumbnailSource: thumbnailFile.RelativeTo(comic.Path));
+
+            var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(newComic, thumbnailFile, this.Profile, replace: true);
+            if (success) {
+                this.NotifyThumbnailChanged(comic);
+                await this.UpdateComicAsync(new[] { comic });
+            }
+        }
+
+        public async Task TryRedefineComicThumbnailFromFilePickerAsync(Comic comic) {
+            var picker = new FileOpenPicker {
+                ViewMode = PickerViewMode.Thumbnail
+            };
+
+            foreach (var extension in UserProfile.ImageFileExtensions) {
+                picker.FileTypeFilter.Add(extension);
+            }
+
+            var file = await picker.PickSingleFileAsync();
+
+            if (file == null) {
+                return;
+            }
+
+            await this.TryRedefineComicThumbnailAsync(comic, file);
         }
 
         #endregion

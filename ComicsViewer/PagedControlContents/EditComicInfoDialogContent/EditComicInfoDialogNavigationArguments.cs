@@ -5,11 +5,11 @@ using ComicsViewer.ViewModels.Pages;
 
 namespace ComicsViewer.Pages {
     public class EditComicInfoDialogNavigationArguments {
-        public ComicItemGridViewModel ParentViewModel { get; }
+        public MainViewModel MainViewModel { get; }
         public ComicWorkItem ComicItem { get; }
 
-        public EditComicInfoDialogNavigationArguments(ComicItemGridViewModel parentViewModel, ComicWorkItem comicItem) {
-            this.ParentViewModel = parentViewModel;
+        public EditComicInfoDialogNavigationArguments(MainViewModel mainViewModel, ComicWorkItem comicItem) {
+            this.MainViewModel = mainViewModel;
             this.ComicItem = comicItem;
         }
     }

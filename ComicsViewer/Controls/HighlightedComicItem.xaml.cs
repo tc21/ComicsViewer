@@ -49,6 +49,17 @@ namespace ComicsViewer.Controls {
         public static readonly DependencyProperty ImageWidthProperty =
             DependencyProperty.Register(nameof(ImageWidth), typeof(int), typeof(HighlightedComicItem), new PropertyMetadata(0));
 
+        public object Footer {
+            get => this.GetValue(FooterProperty);
+            set => this.SetValue(FooterProperty, value);
+        }
+
+        public static readonly DependencyProperty FooterProperty =
+            DependencyProperty.Register(nameof(Footer), typeof(object), typeof(HighlightedComicItem), new PropertyMetadata(null));
+
+        public ConnectedAnimation PrepareConnectedAnimationFromThumbnail(ComicItem item) {
+            return ConnectedAnimationHelper.PrepareAnimation(this.ThumbnailImage, item, "navigateIn");
+        }
 
         public bool TryStartConnectedAnimationToThumbnail(ComicItem item) {
             return ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");

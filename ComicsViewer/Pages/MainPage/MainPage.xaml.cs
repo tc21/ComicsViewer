@@ -100,16 +100,33 @@ namespace ComicsViewer {
                         throw new ProgrammerError("NavigationPageType must be NavigationItem or WorkItem when navigating in");
                     }
 
-                    if (e.ComicItem is not ComicNavigationItem item) {
-                        throw new ProgrammerError("ComicItem must be a navigation item");
-                    }
-
                     var transitionInfo = e.TransitionInfo ?? new DrillInNavigationTransitionInfo();
-                    var navigationArguments = new ComicNavigationItemPageNavigationArguments(
-                        this.ViewModel, e.NavigationTag, item, e.Properties);
 
-                    _ = this.ContentFrame.Navigate(typeof(ComicNavigationItemPage), navigationArguments, transitionInfo);
+                    switch (e.NavigationPageType) {
+                        case NavigationPageType.NavigationItem: {
+                            if (e.ComicItem is not ComicNavigationItem item) {
+                                throw new ProgrammerError("ComicItem must be a navigation item");
+                            }
 
+                            var navigationArguments = new ComicNavigationItemPageNavigationArguments(this.ViewModel, e.NavigationTag, item, e.Properties);
+                            _ = this.ContentFrame.Navigate(typeof(ComicNavigationItemPage), navigationArguments, transitionInfo);
+                            break;
+                        }
+
+                        case NavigationPageType.WorkItem: {
+                            if (e.ComicItem is not ComicWorkItem item) {
+                                throw new ProgrammerError("ComicItem must be a work item");
+                            }
+
+                            var navigationArguments = new ComicWorkItemPageNavigationArguments(new ComicWorkItemPageViewModel(this.ViewModel, item));
+                            _ = this.ContentFrame.Navigate(typeof(ComicWorkItemPage), navigationArguments, transitionInfo);
+                            break;
+                        }
+
+                        default:
+                            throw new ProgrammerError("NavigationPageType must be NavigationItem or WorkItem when navigating in");
+                    }
+                    
                     break;
                 }
 

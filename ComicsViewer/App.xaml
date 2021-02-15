@@ -34,6 +34,34 @@
                     </Setter>
                 </Style.Setters>
             </Style>
+
+            <ItemsPanelTemplate x:Key="HorizontalItemsWrapGridTemplate">
+                <ItemsWrapGrid Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+
+            <Style x:Key="ComicItemContainerStyle" TargetType="GridViewItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                <Setter Property="Margin" Value="0"/>
+            </Style>
+            
+            <Style TargetType="TextBlock" x:Key="ItemTitleStyle">
+                <Style.Setters>
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Foreground" Value="{ThemeResource SystemControlPageTextBaseHighBrush}" />
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                </Style.Setters>
+            </Style>
+            
+            <Style TargetType="TextBlock" x:Key="ItemSubtitleStyle">
+                <Style.Setters>
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="Foreground" Value="{ThemeResource SystemControlPageTextBaseMediumBrush}" />
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                </Style.Setters>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
