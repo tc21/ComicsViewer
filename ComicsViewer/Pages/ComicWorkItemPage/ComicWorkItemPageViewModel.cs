@@ -79,8 +79,14 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public Task OpenComicItemAsync(ComicSubitem? subitem = null) {
-            return Startup.OpenComicSubitemAsync(subitem ?? this.PrimarySubitem, this.MainViewModel.Profile);
+        public async Task OpenComicItemAsync(ComicSubitem? subitem = null) {
+            var item = subitem ?? this.PrimarySubitem;
+
+            if (!await item.VerifyExistsOnDiskAsync()) {
+                return;
+            }
+
+            await Startup.OpenComicSubitemAsync(item, this.MainViewModel.Profile);
         }
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
