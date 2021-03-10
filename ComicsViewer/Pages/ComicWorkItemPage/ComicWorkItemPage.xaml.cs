@@ -98,6 +98,10 @@ namespace ComicsViewer.Pages {
             if (e.NavigationMode is NavigationMode.New) {
                 ComicItemGridCache.PushStack(this.NavigationTag, this.PageName, new ComicItemGridState(new(), 0, this.MainViewModel.LastModified));
             }
+
+            // Ideally this should be automated
+            this.ViewModel.Dispose();
+            this.ComicItemGrid?.Dispose();
         }
 
         private async void OpenButton_Click(object sender, RoutedEventArgs e) {

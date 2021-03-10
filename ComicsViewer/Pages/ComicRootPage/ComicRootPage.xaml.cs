@@ -43,6 +43,9 @@ namespace ComicsViewer.Pages {
             }
 
             ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.GetSaveState());
+
+            // Ideally this should be automated
+            this.ComicItemGrid.Dispose();
         }
 
         private NavigationTag? _navigationTag;

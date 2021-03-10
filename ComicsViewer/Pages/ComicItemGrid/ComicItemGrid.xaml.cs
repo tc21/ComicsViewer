@@ -23,7 +23,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicItemGrid {
+    public sealed partial class ComicItemGrid : IDisposable {
         private ComicItemGridViewModel? _viewModel;
 
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
@@ -286,12 +286,7 @@ namespace ComicsViewer.Pages {
             _ = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
         }
 
-        internal void ManuallyNavigatedTo(NavigationEventArgs e) {
-            this.OnNavigatedTo(e);
-        }
-
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
-            // Under the current implementation, this page is never used again after a call to OnNavigatingFrom.
+        public void Dispose() {
             this.ViewModel.Dispose();
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;

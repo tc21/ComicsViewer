@@ -53,6 +53,9 @@ namespace ComicsViewer.Pages {
             if (e.NavigationMode is NavigationMode.New) {
                 ComicItemGridCache.PushStack(this.NavigationTag, this.ComicItem.Title, this.ComicItemGrid.GetSaveState());
             }
+
+            // Ideally this should be automated
+            this.ComicItemGrid.Dispose();
         }
 
         private NavigationTag? _navigationTag;

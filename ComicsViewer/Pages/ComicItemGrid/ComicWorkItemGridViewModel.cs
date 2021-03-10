@@ -65,10 +65,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var actualItems = items.Cast<ComicWorkItem>().ToList();
             foreach (var item in actualItems) {
+                item.StartTrackingChangesFrom(this.comics);
                 item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
             }
 
-            base.SetComicItems(items);
+            base.SetComicItems(actualItems);
         }
 
         private void RefreshComicItems() {
@@ -102,12 +103,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
             // we make a copy of comics, since the returned enumerable is expectedly to be lazily evaluated, and comics might change
             comics = comics.ToList();
-
-            foreach (var comic in comics) {
-                var item = new ComicWorkItem(comic, trackChangesFrom: this.comics);
-                item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
-                yield return item;
-            }
+            return comics.Select(comic => new ComicWorkItem(comic));
         }
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {

@@ -9,6 +9,8 @@ using System.Linq;
 using Windows.Storage;
 using Windows.UI.Xaml.Media.Imaging;
 
+#nullable enable
+
 namespace ComicsViewer.ViewModels {
     public class ComicWorkItem : ComicItem {
         public Comic Comic { get; private set; }
@@ -19,16 +21,20 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => new[] { this.Comic };
 
-        public ComicWorkItem(Comic comic, ComicView trackChangesFrom) {
+        private ComicView? trackingChangesFrom;
+
+        public ComicWorkItem(Comic comic) {
             this.Comic = comic;
-
             this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(this.Comic)) };
+        }
 
-            trackChangesFrom.ComicsChanged += this.View_ComicsChanged;
+        public void StartTrackingChangesFrom(ComicView view) {
+            if (this.trackingChangesFrom is { } existingView) {
+                existingView.ComicsChanged -= this.View_ComicsChanged;
+            }
 
-            this._dispose = () => {
-                trackChangesFrom.ComicsChanged -= this.View_ComicsChanged;
-            };
+            this.trackingChangesFrom = view;
+            this.trackingChangesFrom.ComicsChanged += this.View_ComicsChanged;
         }
 
         private async void View_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
@@ -83,10 +89,10 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-
-        private readonly Action _dispose;
         public override void Dispose() {
-            this._dispose();
+            if (this.trackingChangesFrom is { } view) {
+                view.ComicsChanged -= this.View_ComicsChanged;
+            }
         }
 
         public delegate void RequestingRefreshEventHandler(ComicWorkItem sender, RequestingRefreshType type);
