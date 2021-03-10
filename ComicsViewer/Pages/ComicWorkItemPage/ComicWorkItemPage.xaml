@@ -215,14 +215,14 @@
                           ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"/>
 
                 <Border Grid.Column="1" Background="{ThemeResource SystemChromeLowColor}">
-                    <StackPanel>
+                    <ScrollViewer>
                         <TextBlock x:Name="InfoTextBlock"
                                    Foreground="{ThemeResource SystemChromeAltLowColor}"
                                    Margin="12"
                                    LineHeight="24"
                                    TextWrapping="Wrap"
                                    d:Text="Lorem ipsum..."/>
-                    </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </Grid>
