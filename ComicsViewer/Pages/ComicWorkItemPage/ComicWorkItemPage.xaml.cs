@@ -45,7 +45,9 @@ namespace ComicsViewer.Pages {
             this.Initialized?.Invoke(this);
             await this.ViewModel.InitializeAsync();
 
-            this.useThumbnails = this.ViewModel.ShouldUseThumbnails();
+            if (this.ViewModel.Initialized) {
+                this.useThumbnails = this.ViewModel.ShouldUseThumbnails();
+            }
 
             // After we change the visual state here, if the grid had already loaded, it may have initialized
             // with a wrong value for useThumbnails. So we call it again.
@@ -86,7 +88,7 @@ namespace ComicsViewer.Pages {
                 this.ToggleInfoPaneButton.Visibility = Visibility.Visible;
             }
 
-            if (this.useThumbnails) {
+            if (this.ViewModel.Initialized && this.useThumbnails) {
                 await this.ViewModel.LoadThumbnailsAsync();
             }
         }
