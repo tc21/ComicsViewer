@@ -306,7 +306,7 @@ namespace ComicsViewer.Pages {
         }
 
         public ComicItemGridState GetSaveState() {
-            return new ComicItemGridState(this.ViewModel.ComicItems.ToList(), this.GetScrollOffset());
+            return new ComicItemGridState(this.ViewModel.ComicItems.ToList(), this.GetScrollOffset(), this.MainViewModel.LastModified);
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e) {

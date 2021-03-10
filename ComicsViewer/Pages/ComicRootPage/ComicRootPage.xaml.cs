@@ -3,7 +3,6 @@ using ComicsViewer.Common;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels.Pages;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable

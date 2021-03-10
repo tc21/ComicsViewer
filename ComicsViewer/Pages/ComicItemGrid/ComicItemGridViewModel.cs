@@ -38,7 +38,7 @@ namespace ComicsViewer.ViewModels.Pages {
         /* semi-manually managed properties */
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
 
-        private protected void SetComicItems(IEnumerable<ComicItem> items) {
+        private protected virtual void SetComicItems(IEnumerable<ComicItem> items) {
             this.ComicItems.Clear();
             this.ComicItems.AddRange(items);
             this.OnPropertyChanged(nameof(this.TotalItemCount));

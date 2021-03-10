@@ -29,12 +29,15 @@ namespace ComicsViewer.ViewModels.Pages {
         ) {
             var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
 
-            if (savedState is not null) {
+
+            if (savedState?.LastModified is { } lastModified && lastModified == mainViewModel.LastModified) {
                 viewModel.SetComicItems(savedState.Items);
-                viewModel.RequestedInitialScrollOffset = savedState.ScrollOffset;
             } else {
-                // Sorts and loads the actual comic items
                 viewModel.RefreshComicItems();
+            }
+
+            if (savedState?.ScrollOffset is { } offset) {
+                viewModel.RequestedInitialScrollOffset = offset;
             }
 
             return viewModel;

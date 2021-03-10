@@ -22,11 +22,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public ComicWorkItemGridViewModel(
             IMainPageContent parent,
-            MainViewModel appViewModel,
+            MainViewModel mainViewModel,
             ComicView comics,
             ComicItemGridViewModelProperties? properties = null,
             ComicItemGridState? savedState = null
-        ) : base(parent, appViewModel) {
+        ) : base(parent, mainViewModel) {
             this.Properties = properties ?? new ComicItemGridViewModelProperties();
 
             this.comics = comics.Sorted(this.SelectedSortSelector);
@@ -38,12 +38,14 @@ namespace ComicsViewer.ViewModels.Pages {
                 playlist.ComicsChanged += this.Comics_ComicsChanged;
             }
 
-            // Sorts and loads the actual comic items
-            if (savedState is not null) {
+            if (savedState?.LastModified is { } lastModified && lastModified == mainViewModel.LastModified) {
                 this.SetComicItems(savedState.Items);
-                this.RequestedInitialScrollOffset = savedState.ScrollOffset;
             } else {
                 this.RefreshComicItems();
+            }
+
+            if (savedState?.ScrollOffset is { } offset) {
+                this.RequestedInitialScrollOffset = offset;
             }
         }
 
@@ -56,8 +58,45 @@ namespace ComicsViewer.ViewModels.Pages {
             this.RefreshComicItems();
         }
 
+        private protected override void SetComicItems(IEnumerable<ComicItem> items) {
+            foreach (var item in this.ComicItems.Cast<ComicWorkItem>()) {
+                item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
+            }
+
+            var actualItems = items.Cast<ComicWorkItem>().ToList();
+            foreach (var item in actualItems) {
+                item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
+            }
+
+            base.SetComicItems(items);
+        }
+
         private void RefreshComicItems() {
             this.SetComicItems(this.MakeComicItems(this.comics).ToList());
+        }
+
+        private void AddComicItem(ComicWorkItem item, int? index = null) {
+            item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
+
+            if (index is { } i) {
+                this.ComicItems.Insert(i, item);
+            } else {
+                this.ComicItems.Add(item);
+            }
+        }
+
+        private void RemoveComicItem(ComicWorkItem item) {
+            item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
+            if (!this.ComicItems.Remove(item)) {
+                throw new ProgrammerError("Removing a ComicWorkItem that didn't already exist.");
+            }
+        }
+
+        private void RemoveComicItem(int index) {
+            var item = (ComicWorkItem)this.ComicItems[index];
+
+            item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
+            this.ComicItems.RemoveAt(index);
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
@@ -95,7 +134,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                         foreach (var item in addedItems) {
                             // TODO implement live sorting
-                            this.ComicItems.Insert(0, item);
+                            this.AddComicItem(item, 0);
                         }
 
                         /* Generate thumbnails for added items */
@@ -133,12 +172,12 @@ namespace ComicsViewer.ViewModels.Pages {
             switch (type) {
                 case ComicWorkItem.RequestingRefreshType.Reload:
                     var index = this.ComicItems.IndexOf(sender);
-                    this.ComicItems.RemoveAt(index);
-                    this.ComicItems.Insert(index, sender);
+                    this.RemoveComicItem(index);
+                    this.AddComicItem(sender, index);
                     break;
                 case ComicWorkItem.RequestingRefreshType.Remove:
                     sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-                    _ = this.ComicItems.Remove(sender);
+                    this.RemoveComicItem(sender);
 
                     if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
                         this.MainViewModel.TryNavigateOut();

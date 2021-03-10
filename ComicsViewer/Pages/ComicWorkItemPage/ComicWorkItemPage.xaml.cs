@@ -96,7 +96,7 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             // For now, we push useless information onto the cache to keep everything else working
             if (e.NavigationMode is NavigationMode.New) {
-                ComicItemGridCache.PushStack(this.NavigationTag, this.PageName, new ComicItemGridState(new(), 0));
+                ComicItemGridCache.PushStack(this.NavigationTag, this.PageName, new ComicItemGridState(new(), 0, this.MainViewModel.LastModified));
             }
         }
 

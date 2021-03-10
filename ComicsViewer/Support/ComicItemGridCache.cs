@@ -9,10 +9,12 @@ namespace ComicsViewer.Support {
     public class ComicItemGridState {
         public List<ComicItem> Items { get; set; }
         public double ScrollOffset { get; set; }
+        public DateTime LastModified { get; set; }
 
-        public ComicItemGridState(List<ComicItem> items, double scrollOffset) {
+        public ComicItemGridState(List<ComicItem> items, double scrollOffset, DateTime lastModified) {
             this.Items = items;
             this.ScrollOffset = scrollOffset;
+            this.LastModified = lastModified;
         }
     }
 

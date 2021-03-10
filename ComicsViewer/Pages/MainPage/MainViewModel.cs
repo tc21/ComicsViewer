@@ -595,6 +595,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Add, remove, modify comics
 
+        /* The Comic Item Grid Cache currently is unable to keep up with additions and deletions. 
+         * We keep track of when an item was last added or deleted, so we can invalidate the cache when needed.
+         * This is not an ideal solution. */
+        public DateTime LastModified { get; private set; } = DateTime.MinValue;
+
         /// <summary>
         /// returns the list of comics that were not added, because they already exist. 
         /// A successsful add where all comics were added would return an empty list.
@@ -613,6 +618,8 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             }
 
+            // this update must happen before this.Comics.Add because many view models listen to its events
+            this.LastModified = DateTime.Now;
             this.Comics.Add(added);
 
             var manager = await this.GetComicsManagerAsync();
@@ -651,10 +658,13 @@ namespace ComicsViewer.ViewModels.Pages {
         public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
             var removed = comics.Where(comic => this.Comics.Contains(comic)).ToList();
 
+            // this update must happen before this.Comics.Add because many view models listen to its events
+            this.LastModified = DateTime.Now;
             this.Comics.Remove(removed);
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsAsync(removed);
+
         }
 
         public async Task UpdateComicAsync(IEnumerable<Comic> comics) {
