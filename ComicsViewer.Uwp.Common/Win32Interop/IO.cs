@@ -212,6 +212,8 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
                 throw General.ThrowLastError(rootPath);
             }
 
+            var result = new List<FileOrDirectoryInfo>();
+
             do {
                 if (findFileData.cFileName == "." || findFileData.cFileName == "..") {
                     continue;
@@ -227,10 +229,12 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
                 var fileType = ((FileAttributes)fileInformation.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory
                                     ? FileOrDirectoryType.Directory : FileOrDirectoryType.FileOrLink;
 
-                yield return new FileOrDirectoryInfo(path, findFileData.cFileName, fileType);
+                result.Add(new FileOrDirectoryInfo(path, findFileData.cFileName, fileType));
             } while (FindNextFile(hFindFile, out findFileData));
 
             _ = FindClose(hFindFile);
+
+            return result;
         }
 
         public readonly struct FileOrDirectoryInfo {

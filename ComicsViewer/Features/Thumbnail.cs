@@ -1,10 +1,10 @@
 ﻿using ComicsLibrary;
-using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -46,7 +46,7 @@ namespace ComicsViewer.Features {
                 // pass
             }
 
-            var bitmap = await GetSoftwareBitmapAsync(file);
+            using var bitmap = await GetSoftwareBitmapAsync(file);
 
             if (existingFile != null) {
                 await existingFile.DeleteAsync();
@@ -87,15 +87,30 @@ namespace ComicsViewer.Features {
         }
 
         private static async Task<StorageFile?> TryGetFirstValidThumbnailFileAsync(string folder) {
-            return await GetPossibleThumbnailFilesAsync(folder).FirstOrDefaultAsync();
+            var cts = new CancellationTokenSource();
+            StorageFile? result = null;
+
+            await foreach (var file in GetPossibleThumbnailFilesAsync(folder, cts.Token)) {
+                result = file;
+                break;
+            }
+
+            cts.Cancel();
+
+            return result;
         }
 
-        public static async IAsyncEnumerable<StorageFile> GetPossibleThumbnailFilesAsync(string folder) {
+        public static async IAsyncEnumerable<StorageFile> GetPossibleThumbnailFilesAsync(
+            string folder, 
+            [EnumeratorCancellation] CancellationToken ct = default
+        ) {
             var files = IO.GetDirectoryContents(folder);
             var subfolders = new List<string>();
             var maxFiles = 5;
 
             foreach (var file in files) {
+                ct.ThrowIfCancellationRequested();
+
                 if (file.ItemType == IO.FileOrDirectoryType.FileOrLink && IsValidThumbnailFile(file.Name) && maxFiles > 0) {
                     maxFiles -= 1;
                     yield return await StorageFile.GetFileFromPathAsync(file.Path);
@@ -107,7 +122,9 @@ namespace ComicsViewer.Features {
             }
 
             foreach (var subfolder in subfolders) {
-                await foreach (var file in GetPossibleThumbnailFilesAsync(subfolder)) {
+                ct.ThrowIfCancellationRequested();
+
+                await foreach (var file in GetPossibleThumbnailFilesAsync(subfolder, ct)) {
                     yield return file;
                 }
             }
