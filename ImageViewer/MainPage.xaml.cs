@@ -66,8 +66,7 @@ namespace ImageViewer {
                         await this.ViewModel.LoadImagesAtPathsAsync(args.Filenames!);
                         break;
                     case ProtocolActivatedMode.Folder:
-                        var files = await args.Folder!.GetFilesInNaturalOrderAsync();
-                        await this.ViewModel.LoadImagesAsync(files);
+                        await this.ViewModel.LoadDirectoryAsync(args.Folder!);
                         break;
                     case ProtocolActivatedMode.File:
                         await this.ViewModel.OpenContainingFolderAsync(args.File!);
@@ -116,11 +115,15 @@ namespace ImageViewer {
             var items = (await e.DataView.GetStorageItemsAsync()).InNaturalOrder();
 
             if (items.Count == 1) {
-                if (!(items.First() is StorageFile file)) {
-                    return;
-                }
+                switch (items.First()) {
+                    case StorageFile file:
+                        await this.ViewModel.OpenContainingFolderAsync(file);
+                        break;
 
-                await this.ViewModel.OpenContainingFolderAsync(file);
+                    case StorageFolder folder:
+                        await this.ViewModel.LoadDirectoryAsync(folder);
+                        break;
+                }
             } else {
                 var files = items.Where(item => item.IsOfType(StorageItemTypes.File))
                                  .Cast<StorageFile>();

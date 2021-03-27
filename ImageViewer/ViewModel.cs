@@ -107,7 +107,7 @@ namespace ImageViewer {
             }
         }
 
-        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false) {
+        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false, bool suppressInferfaceUpdates = false) {
             this.CanSeek = false;
 
             if (!append) {
@@ -119,17 +119,46 @@ namespace ImageViewer {
 
             if (seekTo is { } index) {
                 if (append) {
-                    throw new ArgumentException("For the moment, you must not seek when appending");
+                    throw new ArgumentException("You must not seek and append at the same time.");
+                }
+
+                if (suppressInferfaceUpdates) {
+                    throw new ArgumentException("UI Updates cannot be suppressed when seeking.");
                 }
 
                 await this.SeekAsync(index, reload: true);
-            } else {
+            } else if (!suppressInferfaceUpdates) {
                 this.UpdateTitle();
             }
         }
 
-        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths) {
-            paths = paths.ToList();
+        public Task LoadDirectoryAsync(StorageFolder folder) {
+            var files = ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder.Path)
+                .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
+                .InNaturalOrder()
+                .Select(info => info.Path);
+
+            return this.LoadImagesAtPathsAsync(files);
+        }
+
+        // Converts paths to StorageFiles and loads them.
+        // If a seekTo is provided, will load until that file, seek to that file, start updating UI, and then continue loading.
+        // Otherwise, the use will need to call UI update functions themselves.
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int? seekTo = 0, bool append = false, bool suppressInferfaceUpdates = false) {
+            if (seekTo != null) {
+                if (append) {
+                    throw new ArgumentException("You must not seek and append at the same time.");
+                }
+
+                if (suppressInferfaceUpdates) {
+                    throw new ArgumentException("UI Updates cannot be suppressed when seeking.");
+                }
+            }
+
+            this.CanSeek = false;
+            this.Title = "Viewer - Loading...";
+
+            paths = paths.Where(IsImage).ToList();
 
             if (!paths.Any()) {
                 return;
@@ -143,29 +172,59 @@ namespace ImageViewer {
                 return;
             }
 
-            await this.LoadImagesAsync(new[] { firstFile });
+            var files = new[] { Task.FromResult(firstFile) }
+                .Concat(rest.Select(async filename => await StorageFile.GetFileFromPathAsync(filename)));
 
-            foreach (var filename in rest) {
-                // this will crash if any file in <paths> doesn't exist
-                await this.LoadImagesAsync(new[] { await StorageFile.GetFileFromPathAsync(filename) }, seekTo: null, append: true);
+            var nextFileIndex = 0;
+            foreach (var task in files) {
+                var file = await task;
+
+                this.CanSeek = false;
+                this.Images.Add(file);
+                this.CanSeek = true;
+
+                if (seekTo is { } index) {
+                    if (nextFileIndex == index) {
+                        await this.SeekAsync(index, reload: true);
+                    }
+
+                    if (nextFileIndex > index) {
+                        this.UpdateTitle();
+                    }
+                } else if (!suppressInferfaceUpdates) {
+                    this.UpdateTitle();
+                }
+
+                nextFileIndex += 1;
             }
+
+            // this should already be set at this point, but I'm not taking any chances that I might be dumb
+            this.CanSeek = true;
         }
 
-        private async Task LoadViaPassthrough<T>(StorageFile passthrough, Func<Task<T>> getAllFiles) where T : IEnumerable<StorageFile> {
+        private async Task FinishLoadContainingFolderAsync(StorageFile passthrough, string folder) {
             this.CanSeek = false;
-            this.Title = "Viewer - Loading related files...";
+            this.Title = "Viewer - Loading...";
+
             var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
 
-            var files = await getAllFiles();
-            // will set CanSeek = true
-            await this.LoadImagesAsync(files, seekTo: null);
+            var files = ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder)
+                .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
+                .InNaturalOrder()
+                .ToList();
 
-            var passthroughIndex = this.Images.FindIndex(file => file.Name == passthrough.Name);
+            var passthroughIndex = files.FindIndex(info => info.Name == passthrough.Name);
+
+            var filenames = files.Select(info => info.Path);
+
             if (passthroughSuccessful) {
+                await this.LoadImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), seekTo: null, suppressInferfaceUpdates: true);
                 this.SetCurrentImageIndex(passthroughIndex);
             } else {
-                await this.SeekAsync(passthroughIndex, reload: true);
+                await this.LoadImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), seekTo: passthroughIndex);
             }
+
+            await this.LoadImagesAtPathsAsync(filenames.Skip(passthroughIndex + 1), seekTo: null, append: true);
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
@@ -184,7 +243,7 @@ namespace ImageViewer {
                 return;
             }
 
-            await this.LoadViaPassthrough(file, async () => await parent.GetFilesInNaturalOrderAsync());
+            await this.FinishLoadContainingFolderAsync(file, parent.Path);
         }
 
         private Action? whenCanSeekAction;
