@@ -107,29 +107,14 @@ namespace ImageViewer {
             }
         }
 
-        public async Task LoadImagesAsync(IEnumerable<StorageFile> files, int? seekTo = 0, bool append = false, bool suppressInferfaceUpdates = false) {
+        public async Task LoadImagesAsync(IEnumerable<StorageFile> files) {
             this.CanSeek = false;
 
-            if (!append) {
-                this.Images.Clear();
-            }
-
+            this.Images.Clear();
             this.Images.AddRange(files.Where(f => IsImage(f.Path)));
+
             this.CanSeek = true;
-
-            if (seekTo is { } index) {
-                if (append) {
-                    throw new ArgumentException("You must not seek and append at the same time.");
-                }
-
-                if (suppressInferfaceUpdates) {
-                    throw new ArgumentException("UI Updates cannot be suppressed when seeking.");
-                }
-
-                await this.SeekAsync(index, reload: true);
-            } else if (!suppressInferfaceUpdates) {
-                this.UpdateTitle();
-            }
+            await this.SeekAsync(0, reload: true);
         }
 
         public Task LoadDirectoryAsync(StorageFolder folder) {
@@ -141,27 +126,11 @@ namespace ImageViewer {
             return this.LoadImagesAtPathsAsync(files);
         }
 
-        // Converts paths to StorageFiles and loads them.
-        // If a seekTo is provided, will load until that file, seek to that file, start updating UI, and then continue loading.
-        // Otherwise, the use will need to call UI update functions themselves.
-        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int? seekTo = 0, bool append = false, bool suppressInferfaceUpdates = false) {
-            if (seekTo != null) {
-                if (append) {
-                    throw new ArgumentException("You must not seek and append at the same time.");
-                }
-
-                if (suppressInferfaceUpdates) {
-                    throw new ArgumentException("UI Updates cannot be suppressed when seeking.");
-                }
-            }
-
-            this.CanSeek = false;
-            this.Title = "Viewer - Loading...";
-
+        private static async Task<IEnumerable<Task<StorageFile>>?> TryEnumerableStorageFilesAsync(IEnumerable<string> paths) {
             paths = paths.Where(IsImage).ToList();
 
             if (!paths.Any()) {
-                return;
+                return null;
             }
 
             var first = paths.First();
@@ -169,37 +138,72 @@ namespace ImageViewer {
 
             // we need to verify if we have permission
             if (!(await ExpectedExceptions.TryGetFileWithPermission(first) is { } firstFile)) {
+                return null;
+            }
+
+            return new[] { Task.FromResult(firstFile) }
+                .Concat(rest.Select(async filename => await StorageFile.GetFileFromPathAsync(filename)));
+        } 
+
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int seekTo = 0) {
+            if (!(await TryEnumerableStorageFilesAsync(paths) is { } files)) {
                 return;
             }
 
-            var files = new[] { Task.FromResult(firstFile) }
-                .Concat(rest.Select(async filename => await StorageFile.GetFileFromPathAsync(filename)));
+            this.CanSeek = false;
+            this.Title = "Viewer - Loading...";
+
+            this.canWrap = false;
+
+            this.Images.Clear();
 
             var nextFileIndex = 0;
             foreach (var task in files) {
                 var file = await task;
 
+                // if we previously reached seekTo, the user can now seek, but now when Images is being modified
+                var temp = this.CanSeek;
                 this.CanSeek = false;
                 this.Images.Add(file);
-                this.CanSeek = true;
+                this.CanSeek = temp;
 
-                if (seekTo is { } index) {
-                    if (nextFileIndex == index) {
-                        await this.SeekAsync(index, reload: true);
-                    }
-
-                    if (nextFileIndex > index) {
-                        this.UpdateTitle();
-                    }
-                } else if (!suppressInferfaceUpdates) {
+                if (nextFileIndex == seekTo) {
+                    this.CanSeek = true;
+                    await this.SeekAsync(seekTo, reload: true);
+                } else if (nextFileIndex > seekTo) {
                     this.UpdateTitle();
                 }
-
-                nextFileIndex += 1;
             }
 
-            // this should already be set at this point, but I'm not taking any chances that I might be dumb
-            this.CanSeek = true;
+            if (!this.CanSeek) {
+                throw new ArgumentException($"{nameof(LoadImagesAtPathsAsync)} received a seekTo that is larger than the amount of images it received.");
+            }
+
+            this.canWrap = true;
+        }
+
+        public async Task AppendImagesAtPathsAsync(IEnumerable<string> paths, bool suppressInterfaceUpdates = false) {
+            if (!(await TryEnumerableStorageFilesAsync(paths) is { } files)) {
+                return;
+            }
+
+            this.canWrap = false;
+
+            foreach (var task in files) {
+                var file = await task;
+
+                // we temporary disable CanSeek like we do in Load...
+                var temp = this.CanSeek;
+                this.CanSeek = false;
+                this.Images.Add(file);
+                this.CanSeek = temp;
+
+                if (!suppressInterfaceUpdates) {
+                    this.UpdateTitle();
+                }
+            }
+
+            this.canWrap = true;
         }
 
         private async Task FinishLoadContainingFolderAsync(StorageFile passthrough, string folder) {
@@ -214,17 +218,18 @@ namespace ImageViewer {
                 .ToList();
 
             var passthroughIndex = files.FindIndex(info => info.Name == passthrough.Name);
-
             var filenames = files.Select(info => info.Path);
 
             if (passthroughSuccessful) {
-                await this.LoadImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), seekTo: null, suppressInferfaceUpdates: true);
+                this.Images.Clear();
+                await this.AppendImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), suppressInterfaceUpdates: true);
                 this.SetCurrentImageIndex(passthroughIndex);
+                this.CanSeek = true;
             } else {
                 await this.LoadImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), seekTo: passthroughIndex);
             }
 
-            await this.LoadImagesAtPathsAsync(filenames.Skip(passthroughIndex + 1), seekTo: null, append: true);
+            await this.AppendImagesAtPathsAsync(filenames.Skip(passthroughIndex + 1));
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
@@ -272,6 +277,10 @@ namespace ImageViewer {
             }
         }
 
+        // When images are being loaded, we may allow the user to seek, but it doesn't make sence to wrap when the 
+        // actual last image isn't actually loaded yet, and the "last image" the app sees is some random image.
+        private bool canWrap = true;
+
         public async Task SeekAsync(int index, bool reload = false) {
             if (!this.CanSeek) {
                 return;
@@ -283,7 +292,11 @@ namespace ImageViewer {
                 return;
             }
 
-            index = this.ActualIndex(index);
+            var newIndex = this.ActualIndex(index);
+            if (newIndex != index && !canWrap) {
+                return;
+            }
+            index = newIndex;
 
             if (!reload && index == this.CurrentImageIndex) {
                 return;
