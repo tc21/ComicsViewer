@@ -99,7 +99,7 @@ namespace ImageViewer {
 
                 this._decodeImageHeight = value;
 
-                if (this.CurrentImageSource != null) {
+                if (this.CurrentImageSource is not null) {
                     this.WhenCanSeek(() => {
                         _ = this.SetCurrentImageSourceAsync(this.Images[this.CurrentImageIndex], value).ConfigureAwait(false);
                     });
@@ -126,7 +126,7 @@ namespace ImageViewer {
             return this.LoadImagesAtPathsAsync(files);
         }
 
-        private static async Task<IEnumerable<Task<StorageFile>>?> TryEnumerableStorageFilesAsync(IEnumerable<string> paths) {
+        private static async Task<IAsyncEnumerable<StorageFile>?> TryEnumerateStorageFilesAsync(IEnumerable<string> paths) {
             paths = paths.Where(IsImage).ToList();
 
             if (!paths.Any()) {
@@ -137,16 +137,23 @@ namespace ImageViewer {
             var rest = paths.Skip(1);
 
             // we need to verify if we have permission
-            if (!(await ExpectedExceptions.TryGetFileWithPermission(first) is { } firstFile)) {
+            if (await ExpectedExceptions.TryGetFileWithPermission(first) is not { } firstFile) {
                 return null;
             }
 
-            return new[] { Task.FromResult(firstFile) }
-                .Concat(rest.Select(async filename => await StorageFile.GetFileFromPathAsync(filename)));
+            return BuildEnumerable(firstFile, rest);
+
+            static async IAsyncEnumerable<StorageFile> BuildEnumerable(StorageFile first, IEnumerable<string> rest) {
+                yield return first;
+
+                foreach (var path in rest) {
+                    yield return await StorageFile.GetFileFromPathAsync(path);
+                }
+            }
         } 
 
         public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int seekTo = 0) {
-            if (!(await TryEnumerableStorageFilesAsync(paths) is { } files)) {
+            if (await TryEnumerateStorageFilesAsync(paths) is not { } files) {
                 return;
             }
 
@@ -158,9 +165,8 @@ namespace ImageViewer {
             this.Images.Clear();
 
             var nextFileIndex = 0;
-            foreach (var task in files) {
-                var file = await task;
 
+            await foreach (var file in files) {
                 // if we previously reached seekTo, the user can now seek, but now when Images is being modified
                 var temp = this.CanSeek;
                 this.CanSeek = false;
@@ -183,15 +189,13 @@ namespace ImageViewer {
         }
 
         public async Task AppendImagesAtPathsAsync(IEnumerable<string> paths, bool suppressInterfaceUpdates = false) {
-            if (!(await TryEnumerableStorageFilesAsync(paths) is { } files)) {
+            if (await TryEnumerateStorageFilesAsync(paths) is not { } files) {
                 return;
             }
 
             this.canWrap = false;
 
-            foreach (var task in files) {
-                var file = await task;
-
+            await foreach (var file in files) {
                 // we temporary disable CanSeek like we do in Load...
                 var temp = this.CanSeek;
                 this.CanSeek = false;
@@ -233,7 +237,7 @@ namespace ImageViewer {
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
-            if (!(await file.GetParentAsync() is { } parent)) {
+            if (await file.GetParentAsync() is not { } parent) {
                 /* this means that the user hasn't enabled broadFileSystemAccess */
                 await ExpectedExceptions.ShowDialogAsync(
                     title: "Access denied",
@@ -418,7 +422,7 @@ namespace ImageViewer {
                 /* do nothing */
             }
 
-            if (metadata != null) {
+            if (metadata is not null) {
                 var info = new List<string>();
 
                 if (metadata.DateTaken.Year > 1600) {
