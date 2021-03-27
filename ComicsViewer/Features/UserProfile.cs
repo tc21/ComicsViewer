@@ -61,7 +61,7 @@ namespace ComicsViewer.Features {
         }
 
         public static ValueTask<UserProfile> DeserializeAsync(Stream input) {
-            return JsonSerializer.DeserializeAsync<UserProfile>(input);
+            return JsonSerializer.DeserializeAsync<UserProfile>(input)!;
         }
 
         public static Task SerializeAsync(UserProfile profile, Stream output) {
@@ -108,11 +108,10 @@ namespace ComicsViewer.Features {
         }
 
         // Temporary: this code should be moved elsewhere
-        // Unfortunately we aren't actually on .NET Core 3.0, meaning we can't await an IAsyncEnumerable
         /// <summary>
         /// Returns null if comic.Path could not be accessed. Note: this will create a popup dialog.
         /// </summary>
-        public async Task<IEnumerable<ComicSubitem>?> GetComicSubitemsAsync(Comic comic) {
+        public async Task<IReadOnlyList<ComicSubitem>?> GetComicSubitemsAsync(Comic comic) {
             // We currently recurse one level. More levels may be desired in the future...
             var subitems = new List<ComicSubitem>();
 

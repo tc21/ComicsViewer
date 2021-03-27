@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 
@@ -31,45 +32,38 @@ namespace ComicsViewer.Support {
          */
 
         /* Used when the user manually imports some folders. Automatically detects category/author according to the predefined structure. */
-        public static async Task<IEnumerable<Comic>> FromImportedFoldersAsync(
-            UserProfile profile, IEnumerable<StorageFolder> folders, CancellationToken cc, IProgress<int>? progress = null
+        public static async IAsyncEnumerable<Comic> FromImportedFoldersAsync(
+            UserProfile profile, IEnumerable<StorageFolder> folders, [EnumeratorCancellation] CancellationToken cc = default
         ) {
-            var result = new List<Comic>();
-
             foreach (var folder in folders) {
-                await FinishFromImportedFolderAsync(result, profile, folder, cc, progress, 2);
+                await foreach (var comic in FromImportedFolderAsync(profile, folder, maxRecursionDepth: 2, cc)) {
+                    yield return comic;
+                }
             }
-
-            return result;
         }
 
         /* Used to automatically discover all comics belonging to a profile */
-        public static async Task<IEnumerable<Comic>> FromProfilePathsAsync(
-            UserProfile profile, CancellationToken cc, IProgress<int>? progress = null) {
-            var result = new List<Comic>();
-
+        public static async IAsyncEnumerable<Comic> FromProfilePathsAsync(
+            UserProfile profile, [EnumeratorCancellation] CancellationToken cc = default
+        ) {
             foreach (var category in profile.RootPaths) {
-                await FinishFromRootPathAsync(result, profile, category, cc, progress);
-
-                if (cc.IsCancellationRequested) {
-                    return result;
+                await foreach (var comic in FromCategoryAsync(profile, category, cc)) {
+                    yield return comic;
                 }
-            }
 
-            return result;
+                cc.ThrowIfCancellationRequested();
+            }
         }
 
         /* Used to automatically update only one category */
-        public static async Task<IEnumerable<Comic>> FromRootPathAsync(
-            UserProfile profile, NamedPath category, CancellationToken cc, IProgress<int>? progress = null
+        public static IAsyncEnumerable<Comic> FromRootPathAsync(
+            UserProfile profile, NamedPath category, CancellationToken cc = default
         ) {
             if (!profile.RootPaths.Contains(category)) {
                 throw new ProgrammerError();
             }
 
-            var result = new List<Comic>();
-            await FinishFromRootPathAsync(result, profile, category, cc, progress);
-            return result;
+            return FromRootPathAsync(profile, category, cc);
         }
 
         /* Used to automatically remove comics that no longer exist. The most basic form of this function should return
@@ -108,9 +102,9 @@ namespace ComicsViewer.Support {
             );
         }
 
-        private static async Task FinishFromImportedFolderAsync(
-            ICollection<Comic> comics, UserProfile profile, StorageFolder folder, CancellationToken cc, IProgress<int>? progress, int maxRecursionDepth) {
-
+        private static async IAsyncEnumerable<Comic> FromImportedFolderAsync(
+            UserProfile profile, StorageFolder folder, int maxRecursionDepth, [EnumeratorCancellation] CancellationToken cc = default
+        ) {
             // If in a category folder: assume it's properly laid out
             var matchingPaths = profile.RootPaths.Where(pair => folder.IsChildOf(pair.Path)).ToList();
 
@@ -123,8 +117,10 @@ namespace ComicsViewer.Support {
 
                 // 1. Importing a category
                 if (relativePath == "") {
-                    await FinishFromRootPathAsync(comics, profile, bestMatch, cc, progress);
-                    return;
+                    await foreach (var comic in FromCategoryAsync(profile, bestMatch, cc)) {
+                        yield return comic;
+                    }
+                    yield break;
                 }
 
                 var names = relativePath.Split(Path.DirectorySeparatorChar);
@@ -133,14 +129,16 @@ namespace ComicsViewer.Support {
                 switch (names.Length) {
                     case 1:
                         // Importing an author
-                        await FinishFromAuthorFolderAsync(comics, profile, folder, categoryName, authorName, cc, progress);
-                        return;
+                        await foreach (var comic in FromAuthorFolderAsync(profile, folder, categoryName, authorName, cc)) {
+                            yield return comic;
+                        }
+                        yield break;
+
                     case 2:
                         // Importing a work
-                        var comic = new Comic(folder.Path, folder.Name, authorName, categoryName);
-                        comics.Add(comic);
-                        progress?.Report(comics.Count);
-                        return;
+                        yield return new Comic(folder.Path, folder.Name, authorName, categoryName);
+                        yield break;
+
                     // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
                 }
 
@@ -150,15 +148,13 @@ namespace ComicsViewer.Support {
             if (await profile.FolderContainsValidComicAsync(folder.Path)) {
                 var names = folder.Path.Split(Path.DirectorySeparatorChar);
                 var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
-                var comic = new Comic(folder.Path, folder.Name, author, "Unknown Category");
-                comics.Add(comic);
-                progress?.Report(comics.Count);
-                return;
+                yield return new Comic(folder.Path, folder.Name, author, "Unknown Category");
+                yield break;
             }
 
             // Then assume it is a category/author directory
             if (maxRecursionDepth <= 0) {
-                return;
+                yield break;
             }
 
             foreach (var subfolder in await folder.GetFoldersInNaturalOrderAsync()) {
@@ -166,16 +162,16 @@ namespace ComicsViewer.Support {
                     continue;
                 }
 
-                await FinishFromImportedFolderAsync(comics, profile, subfolder, cc, progress, maxRecursionDepth - 1);
-
-                if (cc.IsCancellationRequested) {
-                    return;
+                await foreach (var comic in FromImportedFolderAsync(profile, subfolder, maxRecursionDepth - 1, cc)) {
+                    yield return comic;
                 }
+
+                cc.ThrowIfCancellationRequested();
             }
         }
 
-        private static async Task FinishFromRootPathAsync(
-            ICollection<Comic> comics, UserProfile profile, NamedPath rootPath, CancellationToken cc, IProgress<int>? progress
+        private static async IAsyncEnumerable<Comic> FromCategoryAsync(
+            UserProfile profile, NamedPath rootPath, [EnumeratorCancellation] CancellationToken cc = default
         ) {
             var folder = await StorageFolder.GetFolderFromPathAsync(rootPath.Path);
 
@@ -184,32 +180,27 @@ namespace ComicsViewer.Support {
                     continue;
                 }
 
-                await FinishFromAuthorFolderAsync(comics, profile, authorFolder, rootPath.Name, authorFolder.Name, cc, progress);
-
-                if (cc.IsCancellationRequested) {
-                    return;
+                await foreach (var comic in FromAuthorFolderAsync(profile, authorFolder, rootPath.Name, authorFolder.Name, cc)) {
+                    yield return comic;
                 }
+
+                cc.ThrowIfCancellationRequested();
             }
         }
 
-        private static async Task FinishFromAuthorFolderAsync(
-            ICollection<Comic> comics, UserProfile profile, StorageFolder folder, string category, string author, 
-            CancellationToken cc, IProgress<int>? progress
+        private static async IAsyncEnumerable<Comic> FromAuthorFolderAsync(
+            UserProfile profile, StorageFolder folder, string category, string author, [EnumeratorCancellation] CancellationToken cc = default
         ) {
-            foreach (var comicFolder in await folder.GetFoldersInNaturalOrderAsync()) { 
+            foreach (var comicFolder in await folder.GetFoldersInNaturalOrderAsync()) {
                 if (UserProfile.IsIgnoredFolder(comicFolder)) {
                     continue;
                 }
 
                 if (await profile.FolderContainsValidComicAsync(comicFolder.Path)) {
-                    var comic = new Comic(comicFolder.Path, comicFolder.Name, author, category);
-                    comics.Add(comic);
-                    progress?.Report(comics.Count);
+                    yield return new Comic(comicFolder.Path, comicFolder.Name, author, category);
                 }
 
-                if (cc.IsCancellationRequested) {
-                    return;
-                }
+                cc.ThrowIfCancellationRequested();
             }
         }
     }

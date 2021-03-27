@@ -6,7 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:ComicsViewer.Controls"
-    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
+    xmlns:behaviors="using:Microsoft.Toolkit.Uwp.UI.Behaviors"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"  
     mc:Ignorable="d"    
     d:RequestedTheme="Dark">
 
@@ -191,37 +192,39 @@
                       ItemTemplate="{StaticResource ComicItemTemplate}"
                       ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                       ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}">
+                <interactivity:Interaction.Behaviors>
+                    <behaviors:QuickReturnHeaderBehavior />
+                </interactivity:Interaction.Behaviors>
+                
                 <GridView.Header>
-                    <controls:ScrollHeader Mode="QuickReturn">
-                        <Border Background="{ThemeResource AppBarBackgroundThemeBrush}">
-                            <StackPanel>
-                                <uc:HighlightedComicItem x:Name="HighlightedComicItemControl"
-                                                         Item="{x:Bind HighlightedComicItem}" 
-                                                         ImageHeight="{x:Bind ViewModel.HighlightImageHeight}" 
-                                                         ImageWidth="{x:Bind ViewModel.HighlightImageWidth}"/>
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
-                                    <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                                    <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
+                    <Border Background="{ThemeResource AppBarBackgroundThemeBrush}">
+                        <StackPanel>
+                            <uc:HighlightedComicItem x:Name="HighlightedComicItemControl"
+                                                     Item="{x:Bind HighlightedComicItem}" 
+                                                     ImageHeight="{x:Bind ViewModel.HighlightImageHeight}" 
+                                                     ImageWidth="{x:Bind ViewModel.HighlightImageWidth}"/>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
+                                <TextBlock Text="Sort By:" Margin="4 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                <ComboBox ItemsSource="{x:Bind ViewModel.SortSelectors}"
                                           SelectedIndex="{x:Bind ViewModel.SelectedSortIndex, Mode=TwoWay}"
                                           Style="{StaticResource InlineComboBoxStyle}" />
 
-                                    <Button Style="{StaticResource TextBlockButtonStyle}" 
-                                            ToolTipService.ToolTip="Refresh"
-                                            Click="RefreshButton_Click"
-                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                            Height="32"
-                                            Margin="8 0"
-                                            >
-                                        <Button.RenderTransform>
-                                            <ScaleTransform ScaleX="0.8" ScaleY="0.8" CenterY="16" />
+                                <Button Style="{StaticResource TextBlockButtonStyle}" 
+                                        ToolTipService.ToolTip="Refresh"
+                                        Click="RefreshButton_Click"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        Height="32"
+                                        Margin="8 0"
+                                        >
+                                    <Button.RenderTransform>
+                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8" CenterY="16" />
 
-                                        </Button.RenderTransform>
-                                        <SymbolIcon Symbol="Refresh"/>
-                                    </Button>
-                                </StackPanel>
+                                    </Button.RenderTransform>
+                                    <SymbolIcon Symbol="Refresh"/>
+                                </Button>
                             </StackPanel>
-                        </Border>
-                    </controls:ScrollHeader>
+                        </StackPanel>
+                    </Border>
                 </GridView.Header>
             </GridView>
         </Grid>

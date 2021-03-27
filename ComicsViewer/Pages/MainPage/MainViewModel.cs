@@ -377,7 +377,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task StartReloadAllComicsTaskAsync() {
             await this.StartUniqueTaskAsync("reload", "Reloading all comics...", 
-                (cc, p) => ComicsLoader.FromProfilePathsAsync(this.Profile, cc, p),
+                async (cc, p) => await ComicsLoader.FromProfilePathsAsync(this.Profile).WithProgressAsync(p, cc).ToListAsync(),
                 async result => {
                     // TODO: we should probably figure out how to only update what we need
                     var manager = await this.GetComicsManagerAsync();
@@ -393,7 +393,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public async Task StartReloadCategoryTaskAsync(NamedPath category) {
             await this.StartUniqueTaskAsync("reload", $"Reloading category '{category.Name}'...",
-                (cc, p) => ComicsLoader.FromRootPathAsync(this.Profile, category, cc, p),
+                async (cc, p) => await ComicsLoader.FromRootPathAsync(this.Profile, category).WithProgressAsync(p, cc).ToListAsync(),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
                     result = await manager.RetrieveKnownMetadataAsync(result);
@@ -409,7 +409,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var comicFolders = folders.ToList();
 
             await this.StartUniqueTaskAsync("reload", $"Adding comics from {comicFolders.Count} folders...",
-                (cc, p) => ComicsLoader.FromImportedFoldersAsync(this.Profile, comicFolders, cc, p),
+                async (cc, p) => await ComicsLoader.FromImportedFoldersAsync(this.Profile, comicFolders).WithProgressAsync(p, cc).ToListAsync(),
                 async result => {
                     var manager = await this.GetComicsManagerAsync();
                     result = await manager.RetrieveKnownMetadataAsync(result);
