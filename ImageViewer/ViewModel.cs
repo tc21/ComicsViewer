@@ -164,19 +164,17 @@ namespace ImageViewer {
 
             this.Images.Clear();
 
-            var nextFileIndex = 0;
-
-            await foreach (var file in files) {
+            await foreach (var (file, index) in files.Select((file, index) => (file, index))) {
                 // if we previously reached seekTo, the user can now seek, but now when Images is being modified
                 var temp = this.CanSeek;
                 this.CanSeek = false;
                 this.Images.Add(file);
                 this.CanSeek = temp;
 
-                if (nextFileIndex == seekTo) {
+                if (index == seekTo) {
                     this.CanSeek = true;
                     await this.SeekAsync(seekTo, reload: true);
-                } else if (nextFileIndex > seekTo) {
+                } else if (index > seekTo) {
                     this.UpdateTitle();
                 }
             }
