@@ -37,7 +37,13 @@ namespace ComicsViewer.Features {
                     var testFile = files[0];
 
                     if (FileTypes.IsImage(testFile)) {
-                        await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
+                        // TODO: apparently if we transfer too much information in memory we cause an error. (The size of ValueSet is capped at ~100kb).
+                        if (files.Count > 250) {
+                            await LaunchBuiltInViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///path", subitem.RootPath);
+                        } else {
+                            await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
+                        }
+
                         return;
                     }
 
@@ -73,6 +79,28 @@ namespace ComicsViewer.Features {
             static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, IEnumerable<string> filenames, string? description = null) {
                 var data = new ValueSet {
                     ["Filenames"] = filenames.ToArray()
+                };
+
+                if (description != null) {
+                    data["Description"] = description;
+                }
+
+                var opt = new LauncherOptions {
+                    TargetApplicationPackageFamilyName = packageFamilyName
+                };
+
+                if (!await Launcher.LaunchUriAsync(new Uri(uri), opt, data)) {
+                    await ComicExpectedExceptions.IntendedBehaviorAsync(
+                        title: "Cannot open item",
+                        message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",
+                        cancelled: false
+                    );
+                }
+            }
+
+            static async Task LaunchBuiltInViewerAsync(string packageFamilyName, string uri, string folder, string? description = null) {
+                var data = new ValueSet {
+                    ["Path"] = folder
                 };
 
                 if (description != null) {
