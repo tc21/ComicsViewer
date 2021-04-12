@@ -24,7 +24,7 @@ namespace ImageViewer {
         }
 
         // if you set this directly, make sure all items are valid images
-        internal readonly List<StorageFile> Images = new List<StorageFile>();
+        internal readonly List<AbstractStorageFile> Images = new();
 
         public int CurrentImageIndex { get; private set; }
 
@@ -111,7 +111,7 @@ namespace ImageViewer {
             this.CanSeek = false;
 
             this.Images.Clear();
-            this.Images.AddRange(files.Where(f => IsImage(f.Path)));
+            this.Images.AddRange(files.Where(f => IsImage(f.Path)).Select(AbstractStorageFile.FromStorageFile));
 
             this.CanSeek = true;
             await this.SeekAsync(0, reload: true);
@@ -126,93 +126,24 @@ namespace ImageViewer {
             return this.LoadImagesAtPathsAsync(files);
         }
 
-        private static async Task<IAsyncEnumerable<StorageFile>?> TryEnumerateStorageFilesAsync(IEnumerable<string> paths) {
-            paths = paths.Where(IsImage).ToList();
-
-            if (!paths.Any()) {
-                return null;
-            }
-
-            var first = paths.First();
-            var rest = paths.Skip(1);
-
-            // we need to verify if we have permission
-            if (await ExpectedExceptions.TryGetFileWithPermission(first) is not { } firstFile) {
-                return null;
-            }
-
-            return BuildEnumerable(firstFile, rest);
-
-            static async IAsyncEnumerable<StorageFile> BuildEnumerable(StorageFile first, IEnumerable<string> rest) {
-                yield return first;
-
-                foreach (var path in rest) {
-                    yield return await StorageFile.GetFileFromPathAsync(path);
-                }
-            }
-        } 
-
-        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int seekTo = 0) {
-            if (await TryEnumerateStorageFilesAsync(paths) is not { } files) {
-                return;
-            }
-
+        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int? seekTo = 0) {
             this.CanSeek = false;
-            this.Title = "Viewer - Loading...";
-
-            this.canWrap = false;
 
             this.Images.Clear();
+            this.Images.AddRange(paths.Where(IsImage).Select(AbstractStorageFile.FromPath));
 
-            await foreach (var (file, index) in files.Select((file, index) => (file, index))) {
-                // if we previously reached seekTo, the user can now seek, but now when Images is being modified
-                var temp = this.CanSeek;
-                this.CanSeek = false;
-                this.Images.Add(file);
-                this.CanSeek = temp;
+            this.CanSeek = true;
 
-                if (index == seekTo) {
-                    this.CanSeek = true;
-                    await this.SeekAsync(seekTo, reload: true);
-                } else if (index > seekTo) {
-                    this.UpdateTitle();
-                }
+            if (seekTo is { } index) {
+                await this.SeekAsync(index, reload: true);
             }
-
-            if (!this.CanSeek) {
-                throw new ArgumentException($"{nameof(LoadImagesAtPathsAsync)} received a seekTo that is larger than the amount of images it received.");
-            }
-
-            this.canWrap = true;
-        }
-
-        public async Task AppendImagesAtPathsAsync(IEnumerable<string> paths, bool suppressInterfaceUpdates = false) {
-            if (await TryEnumerateStorageFilesAsync(paths) is not { } files) {
-                return;
-            }
-
-            this.canWrap = false;
-
-            await foreach (var file in files) {
-                // we temporary disable CanSeek like we do in Load...
-                var temp = this.CanSeek;
-                this.CanSeek = false;
-                this.Images.Add(file);
-                this.CanSeek = temp;
-
-                if (!suppressInterfaceUpdates) {
-                    this.UpdateTitle();
-                }
-            }
-
-            this.canWrap = true;
         }
 
         private async Task FinishLoadContainingFolderAsync(StorageFile passthrough, string folder) {
             this.CanSeek = false;
             this.Title = "Viewer - Loading...";
 
-            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(passthrough);
+            var passthroughSuccessful = await this.UpdateBitmapSourceAsync(AbstractStorageFile.FromStorageFile(passthrough));
 
             var files = ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder)
                 .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
@@ -223,15 +154,11 @@ namespace ImageViewer {
             var filenames = files.Select(info => info.Path);
 
             if (passthroughSuccessful) {
-                this.Images.Clear();
-                await this.AppendImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), suppressInterfaceUpdates: true);
+                await this.LoadImagesAtPathsAsync(filenames, seekTo: null);
                 this.SetCurrentImageIndex(passthroughIndex);
-                this.CanSeek = true;
             } else {
-                await this.LoadImagesAtPathsAsync(filenames.Take(passthroughIndex + 1), seekTo: passthroughIndex);
+                await this.LoadImagesAtPathsAsync(filenames, seekTo: passthroughIndex);
             }
-
-            await this.AppendImagesAtPathsAsync(filenames.Skip(passthroughIndex + 1));
         }
 
         public async Task OpenContainingFolderAsync(StorageFile file) {
@@ -279,10 +206,6 @@ namespace ImageViewer {
             }
         }
 
-        // When images are being loaded, we may allow the user to seek, but it doesn't make sence to wrap when the 
-        // actual last image isn't actually loaded yet, and the "last image" the app sees is some random image.
-        private bool canWrap = true;
-
         public async Task SeekAsync(int index, bool reload = false) {
             if (!this.CanSeek) {
                 return;
@@ -294,11 +217,8 @@ namespace ImageViewer {
                 return;
             }
 
-            var newIndex = this.ActualIndex(index);
-            if (newIndex != index && !canWrap) {
-                return;
-            }
-            index = newIndex;
+            // we wrap around implicitly
+            index = (index + this.Images.Count) % this.Images.Count;
 
             if (!reload && index == this.CurrentImageIndex) {
                 return;
@@ -312,18 +232,13 @@ namespace ImageViewer {
             }
         }
 
-        // for a relative-to-current-image index, just do CurrentImageIndex += ...
-        private int ActualIndex(int index) {
-            return (index + this.Images.Count) % this.Images.Count;
-        }
-
         private void SetCurrentImageIndex(int i) {
             this.CurrentImageIndex = i;
             this.OnPropertyChanged(nameof(this.CurrentImagePath));
             this.UpdateTitle();
         }
 
-        private async Task SetCurrentImageSourceAsync(StorageFile? file, int? decodePixelHeight) {
+        private async Task SetCurrentImageSourceAsync(AbstractStorageFile? file, int? decodePixelHeight) {
             if (file == null) {
                 this.CurrentImageSource = null;
                 this.CurrentImageMetadata = null;
@@ -331,8 +246,8 @@ namespace ImageViewer {
             }
 
             var image = new BitmapImage();
-
-            using (var stream = await file.OpenReadAsync()) {
+            var storageFile = await file.File();
+            using (var stream = await storageFile.OpenReadAsync()) {
                 if (decodePixelHeight is { } height) {
                     image.DecodePixelHeight = height;
                 }
@@ -347,9 +262,9 @@ namespace ImageViewer {
 
         // note: index must be valid!
         private bool updatingBitmapSource;
-        private StorageFile? queuedFile;
+        private AbstractStorageFile? queuedFile;
 
-        private async Task<bool> UpdateBitmapSourceAsync(StorageFile file) {
+        private async Task<bool> UpdateBitmapSourceAsync(AbstractStorageFile file) {
             if (this.updatingBitmapSource) {
                 this.queuedFile = file;
                 return true;
@@ -386,17 +301,18 @@ namespace ImageViewer {
         }
 
         public async Task DeleteCurrentImageAsync() {
-            var file = this.Images[this.CurrentImageIndex];
+            var file = await this.Images[this.CurrentImageIndex].File();
             this.Images.RemoveAt(this.CurrentImageIndex);
             var reloadTask = this.SeekAsync(this.CurrentImageIndex, reload: true);
             await file.DeleteAsync();  // this moves the file to recycle bin, if possible
             await reloadTask;
         }
 
-        private async Task UpdateBitmapMetadataAsync(StorageFile file) {
+        private async Task UpdateBitmapMetadataAsync(AbstractStorageFile file) {
             try {
-                var properties = await file.GetBasicPropertiesAsync();
-                var imageProperties = await file.Properties.GetImagePropertiesAsync();
+                var storageFile = await file.File();
+                var properties = await storageFile.GetBasicPropertiesAsync();
+                var imageProperties = await storageFile.Properties.GetImagePropertiesAsync();
                 this.CurrentImageMetadata = this.CurrentImageDescription(properties, imageProperties);
             } catch (NotSupportedException) {
                 this.CurrentImageMetadata = null;
