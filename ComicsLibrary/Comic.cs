@@ -88,6 +88,6 @@ namespace ComicsLibrary {
         public HashSet<string> Tags { get; set; } = new HashSet<string>();
         public bool Loved { get; set; }
         public string? ThumbnailSource { get; set; }
-        public string DateAdded { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        public string DateAdded { get; set; } = DateTime.Now.ToString("yyyy-MM-dd");
     }
 }

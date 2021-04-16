@@ -1,5 +1,5 @@
 ﻿namespace ComicsLibrary.SQL.Migrations {
-    // This migration ensures explicit primary keys exist on all tables, so that we can move away from 
+    // This migration ensures explicit primary keys exist on all tables, so that we can move away from
     // messing around with implicit rowids, as well as ensure compatibility with external tools (specifically diesel)
     internal class Migration_7_PrimaryKeys : ComicsDatabaseMigration {
         public Migration_7_PrimaryKeys() : base(
@@ -29,7 +29,7 @@ INSERT INTO playlist_items_temp
     INNER JOIN playlists p ON pi.playlistid = p.rowid
     INNER JOIN comics c ON pi.comicid = c.rowid;
 
--- comics -- 
+-- comics --
 
 CREATE TABLE comics_new (
     path TEXT NOT NULL,
@@ -41,12 +41,11 @@ CREATE TABLE comics_new (
     thumbnail_source TEXT,
     date_added TEXT NOT NULL DEFAULT current_timestamp,
     loved INTEGER DEFAULT 0 CHECK (loved IN (0, 1)),
-    disliked INTEGER DEFAULT 0 CHECK (disliked IN (0, 1)),
     active INTEGER DEFAULT 1 CHECK (active IN (0, 1))
 );
 
 INSERT INTO comics_new
-    SELECT folder, unique_name, title, author, category, display_title, thumbnail_source, date_added, loved, disliked, active
+    SELECT folder, unique_name, title, author, category, display_title, thumbnail_source, date_added, loved, active
     FROM comics;
 
 DROP TABLE comics;

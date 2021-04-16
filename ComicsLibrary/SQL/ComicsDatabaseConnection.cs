@@ -52,6 +52,7 @@ namespace ComicsLibrary.SQL {
                 ("loved", comic.Loved),
                 ("thumbnail_source", comic.ThumbnailSource),
                 ("display_title", comic.DisplayTitle),
+                ("date_added", comic.DateAdded)
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
