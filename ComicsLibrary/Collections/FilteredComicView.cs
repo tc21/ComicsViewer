@@ -19,10 +19,10 @@ namespace ComicsLibrary.Collections {
             this.filteredFrom = filteredFrom;
             this.filter = filter;
 
-            this.GenerateCache();
+            this.UpdateCache();
         }
 
-        private void GenerateCache() {
+        protected void UpdateCache() {
             this.cache.Refresh(this.filteredFrom.Where(this.filter));
         }
 
@@ -41,7 +41,7 @@ namespace ComicsLibrary.Collections {
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
-                    this.GenerateCache();
+                    this.UpdateCache();
 
                     var add = e.Add.Where(this.filter).ToList();
                     var remove = e.Remove.Where(this.filter).ToList(); 
@@ -53,7 +53,7 @@ namespace ComicsLibrary.Collections {
                     return;
 
                 case ComicChangeType.Refresh:
-                    this.GenerateCache();
+                    this.UpdateCache();
 
                     this.OnComicChanged(e);
                     return;

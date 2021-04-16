@@ -24,6 +24,7 @@ namespace ComicsLibrary {
             comics = comics.Where(comic => !this.uniqueIds.Contains(comic.UniqueIdentifier)).ToList();
 
             this.uniqueIds.UnionWith(comics.Select(comic => comic.UniqueIdentifier));
+            this.UpdateCache();
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, add: comics));
         }
 
@@ -31,6 +32,7 @@ namespace ComicsLibrary {
             comics = comics.Where(comic => this.uniqueIds.Contains(comic.UniqueIdentifier)).ToList();
 
             this.uniqueIds.ExceptWith(comics.Select(comic => comic.UniqueIdentifier));
+            this.UpdateCache();
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ItemsChanged, remove: comics));
         }
     }
