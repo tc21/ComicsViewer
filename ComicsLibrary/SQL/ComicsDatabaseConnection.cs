@@ -9,30 +9,6 @@ using ComicsLibrary.Collections;
 
 namespace ComicsLibrary.SQL {
     public class ComicsDatabaseConnection {
-        // TODO rowid can (might?, check for sure) change when we delete stuff.
-        private const string table_comics = "comics";
-        private const string table_tags = "tags";
-        private const string table_tags_xref = "comic_tags";
-        private const string table_playlists = "playlists";
-        private const string table_playlist_items = "playlist_items";
-
-        private const string key_path = "folder";
-        private const string key_unique_id = "unique_name";
-        private const string key_title = "title";
-        private const string key_author = "author";
-        private const string key_category = "category";
-        private const string key_display_title = "display_title";
-        private const string key_thumbnail_source = "thumbnail_source";
-        private const string key_loved = "loved";
-        private const string key_active = "active";
-        private const string key_date_added = "date_added";
-        private const string key_playlist_name = "name";
-
-        private const string key_tag_name = "name";
-        private const string key_xref_comic_id = "comicid";
-        private const string key_xref_tag_id = "tagid";
-        private const string key_xref_playlist_id = "playlistid";
-
         private readonly SqliteDatabaseConnection connection;
 
         public ComicsDatabaseConnection(SqliteDatabaseConnection connection) {
@@ -42,7 +18,7 @@ namespace ComicsLibrary.SQL {
         public SqliteTransaction BeginTransaction() => this.connection.Connection.BeginTransaction();
 
         public async Task<IEnumerable<Comic>> GetActiveComicsAsync() {
-            using var reader = await this.GetComicReaderWithConstraintAsync(key_active, 1);
+            using var reader = await this.GetComicReaderWithConstraintAsync("active", 1);
 
             var comics = new List<Comic>();
 
@@ -54,66 +30,45 @@ namespace ComicsLibrary.SQL {
             return comics;
         }
 
-        /* returns the rowid of the added comic */
-        public async Task<int> AddComicAsync(Comic comic) {
+        public async Task AddComicAsync(Comic comic) {
             if (await this.HasComicAsync(comic)) {
                 throw new ComicsDatabaseException("Attempting to add a comic that already exists");
             }
 
+            await this.AddComicInnerAsync(comic);
+
+            foreach (var tag in comic.Tags) {
+                await this.AssociateTagAsync(comic, tag);
+            }
+        }
+
+        private async Task AddComicInnerAsync(Comic comic) {
             var parameters = new (string, object?)[] {
-                (key_path, comic.Path),
-                (key_unique_id, comic.UniqueIdentifier),
-                (key_title, comic.Title),
-                (key_author, comic.Author),
-                (key_category, comic.Category),
-                (key_loved, comic.Loved),
-                (key_thumbnail_source, comic.ThumbnailSource),
-                (key_display_title, comic.DisplayTitle),
+                ("path", comic.Path),
+                ("unique_identifier", comic.UniqueIdentifier),
+                ("title", comic.Title),
+                ("author", comic.Author),
+                ("category", comic.Category),
+                ("loved", comic.Loved),
+                ("thumbnail_source", comic.ThumbnailSource),
+                ("display_title", comic.DisplayTitle),
             }.Where(pair => pair.Item2 != null)
              .ToDictionary(pair => pair.Item1, pair => pair.Item2!);
 
-            if (!(await this.connection.ExecuteInsertAsync(table_comics, parameters) is { } comicid)) {
+            // Note: in .net standard, 'is not' doesn't always work property, despite compiling without errors.
+            // Avoid using it in ComicsLibrary for now.
+            if (!(await this.connection.ExecuteInsertAsync("comics", parameters) is { } comicid)) {
                 throw new ComicsDatabaseException("Insertion of comic failed for unknown reasons.");
             }
-
-            foreach (var tag in comic.Tags) {
-                await this.AssociateTagAsync(comicid, await this.AddTagAsync(tag));
-            }
-
-            return comicid;
         }
 
         public async Task UpdateComicAsync(Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+            if (!await this.HasComicAsync(comic)) {
                 throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
             }
 
-            var parameters = new Dictionary<string, object>();
-
-            /* fields to update in a SET clause */
-            var setClauses = new List<string>();
-            foreach (var (key, value) in new (string, object?)[] {
-                (key_path, comic.Path),
-                (key_title, comic.Title),
-                (key_author, comic.Author),
-                (key_category, comic.Category),
-                (key_loved, comic.Loved),
-                (key_thumbnail_source, comic.ThumbnailSource),
-                (key_display_title, comic.DisplayTitle),
-                (key_active, true),
-            }) {
-                if (value != null) {
-                    setClauses.Add($"{key} = @{key}");
-                    parameters.Add($"@{key}", value);
-                }
-            }
-
-            var queryString = $@"
-                UPDATE {table_comics}
-                    SET {string.Join(", ", setClauses)}
-                    WHERE rowid = {comicid}";
-
-            _ = await this.connection.ExecuteNonQueryAsync(queryString, parameters);
+            // ON CONFLICT UPDATE will do it automatically for us
+            await this.AddComicInnerAsync(comic);
 
             // Update tags
             var storedMetadata = await this.TryGetComicMetadataAsync(comic);
@@ -126,23 +81,23 @@ namespace ComicsLibrary.SQL {
             var add = comic.Tags.Except(metadata.Tags);
 
             foreach (var tag in delete) {
-                if (await this.TryGetComicTagXrefIdAsync(comicid, await this.AddTagAsync(tag)) is { } xrefid) {
-                    await this.RemoveRowAsync(table_tags_xref, xrefid);
-                }
+                await this.UnassociateTagAsync(comic, tag);
             }
 
             foreach (var tag in add) {
-                await this.AssociateTagAsync(comicid, await this.AddTagAsync(tag));
+                await this.AssociateTagAsync(comic, tag);
             }
         }
 
         public async Task InvalidateComicAsync(Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+            if (!await this.HasComicAsync(comic)) {
                 throw new ComicsDatabaseException("Attempting to invalidate a comic that doesn't exist");
             }
 
             var rowsChanged = await this.connection.ExecuteNonQueryAsync(
-                $"UPDATE {table_comics} SET {key_active} = 0 WHERE rowid = {comicid}");
+                $"UPDATE comics SET active = 0 WHERE unique_identifier = @uid",
+                new Dictionary<string, object> { ["@uid"] = comic.UniqueIdentifier }
+            );
 
             if (rowsChanged == 0) {
                 throw new ComicsDatabaseException("Attempting to invalidate a comic that is already inactive");
@@ -150,7 +105,7 @@ namespace ComicsLibrary.SQL {
         }
 
         public async Task<ComicMetadata?> TryGetComicMetadataAsync(Comic comic) {
-            using var reader = await this.GetComicReaderWithConstraintAsync(key_unique_id, comic.UniqueIdentifier);
+            using var reader = await this.GetComicReaderWithConstraintAsync("unique_identifier", comic.UniqueIdentifier);
 
             if (!reader.HasRows) {
                 return null;
@@ -160,147 +115,92 @@ namespace ComicsLibrary.SQL {
             return ReadComicMetadataFromRow(reader);
         }
 
-        public async Task<bool> HasComicAsync(Comic comic) {
-            return await this.TryGetComicRowidAsync(comic) != null;
+        public Task<bool> HasComicAsync(Comic comic) {
+            return this.HasPrimaryKeyAsync("comics", "unique_identifier", comic.UniqueIdentifier);
         }
 
-        private async Task<int?> TryGetComicRowidAsync(Comic comic) {
-            var constraints = new Dictionary<string, object> { [key_unique_id] = comic.UniqueIdentifier };
-            var rowids = await this.GetRowidsAsync(table_comics, constraints);
-
-            return rowids.Count == 1 
-                ? rowids[0] 
-                : (int?)null;
-        }
-
-        /* returns the tag's rowid; can be used to query for an existing tag */
-        private async Task<int> AddTagAsync(string tag) {
+        private async Task AddTagAsync(string tag) {
             // The insertion may be ignored; 
-            _ = await this.connection.ExecuteInsertAsync(table_tags, new Dictionary<string, object> { [key_tag_name] = tag });
-
-            return await this.connection.ExecuteScalarAsync<int>(
-                $"SELECT rowid FROM {table_tags} WHERE {key_tag_name} = @{key_tag_name}",
-                new Dictionary<string, object> { [$"@{key_tag_name}"] = tag }
-            );
+            _ = await this.connection.ExecuteInsertAsync("tags", new Dictionary<string, object> { ["name"] = tag });
         }
 
-        private Task AssociateTagAsync(int comicid, int tagid) {
-            // I'm assuming you can't do an injection attack with an Int32
-            return this.connection.ExecuteInsertAsync(table_tags_xref, new Dictionary<string, object> {
-                [key_xref_comic_id] = comicid,
-                [key_xref_tag_id] = tagid,
+        private async Task AssociateTagAsync(Comic comic, string tag) {
+            // The insertion may be ignored; 
+            _ = await this.connection.ExecuteInsertAsync("tags", new Dictionary<string, object> { ["name"] = tag });
+            _ = await this.connection.ExecuteInsertAsync("comic_tags", new Dictionary<string, object> {
+                ["comic"] = comic.UniqueIdentifier,
+                ["tag"] = tag,
             });
         }
 
-        /* selects for rows matching the constraint, but only returning the rowids */
-        private async Task<List<int>> GetRowidsAsync(string tableName, Dictionary<string, object> constraints) {
-            var ids = new List<int>();
-            var (whereClause, parameters) = ProcessConstraints(constraints);
-            var reader = await this.connection.ExecuteSelectAsync(tableName, new[] { "rowid" }, restOfQuery: whereClause, parameters);
-
-            while (await reader.ReadAsync()) {
-                ids.Add(reader.GetInt32("rowid"));
-            }
-
-            return ids;
-        }
-
-        private async Task<int?> TryGetComicTagXrefIdAsync(int comicid, int tagid) {
-            var rowids = await this.GetRowidsAsync(
-                table_tags_xref,
-                new Dictionary<string, object> {
-                    [key_xref_comic_id] = comicid,
-                    [key_xref_tag_id] = tagid
+        private async Task UnassociateTagAsync(Comic comic, string tag) {
+            var rowsChanged = await this.connection.ExecuteNonQueryAsync(
+                $"DELETE FROM comic_tags WHERE comic = @comic AND tag = @tag",
+                new Dictionary<string, object> { 
+                    ["@comic"] = comic.UniqueIdentifier, 
+                    ["@tag"] = tag 
                 }
             );
 
-            if (rowids.Count == 0) {
-                return null;
-            }
-
-            return rowids[0];
-        }
-
-        private async Task RemoveRowAsync(string table, int rowid) {
-            var rowsChanged = await this.connection.ExecuteNonQueryAsync($"DELETE FROM {table} WHERE rowid = {rowid}");
             if (rowsChanged == 0) {
-                throw new ComicsDatabaseException("Attempting to remove a row that doesn't exist.");
+                throw new ComicsDatabaseException("Attempting to unassociate a tag that isn't already associated.");
             }
         }
 
-        private static (string query, Dictionary<string, object> parameters) ProcessConstraints(Dictionary<string, object> constraints) {
-            var constraintStrings = new List<string>();
-            var parameters = new Dictionary<string, object>();
-
-            foreach (var c in constraints) {
-                constraintStrings.Add($"{c.Key} = @{c.Key}");
-                parameters[$"@{c.Key}"] = c.Value;
-            }
-
-            var constraintString = "";
-            if (constraintStrings.Count != 0) {
-                constraintString = " WHERE " + string.Join(" AND ", constraintStrings);
-            }
-
-            return (constraintString, parameters);
+        private async Task<bool> HasPrimaryKeyAsync(string table, string keyName, object keyValue) {
+            var parameters = new Dictionary<string, object> { ["@value"] = keyValue };
+            return (await this.connection.ExecuteScalarAsync<int>($"SELECT COUNT(*) FROM {table} WHERE {keyName} = @value", parameters)) > 0;
         }
 
         private static Comic ReadComicFromRow(SqliteDictionaryReader reader) {
-            var path = reader.GetString(key_path);
-            var title = reader.GetString(key_title);
-            var author = reader.GetString(key_author);
-            var category = reader.GetString(key_category);
+            var path = reader.GetString("path");
+            var title = reader.GetString("title");
+            var author = reader.GetString("author");
+            var category = reader.GetString("category");
             var metadata = ReadComicMetadataFromRow(reader);
 
-            var comic = new Comic(path, title: title, author: author, category: category, metadata: metadata);
+            var comic = new Comic(path, title, author, category, metadata);
             return comic;
         }
 
         private static ComicMetadata ReadComicMetadataFromRow(SqliteDictionaryReader reader) {
-            var tagList = reader.GetStringOrNull(col_tag_list);
+            var tagList = reader.GetStringOrNull("tag_list");
             var tags = new HashSet<string>(tagList == null ? new string[0] : tagList.Split(','));
 
             var metadata = new ComicMetadata {
-                DisplayTitle = reader.GetStringOrNull(key_display_title),
-                ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
-                Loved = reader.GetBoolean(key_loved),
+                DisplayTitle = reader.GetStringOrNull("display_title"),
+                ThumbnailSource = reader.GetStringOrNull("thumbnail_source"),
+                Loved = reader.GetBoolean("loved"),
                 Tags = tags,
-                DateAdded = reader.GetString(key_date_added)
+                DateAdded = reader.GetString("date_added")
             };
 
             return metadata;
         }
 
-        private const string col_comic_id = "comicid";
-        private const string col_tag_list = "tag_list";
-
-        private static readonly string GetComicWithConstraintsQuery = @$"
+        private static readonly string GetComicWithConstraintsQuery = @"
             SELECT 
-                {table_comics}.rowid AS {col_comic_id},
-                {table_comics}.{key_path},
-                {table_comics}.{key_title},
-                {table_comics}.{key_author},
-                {table_comics}.{key_category},
-                {table_comics}.{key_display_title},
-                {table_comics}.{key_thumbnail_source},
-                {table_comics}.{key_loved},
-                {table_comics}.{key_date_added},
-                group_concat({table_tags}.{key_tag_name}) AS {col_tag_list}
+                comics.path,
+                comics.title,
+                comics.author,
+                comics.category,
+                comics.display_title,
+                comics.thumbnail_source,
+                comics.loved,
+                comics.date_added,
+                group_concat(comic_tags.tag) AS tag_list
             FROM
-                {table_comics}
+                comics
             LEFT OUTER JOIN 
-                {table_tags_xref} ON {table_tags_xref}.{key_xref_comic_id} = {table_comics}.rowid
-            LEFT OUTER JOIN
-                {table_tags} ON {table_tags_xref}.{key_xref_tag_id} = {table_tags}.rowid
+                comic_tags ON comic_tags.comic = comics.unique_identifier
             WHERE
-                {table_comics}.{{0}} = @constraint_value
+                comics.{0} = @constraint_value
             GROUP BY
-                {table_comics}.rowid
+                comics.unique_identifier
         ";
 
-        private static readonly List<string> GetComicQueryColumnNames = new List<string> {
-            col_comic_id, key_path, key_title, key_author, key_category, key_display_title, key_thumbnail_source,
-            key_loved, key_date_added, col_tag_list
+        private static readonly List<string> GetComicQueryColumnNames = new() {
+            "path", "title", "author", "category", "display_title", "thumbnail_source", "loved", "date_added", "tag_list"
         };
 
         private Task<SqliteDictionaryReader> GetComicReaderWithConstraintAsync(string constraintName, object constraintValue) {
@@ -312,34 +212,18 @@ namespace ComicsLibrary.SQL {
 
         #region Playlists
 
-        private static readonly string GetAllPlaylistsQuery = @$"
-            SELECT
-                {table_playlists}.{key_playlist_name},
-                {table_comics}.{key_unique_id}
-            FROM 
-                {table_playlists}
-            LEFT OUTER JOIN
-                {table_playlist_items} ON {table_playlist_items}.{key_xref_playlist_id} = {table_playlists}.rowid
-            LEFT OUTER JOIN
-                {table_comics} ON {table_playlist_items}.{key_xref_comic_id} = {table_comics}.rowid
-        "; 
-        
-        private static readonly List<string> GetPlaylistQueryColumnNames = new List<string> {
-            key_playlist_name, key_unique_id
-        };
-
         public async Task<List<Playlist>> GetAllPlaylistsAsync(ComicList comics) {
-            var reader = await this.connection.ExecuteReaderAsync(GetAllPlaylistsQuery, GetPlaylistQueryColumnNames);
+            var reader = await this.connection.ExecuteReaderAsync("SELECT playlist, comic FROM playlist_items", new[] { "playlist", "comic" });
             var playlists = new Dictionary<string, List<string>>();
 
             while (await reader.ReadAsync()) {
-                var playlistName = reader.GetString(key_playlist_name);
+                var playlistName = reader.GetString("playlist");
 
                 if (!playlists.ContainsKey(playlistName)) {
                     playlists[playlistName] = new List<string>();
                 }
 
-                if (reader.GetStringOrNull(key_unique_id) is { } comicUniqueName) {
+                if (reader.GetStringOrNull("comic") is { } comicUniqueName) {
                     playlists[playlistName].Add(comicUniqueName);
                 }
             }
@@ -355,87 +239,89 @@ namespace ComicsLibrary.SQL {
             return actualPlaylists.ToList();
         }
 
-        public async Task<bool> RemovePlaylistAsync(string name) {
-            if (!(await this.TryGetPlaylistRowidAsync(name) is { } playlistid)) {
-                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+        public async Task RemovePlaylistAsync(string name) {
+            if (!await this.HasPlaylistAsync(name)) {
+                throw new ComicsDatabaseException($"Attempting to remove a playlist named '{name}', but it doesn't exist");
             }
 
+            // playlist_items will be updated by cascade
             var rowsModified = await this.connection.ExecuteNonQueryAsync(
-                $"DELETE FROM {table_playlists} WHERE rowid = {playlistid}"
+                $"DELETE FROM playlists WHERE name = @name",
+                new Dictionary<string, object> { ["@name"] = name }
             );
 
             if (rowsModified != 1) {
-                return false;
+                throw new ComicsDatabaseException($"Failed to remove playlist '{name}'");
+            }
+        }
+
+        private Task<bool> HasPlaylistAsync(string name) {
+            return this.HasPrimaryKeyAsync("playlists", "name", name);
+        }
+
+        public async Task AddPlaylistAsync(string name) {
+            _ =  await this.connection.ExecuteInsertAsync("playlists", new Dictionary<string, object> {
+                ["name"] = name
+            });
+        }
+
+        public async Task RenamePlaylistAsync(string oldName, string newName) {
+            if (oldName == newName) {
+                return;
             }
 
-            _ = await this.connection.ExecuteNonQueryAsync(
-                $"DELETE FROM {table_playlist_items} WHERE {key_xref_playlist_id} = {playlistid}"
-            );
-
-            return true;
-        }
-
-        public async Task<bool> AddPlaylistAsync(string name) {
-            var rowid = await this.connection.ExecuteInsertAsync(table_playlists, new Dictionary<string, object> {
-                [key_playlist_name] = name
-            });
-
-            return rowid != null;
-        }
-
-        public async Task<bool> RenamePlaylistAsync(string oldName, string newName) {
             var rowsModified = await this.connection.ExecuteNonQueryAsync(
-                $"UPDATE {table_playlists} SET {key_playlist_name} = @newName WHERE {key_playlist_name} = @oldName",
+                $"UPDATE playlists SET name = @newName WHERE name = @oldName",
                 new Dictionary<string, object> {
                     ["@oldName"] = oldName,
                     ["@newName"] = newName
                 }
             );
 
-            return rowsModified == 1;
+            if (rowsModified != 1) {
+                throw new ComicsDatabaseException($"Failed to rename playlist '{oldName}'");
+            }
         }
 
-        private async Task<int?> TryGetPlaylistRowidAsync(string name) {
-            var constraints = new Dictionary<string, object> { [key_playlist_name] = name };
-            var rowids = await this.GetRowidsAsync(table_playlists, constraints);
-
-            return rowids.Count == 1
-                ? rowids[0]
-                : (int?)null;
-        }
-
-        public async Task<bool> AssociateComicWithPlaylistAsync(string playlist, Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+        public async Task AssociateComicWithPlaylistAsync(string playlist, Comic comic) {
+            if (!await this.HasComicAsync(comic)) {
                 throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
             }
 
-            if (!(await this.TryGetPlaylistRowidAsync(playlist) is { } playlistid)) {
-                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            if (!await this.HasPlaylistAsync(playlist)) {
+                throw new ComicsDatabaseException("Attempting to update a playlist that doesn't exist");
             }
 
-            var rowid = await this.connection.ExecuteInsertAsync(table_playlist_items, new Dictionary<string, object> {
-                [key_xref_playlist_id] = playlistid,
-                [key_xref_comic_id] = comicid
+            var rowid = await this.connection.ExecuteInsertAsync("playlist_items", new Dictionary<string, object> {
+                ["playlist"] = playlist,
+                ["comic"] = comic.UniqueIdentifier
             });
 
-            return rowid != null;
+            if (rowid == null) {
+                throw new ComicsDatabaseException($"Failed to update playlist '{playlist}'");
+            }
         }
 
-        public async Task<bool> UnassociateComicWithPlaylistAsync(string playlist, Comic comic) {
-            if (!(await this.TryGetComicRowidAsync(comic) is { } comicid)) {
+        public async Task UnassociateComicWithPlaylistAsync(string playlist, Comic comic) {
+            if (!await this.HasComicAsync(comic)) {
                 throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
             }
 
-
-            if (!(await this.TryGetPlaylistRowidAsync(playlist) is { } playlistid)) {
-                throw new ComicsDatabaseException("Attempting to update a comic that doesn't exist");
+            if (!await this.HasPlaylistAsync(playlist)) {
+                throw new ComicsDatabaseException("Attempting to update a playlist that doesn't exist");
             }
 
             var rowsModified = await this.connection.ExecuteNonQueryAsync(
-                $"DELETE FROM {table_playlist_items} WHERE {key_xref_playlist_id} = {playlistid} AND {key_xref_comic_id} = {comicid}"
+                $"DELETE FROM playlist_items WHERE playlist = @playlist AND comic = @comic",
+                new Dictionary<string, object> {
+                    ["@playlist"] = playlist,
+                    ["@comic"] = comic.UniqueIdentifier
+                }
             );
 
-            return rowsModified == 1;
+            if (rowsModified != 1) {
+                throw new ComicsDatabaseException($"Failed to update playlist '{playlist}'");
+            }
         }
 
         #endregion

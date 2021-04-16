@@ -48,7 +48,7 @@ namespace ComicsLibrary.SQL {
                 if (await this.Connection.HasComicAsync(comic)) {
                     await this.Connection.UpdateComicAsync(comic);
                 } else {
-                    _ = await this.Connection.AddComicAsync(comic);
+                    await this.Connection.AddComicAsync(comic);
                 }
             }
 
@@ -85,33 +85,23 @@ namespace ComicsLibrary.SQL {
             return this.Connection.GetAllPlaylistsAsync(comics);
         }
 
-
-
-        public async Task RemovePlaylistAsync(string name) {
-            if (!await this.Connection.RemovePlaylistAsync(name)) {
-                throw new ProgrammerError($"Failed to remove playlist '{name}': this playlist doesn't exist.");
-            }
+        public Task RemovePlaylistAsync(string name) {
+            return this.Connection.RemovePlaylistAsync(name);
         }
 
-        public async Task AddPlaylistAsync(string name) {
-            if (!await this.Connection.AddPlaylistAsync(name)) {
-                throw new ProgrammerError($"Failed to remove playlist '{name}': this playlist already exists.");
-            }
+        public Task AddPlaylistAsync(string name) {
+            return this.Connection.AddPlaylistAsync(name);
         }
 
-        public async Task RenamePlaylistAsync(string oldName, string newName) {
-            if (!await this.Connection.RenamePlaylistAsync(oldName, newName)) {
-                throw new ProgrammerError($"Failed to rename playlist '{oldName}'.");
-            }
+        public Task RenamePlaylistAsync(string oldName, string newName) {
+            return this.Connection.RenamePlaylistAsync(oldName, newName);
         }
 
         public async Task AddComicsToPlaylistAsync(string playlist, IEnumerable<Comic> comics) {
             using var transaction = this.Connection.BeginTransaction();
 
             foreach (var comic in comics) {
-                if (!await this.Connection.AssociateComicWithPlaylistAsync(playlist, comic)) {
-                    throw new ProgrammerError($"Failed to add item to playlist '{playlist}'.");
-                }
+                await this.Connection.AssociateComicWithPlaylistAsync(playlist, comic);
             }
 
             transaction.Commit();
@@ -121,9 +111,7 @@ namespace ComicsLibrary.SQL {
             using var transaction = this.Connection.BeginTransaction();
 
             foreach (var comic in comics) {
-                if (!await this.Connection.UnassociateComicWithPlaylistAsync(playlist, comic)) {
-                    throw new ProgrammerError($"Failed to remove item from playlist '{playlist}'.");
-                }
+                await this.Connection.UnassociateComicWithPlaylistAsync(playlist, comic);
             }
 
             transaction.Commit();

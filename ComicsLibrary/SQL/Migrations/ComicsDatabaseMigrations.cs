@@ -13,7 +13,9 @@ namespace ComicsLibrary.SQL.Migrations {
             // We also verify that the migration system works with an otherwise useless migration
             new Migration_5(),
             // Playlists
-            new Migration_6_Playlists()
+            new Migration_6_Playlists(),
+            // Primary keys
+            new Migration_7_PrimaryKeys(),
             // Insert new migrations here
         };
     }
