@@ -255,8 +255,7 @@ namespace ComicsViewer.Pages {
                 case NavigationMode.Back:
                 case NavigationMode.Forward:
                 case NavigationMode.Refresh:
-                    // do nothing
-                    break;
+                    throw new ProgrammerError("ComicItemGrid should only be navigated with NavigationMode.New");
                 default:
                     throw new ArgumentOutOfRangeException();
             }

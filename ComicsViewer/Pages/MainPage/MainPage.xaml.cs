@@ -245,6 +245,11 @@ namespace ComicsViewer {
             }
 
             sender.ItemsSource = suggestions;
+
+            if (Search.Compile(sender.Text) is { } search) {
+                this.ViewModel.SubmitSearch(search, sender.Text, rememberSearch: false);
+            }
+
         }
 
         private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args) {

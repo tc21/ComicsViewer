@@ -130,11 +130,11 @@ namespace ComicsViewer.Features {
                 return false;
             }
 
-            if (this.GeneratedFilter?.Invoke(comic) == false) {
+            if (this._generatedFilter?.Invoke(comic) == false) {
                 return false;
             }
 
-            return this.Search?.Invoke(comic) ?? true;
+            return this._search?.Invoke(comic) ?? true;
         }
     }
 

@@ -244,19 +244,24 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Search and filtering
 
+        private string? lastSearch;
+
         // Called when a search is successfully compiled and submitted
         // Note: this happens at AppViewModel because filters are per-app
-        public void SubmitSearch(Func<Comic, bool> search, string? searchText = null) {
-            this.Comics.Filter.Search = search;
+        public void SubmitSearch(Func<Comic, bool> search, string? searchText = null, bool rememberSearch = true) {
+            searchText = searchText?.Trim();
 
-            if (searchText != null) {
+            if (searchText != lastSearch) {
+                lastSearch = searchText;
+                this.Comics.Filter.Search = search;
+            }
+
+            if (rememberSearch && searchText is not null && searchText != "") {
                 // Add this search to the recents list
-                if (searchText.Trim() != "") {
-                    IList<string> savedSearches = Defaults.SettingsAccessor.GetSavedSearches(this.Profile.Name);
-                    RemoveIgnoreCase(ref savedSearches, searchText);
-                    savedSearches.Insert(0, searchText);
-                    Defaults.SettingsAccessor.SetSavedSearches(this.Profile.Name, savedSearches);
-                }
+                IList<string> savedSearches = Defaults.SettingsAccessor.GetSavedSearches(this.Profile.Name);
+                RemoveIgnoreCase(ref savedSearches, searchText);
+                savedSearches.Insert(0, searchText);
+                Defaults.SettingsAccessor.SetSavedSearches(this.Profile.Name, savedSearches);
             }
 
             // Helper function
