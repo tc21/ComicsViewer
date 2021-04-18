@@ -82,7 +82,12 @@ namespace ComicsViewer {
             this.ProfileNavigationViewItem.MenuItems.Clear();
             foreach (var existingProfile in ProfileManager.LoadedProfiles) {
                 if (existingProfile != e.NewProfile.Name) {
-                    this.ProfileNavigationViewItem.MenuItems.Add(existingProfile);
+                    // Note: I switched from adding strings to adding NavigationViewItems because randomly, clicking on
+                    // the profiles dropdown would crash. Some unknown error would occur in the code responsible for creating
+                    // UI items, but I wasn't able to figure out more than that. It seems like explicitly creating the 
+                    // NavigationViewItems has fixed the problem for now.
+                    var menuItem = new MUXC.NavigationViewItem { Content = existingProfile };
+                    this.ProfileNavigationViewItem.MenuItems.Add(menuItem);
                 }
             }
 
