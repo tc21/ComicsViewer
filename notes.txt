@@ -1,0 +1,15 @@
+Bugs:
+
+TODOs:
+  1. WinUI 3.0
+  2. Custom extensions
+  
+Notes:
+  1. When clicking the 'X' button in the search box, we should refilter the visible comics, instead of requiring
+     the user to click on the search button again. (This is impossible)
+
+Feature Requests:
+  1. Add an expiration date to generated thumbnails, so they don't just pile up (Also, make sure thumbnails are
+     actually generated when an item is added.)
+  2. Add the ability to save filters into a list of bookmarks
+  3. Add search/navigate to related tags/playlists in addition to authors
