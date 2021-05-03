@@ -130,12 +130,20 @@ namespace ComicsViewer.Features {
             }
 
             static bool IsValidThumbnailFile(string filename) {
+                return !IsWmpThumbnailFile(filename) && UserProfile.IsImage(filename);
+            }
+
+            static bool IsWmpThumbnailFile(string filename) {
                 // Windows media player/groove music creates these files which we can see but can't (and don't want to) use.
-                if (filename is "AlbumArtSmall.jpg" or "Folder.jpg") {
+                if (!filename.EndsWith(".jpg")) {
                     return false;
                 }
 
-                return UserProfile.IsImage(filename);
+                // thanks to WMP's horrendous practice with not only file naming but also placement,
+                // we will simply have to assume no sane person names their files (folder|albumart).*\.jpg
+                // Thanks, Microsoft.
+                return filename.StartsWith("AlbumArt") ||
+                    filename.StartsWith("Folder");
             }
         }
     }
