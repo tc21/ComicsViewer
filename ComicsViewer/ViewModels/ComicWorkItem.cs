@@ -25,7 +25,11 @@ namespace ComicsViewer.ViewModels {
 
         public ComicWorkItem(Comic comic) {
             this.Comic = comic;
-            this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(this.Comic)) };
+
+            var thumbnailPath = Thumbnail.ThumbnailPath(this.Comic);
+            if (Uwp.Common.Win32Interop.IO.FileOrDirectoryExists(thumbnailPath)) {
+                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(thumbnailPath) };
+            }
         }
 
         public void StartTrackingChangesFrom(ComicView view) {

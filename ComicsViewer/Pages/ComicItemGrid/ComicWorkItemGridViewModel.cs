@@ -77,6 +77,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void AddComicItem(ComicWorkItem item, int? index = null) {
+            item.StartTrackingChangesFrom(this.comics);
             item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
 
             if (index is { } i) {
