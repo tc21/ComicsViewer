@@ -55,7 +55,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
-            this.ComicItemGrid.Dispose();
+            this.ComicItemGrid.DisposeAndInvalidate();
         }
 
         private NavigationTag? _navigationTag;

@@ -7,7 +7,7 @@ using ComicsViewer.Common;
 #nullable enable
 
 namespace ComicsViewer.ViewModels {
-    public abstract class ComicItem : ViewModelBase, IDisposable {
+    public abstract class ComicItem : ViewModelBase {
         public abstract string Title { get; }
         public abstract string Subtitle { get; }
         public abstract bool IsLoved { get; }
@@ -15,7 +15,5 @@ namespace ComicsViewer.ViewModels {
         public abstract IEnumerable<Comic> ContainedComics();
 
         public BitmapImage? ThumbnailImage { get; protected set; }
-
-        public abstract void Dispose();
     }
 }

@@ -32,6 +32,8 @@ namespace ComicsLibrary.Collections {
             IEnumerable<Comic> comics,
             ComicSortSelector sortSelector
         ) : this(trackChangesFrom, comicAccessor: new Dictionary<string, Comic>(), sortedComics: new List<Comic>(), sortSelector) {
+            this.debugName = $"SortedComicView({viewIndex}, parent={trackChangesFrom.viewIndex})";
+
             foreach (var comic in comics) {
                 this.Instance_AddComic(comic);
             }

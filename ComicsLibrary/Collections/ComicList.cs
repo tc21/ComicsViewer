@@ -9,9 +9,11 @@ namespace ComicsLibrary.Collections {
     public class ComicList : MutableComicView {
         private readonly Dictionary<string, Comic> comics = new Dictionary<string, Comic>();
 
-        public ComicList() : base(null) { }
+        public ComicList() : base(null) {
+            this.debugName = $"ComicList({viewIndex})";
+        }
 
-        public ComicList(IEnumerable<Comic> comics) : base(null) {
+        public ComicList(IEnumerable<Comic> comics) : this() {
             this.AddComics(comics);
         }
 

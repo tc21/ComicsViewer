@@ -21,23 +21,17 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => new[] { this.Comic };
 
-        private ComicView? trackingChangesFrom;
+        private readonly ComicView? trackingChangesFrom;
 
-        public ComicWorkItem(Comic comic) {
+        public ComicWorkItem(Comic comic, ComicView trackChangesFrom) {
             this.Comic = comic;
 
             var thumbnailPath = Thumbnail.ThumbnailPath(this.Comic);
             if (Uwp.Common.Win32Interop.IO.FileOrDirectoryExists(thumbnailPath)) {
                 this.ThumbnailImage = new BitmapImage { UriSource = new Uri(thumbnailPath) };
             }
-        }
 
-        public void StartTrackingChangesFrom(ComicView view) {
-            if (this.trackingChangesFrom is { } existingView) {
-                existingView.ComicsChanged -= this.View_ComicsChanged;
-            }
-
-            this.trackingChangesFrom = view;
+            this.trackingChangesFrom = trackChangesFrom;
             this.trackingChangesFrom.ComicsChanged += this.View_ComicsChanged;
         }
 
@@ -93,7 +87,7 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        public override void Dispose() {
+        ~ComicWorkItem() {
             if (this.trackingChangesFrom is { } view) {
                 view.ComicsChanged -= this.View_ComicsChanged;
             }

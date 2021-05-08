@@ -96,9 +96,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public override void Dispose() {
-            base.Dispose();
-
+        ~ComicNavigationItemGridViewModel() {
             this.collections.CollectionsChanged -= this.Collections_CollectionsChanged;
         }
     }

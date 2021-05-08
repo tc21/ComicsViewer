@@ -23,7 +23,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicItemGrid : IDisposable {
+    public sealed partial class ComicItemGrid {
         private ComicItemGridViewModel? _viewModel;
 
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
@@ -285,8 +285,10 @@ namespace ComicsViewer.Pages {
             _ = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
         }
 
-        public void Dispose() {
-            this.ViewModel.Dispose();
+        public void DisposeAndInvalidate() {
+            // We still have to call this manually, because sometimes xaml.cs classes aren't properly thrown away and garbage collected
+            this._viewModel = null;
+
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }

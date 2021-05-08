@@ -14,7 +14,7 @@ using Windows.UI.Xaml.Documents;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
-    public class ComicWorkItemPageViewModel : ViewModelBase, IDisposable {
+    public class ComicWorkItemPageViewModel : ViewModelBase {
         public MainViewModel MainViewModel { get; }
         public ComicWorkItem ComicItem { get; }
 
@@ -155,7 +155,7 @@ namespace ComicsViewer.ViewModels.Pages {
             // TODO
         }
 
-        public void Dispose() {
+        ~ComicWorkItemPageViewModel() {
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
             this.ComicItem.RequestingRefresh -= this.ComicItem_RequestingRefresh;
         }

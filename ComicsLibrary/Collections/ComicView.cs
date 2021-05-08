@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ComicsViewer.Common;
 
@@ -15,6 +16,11 @@ namespace ComicsLibrary.Collections {
     public abstract class ComicView : IEnumerable<Comic> {
         public static readonly ComicView Empty = new ComicList();
 
+        // DEBUG
+        private static int nextViewIndex = 0;
+        internal readonly int viewIndex = nextViewIndex++;
+        public string debugName;
+
         // comics should be considered equivalent if their UniqueIdentifier is the same.
         public bool Contains(Comic comic) => this.Contains(comic.UniqueIdentifier);
         public Comic GetStored(Comic comic) => this.GetStored(comic.UniqueIdentifier);
@@ -26,12 +32,18 @@ namespace ComicsLibrary.Collections {
         public abstract int Count { get; }
 
         private protected ComicView(ComicView? trackChangesFrom = null) {
+            this.debugName = $"ComicView({debugName})";
+
             if (trackChangesFrom != null) {
+                this.debugName = $"ComicView({debugName} parent={trackChangesFrom.debugName})";
                 trackChangesFrom.ViewChanged += this.ParentComicView_ViewChanged;
             }
         }
 
         private protected virtual void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
+            Debug.WriteLine($"{this.debugName} calling ComicView.ParentComicView_ViewChanged " +
+                $"(my parent is {sender.debugName})");
+
             this.OnComicChanged(e);
         }
 
@@ -60,6 +72,8 @@ namespace ComicsLibrary.Collections {
         protected internal event ViewChangedEventHandler? ViewChanged;
         protected internal delegate void ViewChangedEventHandler(ComicView sender, ViewChangedEventArgs e);
         protected void OnComicChanged(ViewChangedEventArgs e) {
+            Debug.WriteLine($"{debugName} calling ComicView.OnComicChanged");
+
             this.ViewChanged?.Invoke(this, e);
             this.ComicsChanged?.Invoke(this, e.ToComicsChangedEventArgs());
         }

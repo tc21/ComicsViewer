@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using ComicsViewer.Common;
 
 namespace ComicsLibrary.Collections {
@@ -11,7 +12,9 @@ namespace ComicsLibrary.Collections {
         private protected abstract void RemoveComic(Comic comics);
         private protected abstract void RefreshComics(IEnumerable<Comic> comics);
 
-        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) { }
+        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) {
+            this.debugName = $"MutableComicView({viewIndex}, parent={trackChangesFrom?.viewIndex})";
+        }
 
         private protected void AddComics(IEnumerable<Comic> comics) {
             foreach (var comic in comics) {
@@ -26,6 +29,9 @@ namespace ComicsLibrary.Collections {
         }
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
+            Debug.WriteLine($"{this.debugName} calling MutableComicView.ParentComicView_ViewChanged " +
+                $"(my parent is {sender.debugName})");
+
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
                     this.RemoveComics(e.Remove);

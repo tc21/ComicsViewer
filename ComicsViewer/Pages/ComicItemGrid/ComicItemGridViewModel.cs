@@ -15,7 +15,7 @@ using ComicsLibrary.Sorting;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
-    public abstract class ComicItemGridViewModel : ViewModelBase, IDisposable {
+    public abstract class ComicItemGridViewModel : ViewModelBase {
         /* automatically managed properties */
         private int _selectedSortIndex;
         public int SelectedSortIndex {
@@ -173,14 +173,9 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         // Unlinks event handlers
-        public virtual void Dispose() {
+        ~ComicItemGridViewModel() {
+            this.PropertyChanged -= this.ComicItemGridViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
-
-            foreach (var item in this.ComicItems) {
-                item.Dispose();
-            }
-
-            this.ComicItems.Clear();
         }
     }
 }

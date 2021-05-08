@@ -82,6 +82,7 @@ namespace ComicsViewer.Pages {
                     throw new ProgrammerError("Unexpected navigation mode");
             }
 
+            this.ViewModel.ComicItem.PropertyChanged += this.ComicItem_PropertyChanged;
             this.SynchronizeLovedStatusToUI();
 
             if (await this.ViewModel.TryLoadDescriptionsAsync(this.InfoTextBlock)) {
@@ -93,6 +94,12 @@ namespace ComicsViewer.Pages {
             }
         }
 
+        private void ComicItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+            if (e.PropertyName is nameof(ComicItem.IsLoved) or "") {
+                this.SynchronizeLovedStatusToUI();
+            }
+        }
+
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
             // For now, we push useless information onto the cache to keep everything else working
             if (e.NavigationMode is NavigationMode.New) {
@@ -100,8 +107,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
-            this.ViewModel.Dispose();
-            this.ComicItemGrid?.Dispose();
+            this.ComicItemGrid?.DisposeAndInvalidate();
         }
 
         private async void OpenButton_Click(object sender, RoutedEventArgs e) {
@@ -118,7 +124,6 @@ namespace ComicsViewer.Pages {
 
         private async void LoveButton_Click(object sender, RoutedEventArgs e) {
             await this.ViewModel.ToggleLovedStatus();
-            this.SynchronizeLovedStatusToUI();
         }
 
         private async void ShowInExplorerFlyoutItem_Click(object sender, RoutedEventArgs e) {
