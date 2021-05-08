@@ -14,7 +14,6 @@ using Windows.UI.Xaml.Navigation;
 namespace ComicsViewer.Pages {
     public sealed partial class ComicWorkItemPage : Page, IMainPageContent {
         /* TODO
-         *  - we should indicate how many files a comic has in total (and will be opened when the user clicks 'open')
          *  - we should implement more commands in the 'more' menu, similar to the right click menu
          *  - we should implement scroll position saving/loading via the ComicItemGridCache */
         public ComicWorkItemPage() {

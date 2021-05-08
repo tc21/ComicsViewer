@@ -26,6 +26,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -42,7 +43,16 @@
                        FontSize="24" 
                        Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
 
-            <ContentPresenter Grid.Row="3" Content="{x:Bind Footer, Mode=OneWay}"/>
+            <Border Grid.Row="2" Height="20">
+                <TextBlock Grid.Row="2" 
+                       Text="{x:Bind AdditionalInfo, Mode=OneWay}" d:Text="Description" 
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" 
+                       FontSize="12"
+                       Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"/>
+            </Border>
+
+            <ContentPresenter Grid.Row="4" Content="{x:Bind Footer, Mode=OneWay}"/>
         </Grid>
 
     </Grid>

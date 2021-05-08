@@ -28,6 +28,8 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public ObservableCollection<ComicSubitemContainer> Subitems = new();
 
+        public string? AdditionalInfo => this._primarySubitem?.Files.Count.PluralString("Item");
+
         public int ImageWidth => this.MainViewModel.Profile.ImageWidth;
         public int ImageHeight => this.MainViewModel.Profile.ImageHeight;
 
@@ -43,6 +45,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 this._initialized = value;
                 this.OnPropertyChanged();
+                this.OnPropertyChanged(nameof(this.AdditionalInfo));
             }
         }
 
@@ -152,7 +155,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void ComicItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
-            // TODO
+            // TODO: Refresh ComicWorkItemPage
         }
 
         ~ComicWorkItemPageViewModel() {

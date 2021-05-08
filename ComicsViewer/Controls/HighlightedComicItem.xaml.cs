@@ -32,6 +32,15 @@ namespace ComicsViewer.Controls {
             DependencyProperty.Register(nameof(Item), typeof(ComicItem), typeof(HighlightedComicItem), new PropertyMetadata(null));
 
 
+        public string? AdditionalInfo {
+            get => (string?)this.GetValue(AdditionalInfoProperty);
+            set => this.SetValue(AdditionalInfoProperty, value);
+        }
+
+        public static readonly DependencyProperty AdditionalInfoProperty =
+            DependencyProperty.Register(nameof(AdditionalInfo), typeof(string), typeof(HighlightedComicItem), new PropertyMetadata(null));
+
+
         public int ImageHeight {
             get => (int)this.GetValue(ImageHeightProperty);
             set => this.SetValue(ImageHeightProperty, value);

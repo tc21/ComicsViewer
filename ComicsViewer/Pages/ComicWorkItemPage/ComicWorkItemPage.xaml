@@ -122,6 +122,7 @@
 
             <uc:HighlightedComicItem x:Name="HighlightedComicItem"
                                      Item="{x:Bind ViewModel.ComicItem}"
+                                     AdditionalInfo="{x:Bind ViewModel.AdditionalInfo, Mode=OneWay}"
                                      ImageHeight="{x:Bind ViewModel.HighlightImageHeight}"
                                      ImageWidth="{x:Bind ViewModel.HighlightImageWidth}">
                 <uc:HighlightedComicItem.Footer>
