@@ -708,7 +708,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var success = await Thumbnail.GenerateThumbnailFromStorageFileAsync(newComic, thumbnailFile, this.Profile, replace: true);
             if (success) {
                 this.NotifyThumbnailChanged(comic);
-                await this.UpdateComicAsync(new[] { comic });
+                await this.UpdateComicAsync(new[] { newComic });
             }
         }
 
