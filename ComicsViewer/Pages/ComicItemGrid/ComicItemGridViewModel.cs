@@ -11,6 +11,10 @@ using Windows.ApplicationModel.Core;
 using ComicsLibrary.Collections;
 using ComicsViewer.Common;
 using ComicsLibrary.Sorting;
+using System.Collections.Concurrent;
+using ComicsLibrary;
+using System.Linq;
+using ComicsViewer.Uwp.Common;
 
 #nullable enable
 
@@ -132,20 +136,48 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Thumbnails 
 
-        private protected async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(
-                IEnumerable<ComicWorkItem> comicItems, bool replace, CancellationToken cc, IProgress<int> progress) {
+        private readonly ConcurrentQueue<(Comic comic, bool replace)> thumbnailQueue = new();
+
+        public void ScheduleGenerateThumbnails(IEnumerable<Comic> comics, bool replace = false) {
+            foreach (var comic in comics) {
+                this.thumbnailQueue.Enqueue((comic, replace));
+            }
+
+            // This may not be thread safe
+            if (!thumbnailQueue.IsEmpty && !this.MainViewModel.Tasks.Any(task => task.Name == "thumbnail")) {
+                this.StartProcessThumbnailQueueTask();
+            }
+        }
+
+        private void StartProcessThumbnailQueueTask() {
+            _ = this.MainViewModel.StartUniqueTaskAsync(
+                "thumbnail", $"Generating thumbnails...",
+                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThreadAsync(cc, p),
+                // We call this again, to rerun the task if we didn't successfully clear the queue
+                asyncCallback: () => { this.ScheduleGenerateThumbnails(Array.Empty<Comic>()); return Task.CompletedTask; },
+                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
+            ); ;
+        }
+
+        private async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(CancellationToken cc, IProgress<int> progress) {
             var i = 0;
-            foreach (var item in comicItems) {
-                var success = await Thumbnail.GenerateThumbnailAsync(item.Comic, this.MainViewModel.Profile, replace);
+            
+            while (!this.thumbnailQueue.IsEmpty) {
+                if (cc.IsCancellationRequested) {
+                    return;
+                }
+
+                if (!this.thumbnailQueue.TryDequeue(out var entry)) {
+                    break;
+                }
+
+                var success = await Thumbnail.GenerateThumbnailAsync(entry.comic, this.MainViewModel.Profile, entry.replace);
+
                 if (success) {
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                         Windows.UI.Core.CoreDispatcherPriority.Normal,
-                        () => this.MainViewModel.NotifyThumbnailChanged(item.Comic)
+                        () => this.MainViewModel.NotifyThumbnailChanged(entry.comic)
                     );
-                }
-
-                if (cc.IsCancellationRequested) {
-                    return;
                 }
 
                 progress.Report(i++);

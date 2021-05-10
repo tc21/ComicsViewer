@@ -292,7 +292,7 @@ namespace ComicsViewer.Pages {
             // Opens the containing folder in Windows Explorer
             this.GenerateThumbnailCommand = new ComicWorkItemGridCommand(parent,
                 getName: e => e.Count == 1 ? "Generate thumbnail" : $"Generate thumbnails for {e.Count} items",
-                execute: e => e.ViewModel.StartRequestGenerateThumbnailsTask(e.Items, replace: true),
+                execute: e => e.ViewModel.ScheduleGenerateThumbnails(e.Items.Select(item => item.Comic), replace: true),
                 canExecute: e => e.Count > 0
             );
 

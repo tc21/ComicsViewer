@@ -5,6 +5,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -136,7 +137,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         /* There may be many view models active at any given moment. The if statement ensures that only
                          * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
                         if (this.NavigationPageType is NavigationPageType.Root) {
-                            this.StartRequestGenerateThumbnailsTask(addedItems);
+                            this.ScheduleGenerateThumbnails(e.Added);
                         }
                     }
 
@@ -185,15 +186,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         #region Commands - work items
-
-        public void StartRequestGenerateThumbnailsTask(IEnumerable<ComicWorkItem> comicItems, bool replace = false) {
-            var copy = comicItems.ToList();
-            _ = this.MainViewModel.StartUniqueTaskAsync(
-                "thumbnail", $"Generating thumbnails for {copy.Count} items...",
-                (cc, p) => this.GenerateAndApplyThumbnailsInBackgroundThreadAsync(copy, replace, cc, p),
-                exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
-            );
-        }
 
         public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
             var comics = selectedItems.Select(item => item.Comic).ToList();
