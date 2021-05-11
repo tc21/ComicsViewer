@@ -68,7 +68,9 @@ namespace ComicsViewer.ViewModels {
          * I haven't implemented it yet. Currently, modifying nav items just triggers a page reload. In the future,
          * we will implement nav item events (see ComicPropertiesView). */
 
-        ~ComicNavigationItem() {
+        public override void Invalidate() {
+            base.Invalidate();
+
             this.Comics.ComicsChanged -= this.Comics_ComicsChanged;
         }
     }

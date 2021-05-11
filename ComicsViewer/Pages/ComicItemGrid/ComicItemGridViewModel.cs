@@ -19,12 +19,14 @@ using ComicsViewer.Uwp.Common;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
-    public abstract class ComicItemGridViewModel : ViewModelBase {
+    public abstract class ComicItemGridViewModel : InvalidatingViewModel {
         /* automatically managed properties */
         private int _selectedSortIndex;
         public int SelectedSortIndex {
             get => this._selectedSortIndex;
             set {
+                this.ThrowIfInvalidated();
+
                 if (this._selectedSortIndex == value) {
                     return;
                 }
@@ -43,6 +45,8 @@ namespace ComicsViewer.ViewModels.Pages {
         public readonly ObservableCollection<ComicItem> ComicItems = new ObservableCollection<ComicItem>();
 
         private protected virtual void SetComicItems(IEnumerable<ComicItem> items) {
+            this.ThrowIfInvalidated();
+
             this.ComicItems.Clear();
             this.ComicItems.AddRange(items);
             this.OnPropertyChanged(nameof(this.TotalItemCount));
@@ -139,6 +143,8 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly ConcurrentQueue<(Comic comic, bool replace)> thumbnailQueue = new();
 
         public void ScheduleGenerateThumbnails(IEnumerable<Comic> comics, bool replace = false) {
+            this.ThrowIfInvalidated();
+
             foreach (var comic in comics) {
                 this.thumbnailQueue.Enqueue((comic, replace));
             }
@@ -205,7 +211,9 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         // Unlinks event handlers
-        ~ComicItemGridViewModel() {
+        public override void Invalidate() {
+            base.Invalidate();
+
             this.PropertyChanged -= this.ComicItemGridViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
         }

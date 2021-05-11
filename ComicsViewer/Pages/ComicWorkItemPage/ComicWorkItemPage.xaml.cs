@@ -106,6 +106,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
+            this.ViewModel.Invalidate();
             this.ComicItemGrid?.DisposeAndInvalidate();
         }
 

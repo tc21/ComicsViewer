@@ -29,7 +29,6 @@ namespace ComicsViewer.ViewModels.Pages {
         ) {
             var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
 
-
             if (savedState?.LastModified is { } lastModified && lastModified == mainViewModel.LastModified) {
                 viewModel.SetComicItems(savedState.Items);
             } else {
@@ -44,6 +43,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         protected void RefreshComicItems() {
+            this.ThrowIfInvalidated();
+
             var items = this.collections.Select(collection =>
                 new ComicNavigationItem(collection.Name, collection.Comics)
             ).ToList();
@@ -52,6 +53,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public override void SortAndRefreshComicItems() {
+            this.ThrowIfInvalidated();
+
             this.collections.SetSort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
@@ -96,7 +99,9 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        ~ComicNavigationItemGridViewModel() {
+        public override void Invalidate() {
+            base.Invalidate();
+
             this.collections.CollectionsChanged -= this.Collections_CollectionsChanged;
         }
     }

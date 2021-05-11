@@ -71,7 +71,9 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        ~ComicWorkItem() {
+        public override void Invalidate() {
+            base.Invalidate();
+
             if (this.trackingChangesFrom is { } view) {
                 view.ComicsChanged -= this.View_ComicsChanged;
             }

@@ -193,6 +193,7 @@
     <Compile Include="ViewModels\ComicNavigationItem.cs" />
     <Compile Include="ViewModels\ComicWorkItem.cs" />
     <Compile Include="ViewModels\DragAndDropShortcutItem.cs" />
+    <Compile Include="ViewModels\InvalidatingViewModel.cs" />
     <Compile Include="XamlHelpers\Bindings.cs" />
     <Compile Include="ViewModels\CheckBoxItem.cs" />
     <Compile Include="ClassExtensions\String_PathComparisons.cs" />
