@@ -75,9 +75,7 @@ namespace ComicsLibrary {
                 DateAdded = dateAdded ?? this.DateAdded
             };
 
-            if (tags != null) {
-                metadata.Tags.UnionWith(tags);
-            }
+            metadata.Tags.UnionWith(tags ?? this.Tags);
 
             return this.With(metadata: metadata);
         }
