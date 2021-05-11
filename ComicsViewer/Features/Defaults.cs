@@ -185,7 +185,7 @@ namespace ComicsViewer.Features {
             }
         }
 
-        public static StorageFolder ApplicationDataFolder => ApplicationData.Current.LocalFolder;
+        public static StorageFolder ApplicationDataFolder = ApplicationData.Current.LocalFolder;
 
         private static async Task<StorageFolder> GetApplicationDataFolderAsync(string name) {
             try {
