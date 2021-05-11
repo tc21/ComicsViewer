@@ -43,8 +43,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         protected void RefreshComicItems() {
-            this.ThrowIfInvalidated();
-
             var items = this.collections.Select(collection =>
                 new ComicNavigationItem(collection.Name, collection.Comics)
             ).ToList();
@@ -53,8 +51,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public override void SortAndRefreshComicItems() {
-            this.ThrowIfInvalidated();
-
             this.collections.SetSort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
@@ -99,10 +95,11 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public override void Invalidate() {
-            base.Invalidate();
+        public override void DestroyComicItemsAndInvalidate() {
+            base.DestroyComicItemsAndInvalidate();
 
             this.collections.CollectionsChanged -= this.Collections_CollectionsChanged;
+            this.collections.DetachFromParent();
         }
     }
 }

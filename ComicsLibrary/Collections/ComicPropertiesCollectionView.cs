@@ -78,7 +78,7 @@ namespace ComicsLibrary.Collections {
                     break;
                 case ComicChangeType.Refresh:
                     this.Properties.Clear();
-                    this.InitializeProperties();
+                    this.ReinitializeProperties();
 
                     break;
 
@@ -104,8 +104,25 @@ namespace ComicsLibrary.Collections {
             this.OnCollectionsChanged(new CollectionsChangedEventArgs(CollectionsChangeType.Refresh, this.Select(p => p.Name)));
         }
 
+        private void ReinitializeProperties() {
+            foreach (var property in this.Properties) {
+                property.Comics.DetachFromParent();
+            }
+
+            this.InitializeProperties();
+        }
+
         public override IEnumerator<IComicCollection> GetEnumerator() {
             return this.Properties.GetEnumerator();
+        }
+
+        public override void DetachFromParent() {
+            foreach (var property in this.Properties) {
+                property.Comics.DetachFromParent();
+            }
+
+            parent.ViewChanged -= this.ParentComicView_ViewChanged;
+            parent.ComicsChanged -= this.ParentComicView_ComicsChanged;
         }
     }
 }

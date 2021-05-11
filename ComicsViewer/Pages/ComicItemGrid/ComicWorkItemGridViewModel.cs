@@ -53,8 +53,6 @@ namespace ComicsViewer.ViewModels.Pages {
          * list of workItems is already sorted here. On the other hand, we have to manually sort our ComicPropertiesView,
          * because we didn't need to waste time working out an event-based ComicPropertiesView */
         public override void SortAndRefreshComicItems() {
-            this.ThrowIfInvalidated();
-
             this.comics.Sort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
@@ -88,7 +86,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private void RemoveComicItem(ComicWorkItem item) {
             item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-            item.Invalidate();
+            item.RemoveEventHandlers();
 
             if (!this.ComicItems.Remove(item)) {
                 throw new ProgrammerError("Removing a ComicWorkItem that didn't already exist.");
@@ -99,7 +97,7 @@ namespace ComicsViewer.ViewModels.Pages {
             var item = (ComicWorkItem)this.ComicItems[index];
 
             item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-            item.Invalidate();
+            item.RemoveEventHandlers();
 
             this.ComicItems.RemoveAt(index);
         }
@@ -111,8 +109,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
-            this.ThrowIfInvalidated();
-
             var workItems = items.Cast<ComicWorkItem>().ToList();
 
             if (workItems.Any(item => !this.ComicItems.Contains(item))) {
@@ -194,8 +190,6 @@ namespace ComicsViewer.ViewModels.Pages {
         #region Commands - work items
 
         public async Task ToggleLovedStatusForComicsAsync(IEnumerable<ComicWorkItem> selectedItems) {
-            this.ThrowIfInvalidated();
-
             var comics = selectedItems.Select(item => item.Comic).ToList();
             var newStatus = !comics.All(item => item.Loved);
             var changes = comics.Select(comic => comic.WithMetadata(loved: newStatus));
@@ -205,10 +199,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #endregion
 
-        public override void Invalidate() {
-            base.Invalidate();
+        public override void DestroyComicItemsAndInvalidate() {
+            base.DestroyComicItemsAndInvalidate();
 
             this.comics.ComicsChanged -= this.Comics_ComicsChanged;
+            this.comics.DetachFromParent();
         }
     }
 }

@@ -8,30 +8,25 @@ namespace ComicsLibrary.Collections {
     /// </summary>
     public abstract class MutableComicView : ComicView {
         // Both AddComic and RemoveComic should panic if comics already exist/don't exist
-        private protected abstract void AddComic(Comic comics);
-        private protected abstract void RemoveComic(Comic comics);
-        private protected abstract void RefreshComics(IEnumerable<Comic> comics);
+        protected abstract void AddComic(Comic comics);
+        protected abstract void RemoveComic(Comic comics);
+        protected abstract void RefreshComics(IEnumerable<Comic> comics);
 
-        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) {
-            this.debugName = $"MutableComicView({viewIndex}, parent={trackChangesFrom?.viewIndex})";
-        }
+        private protected MutableComicView(ComicView? trackChangesFrom) : base(trackChangesFrom) { }
 
-        private protected void AddComics(IEnumerable<Comic> comics) {
+        protected void AddComics(IEnumerable<Comic> comics) {
             foreach (var comic in comics) {
                 this.AddComic(comic);
             }
         }
 
-        private protected void RemoveComics(IEnumerable<Comic> comics) {
+        protected void RemoveComics(IEnumerable<Comic> comics) {
             foreach (var comic in comics) {
                 this.RemoveComic(comic);
             }
         }
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
-            Debug.WriteLine($"{this.debugName} calling MutableComicView.ParentComicView_ViewChanged " +
-                $"(my parent is {sender.debugName})");
-
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
                     this.RemoveComics(e.Remove);

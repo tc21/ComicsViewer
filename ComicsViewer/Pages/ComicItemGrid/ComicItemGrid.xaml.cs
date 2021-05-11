@@ -275,6 +275,8 @@ namespace ComicsViewer.Pages {
             args.OnNavigatedTo?.Invoke(this, e);
         }
 
+        // Note: Do not override OnNavigatingFrom. ComicItemGrid must be manually destroyed.
+
         public ComicItem? HighlightedComicItem;
 
         public void FinishNavigateInConnectedAnimationIfExists(ComicItem item) {
@@ -287,7 +289,7 @@ namespace ComicsViewer.Pages {
 
         public void DisposeAndInvalidate() {
             // We still have to call this manually, because sometimes xaml.cs classes aren't properly thrown away and garbage collected
-            this.ViewModel.Invalidate();
+            this.ViewModel.DestroyComicItemsAndInvalidate();
 
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
@@ -302,7 +304,7 @@ namespace ComicsViewer.Pages {
         }
 
         public ComicItemGridState GetSaveState() {
-            return new ComicItemGridState(this.ViewModel.ComicItems.ToList(), this.GetScrollOffset(), this.MainViewModel.LastModified);
+            return new ComicItemGridState(this.ViewModel.ExtractComicItems(), this.GetScrollOffset(), this.MainViewModel.LastModified);
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e) {

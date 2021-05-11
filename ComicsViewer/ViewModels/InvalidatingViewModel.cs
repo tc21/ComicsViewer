@@ -6,7 +6,7 @@ namespace ComicsViewer.ViewModels {
     public abstract class InvalidatingViewModel : ViewModelBase {
         private bool invalidated = false;
 
-        public virtual void Invalidate() {
+        public virtual void RemoveEventHandlers() {
             this.ThrowIfInvalidated();
 
             this.invalidated = true;

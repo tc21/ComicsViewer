@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ComicsViewer.Common;
 using ComicsViewer.ViewModels;
 
 #nullable enable
@@ -36,10 +37,15 @@ namespace ComicsViewer.Support {
          * (note: behavior is different while forward navigation is not yet implemented) */
 
         public static ComicItemGridState? GetRoot(NavigationTag tag) {
+            ignorePutsUntilNextGet = false;
             return roots[tag];
         }
 
         public static void PutRoot(NavigationTag tag, ComicItemGridState state) {
+            if (ignorePutsUntilNextGet) {
+                return;
+            }
+
             roots[tag] = state;
         }
 
@@ -50,7 +56,8 @@ namespace ComicsViewer.Support {
         public static ComicItemGridState PopStack(NavigationTag tag, string? subKey) {
             var index = stack.Count - 1;
             var (storedTag, storedSubKey, state) = stack[index];
-            stack.RemoveAt(index);
+
+            RemoveStackItemAt(index);
 
             if ((storedTag, storedSubKey) != (tag, subKey)) {
                 throw new ArgumentException("Item at top of stack was not the expected (key, subkey) combination");
@@ -61,13 +68,36 @@ namespace ComicsViewer.Support {
 
         public static void PruneStack(int itemsToKeep) {
             while (stack.Count > itemsToKeep) {
-                stack.RemoveAt(itemsToKeep);
+                RemoveStackItemAt(itemsToKeep);
             }
         }
 
+        private static void RemoveStackItemAt(int index) {
+            var (_, _, state) = stack[index];
+            stack.RemoveAt(index);
+
+            state.Items.ForEach(item => item.RemoveEventHandlers());
+        }
+
         public static void Clear() {
+            foreach (var (_, _, state) in stack) {
+                state.Items.ForEach(item => item.RemoveEventHandlers());
+            }
+
+            foreach (var state in roots.Values) {
+                state?.Items.ForEach(item => item.RemoveEventHandlers());
+            }
+
             stack.Clear();
             roots.Clear();
+        }
+
+        private static bool ignorePutsUntilNextGet = false;
+
+        // We don't have a reliable way of disabling the cache when we switch profiles, 
+        // so this is the workaround.
+        public static void IgnorePutsUntilNextGet() {
+            ignorePutsUntilNextGet = true;
         }
     }
 }

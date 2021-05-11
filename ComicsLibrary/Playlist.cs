@@ -12,8 +12,6 @@ namespace ComicsLibrary {
         private readonly HashSet<string> uniqueIds = new HashSet<string>();
 
         private Playlist(ComicView parent, string name, HashSet<string> uniqueIds) : base(parent, comic => uniqueIds.Contains(comic.UniqueIdentifier)) {
-            this.debugName = $"Playlist({viewIndex}, '{name}', parent={parent.viewIndex})";
-
             this.uniqueIds = uniqueIds;
             this.Name = name;
         }

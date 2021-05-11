@@ -9,24 +9,22 @@ namespace ComicsLibrary.Collections {
     public class ComicList : MutableComicView {
         private readonly Dictionary<string, Comic> comics = new Dictionary<string, Comic>();
 
-        public ComicList() : base(null) {
-            this.debugName = $"ComicList({viewIndex})";
-        }
+        public ComicList() : base(null) { }
 
         public ComicList(IEnumerable<Comic> comics) : this() {
             this.AddComics(comics);
         }
 
-        private protected override void AddComic(Comic comic)
+        protected override void AddComic(Comic comic)
             => this.comics.Add(comic.UniqueIdentifier, comic);
 
-        private protected override void RemoveComic(Comic comic) {
+        protected override void RemoveComic(Comic comic) {
             if (!this.comics.Remove(comic.UniqueIdentifier)) {
                 throw new ArgumentException("comic doesn't exist in this collection");
             }
         }
 
-        private protected override void RefreshComics(IEnumerable<Comic> comics) {
+        protected override void RefreshComics(IEnumerable<Comic> comics) {
             this.comics.Clear();
 
             foreach (var comic in comics) {

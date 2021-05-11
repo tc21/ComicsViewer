@@ -14,7 +14,7 @@ using Windows.UI.Xaml.Documents;
 #nullable enable
 
 namespace ComicsViewer.ViewModels.Pages {
-    public class ComicWorkItemPageViewModel : InvalidatingViewModel {
+    public class ComicWorkItemPageViewModel : ViewModelBase {
         public MainViewModel MainViewModel { get; }
         public ComicWorkItem ComicItem { get; }
 
@@ -57,8 +57,6 @@ namespace ComicsViewer.ViewModels.Pages {
             : throw new ProgrammerError("Attempting to access properties of an uninitialized ComicWorkItemPageViewModel");
 
         public async Task InitializeAsync() {
-            this.ThrowIfInvalidated();
-
             var subitems = (await this.MainViewModel.Profile.GetComicSubitemsAsync(this.ComicItem.Comic))?.ToList();
 
             if (subitems is null || subitems.Count == 0) {
@@ -72,8 +70,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public bool ShouldUseThumbnails() {
-            this.ThrowIfInvalidated();
-
             // We just test for the first file, to be simple. 
             // It would probably be better to do it once when we load a profile.
             var testFile = this.PrimarySubitem.Files.First();
@@ -81,16 +77,12 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task LoadThumbnailsAsync() {
-            this.ThrowIfInvalidated();
-
             foreach (var subitem in this.Subitems) {
                 await subitem.InitializeAsync(decodePixelHeight: this.MainViewModel.Profile.ImageHeight);
             }
         }
 
         public async Task OpenComicItemAsync(ComicSubitem? subitem = null) {
-            this.ThrowIfInvalidated();
-
             var item = subitem ?? this.PrimarySubitem;
 
             if (!await item.VerifyExistsOnDiskAsync()) {
@@ -108,8 +100,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public Task ToggleLovedStatus() {
-            this.ThrowIfInvalidated();
-
             var newStatus = !this.ComicItem.Comic.Loved;
             var modified = this.ComicItem.Comic.WithMetadata(loved: newStatus);
 
@@ -118,8 +108,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /// <returns>true if the comic has descriptions, false if it doesn't</returns>
         public async Task<bool> TryLoadDescriptionsAsync(TextBlock infoTextBlock) {
-            this.ThrowIfInvalidated();
-
             StorageFolder comicFolder;
             try {
                 comicFolder = await StorageFolder.GetFolderFromPathAsync(this.ComicItem.Comic.Path);
@@ -170,9 +158,7 @@ namespace ComicsViewer.ViewModels.Pages {
             // TODO: Refresh ComicWorkItemPage
         }
 
-        public override void Invalidate() {
-            base.Invalidate();
-
+        public void RemoveEventHandlers() {
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
             this.ComicItem.RequestingRefresh -= this.ComicItem_RequestingRefresh;
         }

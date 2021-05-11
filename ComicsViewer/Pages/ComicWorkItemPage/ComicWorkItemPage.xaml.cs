@@ -12,7 +12,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicWorkItemPage : Page, IMainPageContent {
+    public sealed partial class ComicWorkItemPage : Page {
         /* TODO
          *  - we should implement more commands in the 'more' menu, similar to the right click menu
          *  - we should implement scroll position saving/loading via the ComicItemGridCache */
@@ -24,13 +24,8 @@ namespace ComicsViewer.Pages {
         private ComicWorkItemPageViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
 
-        public NavigationTag NavigationTag { get; }
-        public NavigationPageType NavigationPageType => NavigationPageType.WorkItem;
-        public Page Page => this;
-        public ComicItemGrid? ComicItemGrid { get; }
-        public string PageName => this.ViewModel.ComicItem.Title;
-
-        public event Action<IMainPageContent>? Initialized;
+        private NavigationTag NavigationTag => this.MainViewModel.ActiveNavigationTag;
+        private string PageName => this.ViewModel.ComicItem.Title;
 
         private bool useThumbnails = false;
 
@@ -41,7 +36,6 @@ namespace ComicsViewer.Pages {
 
             this._viewModel = args.ViewModel;
 
-            this.Initialized?.Invoke(this);
             await this.ViewModel.InitializeAsync();
 
             if (this.ViewModel.Initialized) {
@@ -106,8 +100,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
-            this.ViewModel.Invalidate();
-            this.ComicItemGrid?.DisposeAndInvalidate();
+            this.ViewModel.RemoveEventHandlers();
         }
 
         private async void OpenButton_Click(object sender, RoutedEventArgs e) {

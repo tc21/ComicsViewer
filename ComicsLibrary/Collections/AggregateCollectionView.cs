@@ -9,19 +9,6 @@ namespace ComicsLibrary.Collections {
         public override int Count => this.Properties.Count;
         private readonly Dictionary<string, (IComicCollection collection, ComicView.ComicsChangedEventHandler handler)> collections = new();
 
-        public AggregateCollectionView() : this(Array.Empty<IComicCollection>()) {}
-
-        public AggregateCollectionView(IEnumerable<IComicCollection> collections) {
-            foreach (var collection in collections) {
-                void handler(ComicView sender, ComicsChangedEventArgs e) => this.Collection_ComicsChanged(collection, e);
-
-                this.collections.Add(collection.Name, (collection, (ComicView.ComicsChangedEventHandler)handler));
-                collection.Comics.ComicsChanged += handler;
-            }
-
-            this.Properties = new(this.Sort, collections);
-        }
-
         public void AddCollection(IComicCollection collection) {
             void handler(ComicView sender, ComicsChangedEventArgs e) => this.Collection_ComicsChanged(collection, e);
 
@@ -93,6 +80,12 @@ namespace ComicsLibrary.Collections {
 
         public override IEnumerator<IComicCollection> GetEnumerator() {
             return this.Properties.GetEnumerator();
+        }
+
+        public override void DetachFromParent() {
+            foreach (var (collection, _) in this.collections.Values) {
+                collection.Comics.DetachFromParent();
+            }
         }
     }
 }

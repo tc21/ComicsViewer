@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace ComicsViewer.Support {
     public class MainComicList : ComicList {
-        public readonly Filter Filter = new Filter();
+        public readonly Filter Filter = new();
 
         public MainComicList() {
             this.Filter.FilterChanged += this.Filter_FilterChanged;
@@ -18,10 +18,15 @@ namespace ComicsViewer.Support {
             this.OnComicChanged(new ViewChangedEventArgs(ComicChangeType.ThumbnailChanged, comics));
         }
 
-        private ComicView? filtered;
+        private ComicView? _filtered;
         public ComicView Filtered() {
-            this.filtered ??= this.Filtered(this.Filter.ShouldBeVisible);
-            return this.filtered;
+            this._filtered ??= this.Filtered(this.Filter.ShouldBeVisible);
+            return this._filtered;
+        }
+
+        protected override void RefreshComics(IEnumerable<Comic> comics) {
+            base.RefreshComics(comics);
+            this._filtered = null;
         }
 
         private void Filter_FilterChanged(Filter filter) {

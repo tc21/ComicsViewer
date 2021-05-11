@@ -17,8 +17,6 @@ namespace ComicsLibrary.Collections {
         private readonly ComicList cache = new();
 
         internal FilteredComicView(ComicView filteredFrom, Func<Comic, bool> filter) : base(filteredFrom) {
-            this.debugName = $"SortedComicView({viewIndex}, parent={filteredFrom.viewIndex})";
-
             this.filteredFrom = filteredFrom;
             this.filter = filter;
 
@@ -42,9 +40,6 @@ namespace ComicsLibrary.Collections {
         }
 
         private protected override void ParentComicView_ViewChanged(ComicView sender, ViewChangedEventArgs e) {
-            Debug.WriteLine($"{this.debugName} calling FilteredComicView.ParentComicView_ViewChanged " +
-                $"(my parent is {sender.debugName})");
-
             switch (e.Type) {  // switch ChangeType
                 case ComicChangeType.ItemsChanged:
                     this.UpdateCache();

@@ -86,6 +86,20 @@ namespace ComicsViewer.ViewModels.Pages {
                 }
             }
 
+            this.Comics.AbandonChildren();
+            this.Comics.Filter.Clear();
+            this.Playlists.Clear();
+
+            // Note: it would probably be good practice to move static helper classes like ComicItemGridCache
+            // and ConnectedAnimationHelper into instances contained in MainViewModel. Regardless, they are 
+            // per-instance and per-profile, and have to be cleared when switching profiles.
+
+            // Additionally, as more things get added (we already have playlists, filter, cache), it may be better
+            // to invert the ownership hiearchy such that e.g. we pass `this` into CIGC, which listens to the ProfileChanged 
+            // event, instead of the programmer "just knowing" that it needs to be cleared.
+            ComicItemGridCache.Clear();
+            ComicItemGridCache.IgnorePutsUntilNextGet();
+
             // update internal modeling
             Defaults.SettingsAccessor.LastProfile = newProfileName;
 
@@ -104,22 +118,9 @@ namespace ComicsViewer.ViewModels.Pages {
             var manager = await this.GetComicsManagerAsync(migrate: true);
             this.Comics.Refresh(await manager.GetAllComicsAsync());
 
-            this.Playlists.Clear();
-
             foreach (var playlist in await manager.GetPlaylistsAsync(this.Comics)) {
                 this.Playlists.AddCollection(playlist);
             }
-
-            this.Comics.Filter.Clear();
-
-            // Note: it would probably be good practice to move static helper classes like ComicItemGridCache
-            // and ConnectedAnimationHelper into instances contained in MainViewModel. Regardless, they are 
-            // per-instance and per-profile, and have to be cleared when switching profiles.
-
-            // Additionally, as more things get added (we already have playlists, filter, cache), it may be better
-            // to invert the ownership hiearchy such that e.g. we pass `this` into CIGC, which listens to the ProfileChanged 
-            // event, instead of the programmer "just knowing" that it needs to be cleared.
-            ComicItemGridCache.Clear();
 
             // Verify that we have access to the file system
             if (await this.VerifyPermissionForPathsAsync(e.NewProfile.RootPaths.Select(p => p.Path))) {

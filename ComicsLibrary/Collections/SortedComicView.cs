@@ -32,8 +32,6 @@ namespace ComicsLibrary.Collections {
             IEnumerable<Comic> comics,
             ComicSortSelector sortSelector
         ) : this(trackChangesFrom, comicAccessor: new Dictionary<string, Comic>(), sortedComics: new List<Comic>(), sortSelector) {
-            this.debugName = $"SortedComicView({viewIndex}, parent={trackChangesFrom.viewIndex})";
-
             foreach (var comic in comics) {
                 this.Instance_AddComic(comic);
             }
@@ -85,11 +83,11 @@ namespace ComicsLibrary.Collections {
             this.comicAccessor[comic.UniqueIdentifier] = comic;
         }
 
-        private protected override void AddComic(Comic comic) {
+        protected override void AddComic(Comic comic) {
             this.Instance_AddComic(comic);
         }
 
-        private protected override void RemoveComic(Comic comic) {
+        protected override void RemoveComic(Comic comic) {
             if (this.sortSelector == ComicSortSelector.Random) {
                 if (!this.sortedComics.Remove(comic)) {
                     throw new ArgumentException("comic doesn't exist in this collection");
@@ -105,7 +103,7 @@ namespace ComicsLibrary.Collections {
             _ = this.comicAccessor.Remove(comic.UniqueIdentifier);
         }
 
-        private protected override void RefreshComics(IEnumerable<Comic> comics) {
+        protected override void RefreshComics(IEnumerable<Comic> comics) {
             this.sortedComics.Clear();
             this.comicAccessor.Clear();
 

@@ -55,6 +55,12 @@ namespace ComicsLibrary.Collections {
         protected void OnCollectionsChanged(CollectionsChangedEventArgs e) {
             this.CollectionsChanged?.Invoke(this, e);
         }
+
+        public void AbandonChildren() {
+            this.CollectionsChanged = null;
+        }
+
+        public abstract void DetachFromParent();
     }
 
     public class CollectionsChangedEventArgs {

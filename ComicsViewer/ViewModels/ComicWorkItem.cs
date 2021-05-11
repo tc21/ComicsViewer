@@ -71,9 +71,7 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        public override void Invalidate() {
-            base.Invalidate();
-
+        public override void RemoveEventHandlers() {
             if (this.trackingChangesFrom is { } view) {
                 view.ComicsChanged -= this.View_ComicsChanged;
             }
