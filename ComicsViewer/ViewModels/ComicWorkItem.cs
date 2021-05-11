@@ -6,8 +6,6 @@ using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.Storage;
-using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
@@ -25,11 +23,7 @@ namespace ComicsViewer.ViewModels {
 
         public ComicWorkItem(Comic comic, ComicView trackChangesFrom) {
             this.Comic = comic;
-
-            var thumbnailPath = Thumbnail.ThumbnailPath(this.Comic);
-            if (Uwp.Common.Win32Interop.IO.FileOrDirectoryExists(thumbnailPath)) {
-                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(thumbnailPath) };
-            }
+            this.ThumbnailImageSource = new Uri(Thumbnail.ThumbnailPath(this.Comic));
 
             this.trackingChangesFrom = trackChangesFrom;
             this.trackingChangesFrom.ComicsChanged += this.View_ComicsChanged;
@@ -69,17 +63,7 @@ namespace ComicsViewer.ViewModels {
                         return;
                     }
 
-                    var image = new BitmapImage();
-                    // We must be able to access the file system if we successfully set a thumbnail.
-                    var thumbnailFile = await StorageFile.GetFileFromPathAsync(Thumbnail.ThumbnailPath(this.Comic));
-
-                    using (var stream = await thumbnailFile.OpenReadAsync()) {
-                        await image.SetSourceAsync(stream);
-                    }
-
-                    this.ThumbnailImage = image;
-                    this.OnPropertyChanged(nameof(this.ThumbnailImage));
-
+                    await this.RefreshImageSourceAsync();
                     return;
 
                 default:

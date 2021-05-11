@@ -236,6 +236,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\comics-px-padded-huge.png" />
+    <Content Include="Assets\comics-px-padded.png" />
+    <Content Include="Assets\comics-px.png" />
     <Content Include="Assets\LargeTile.scale-100.png" />
     <Content Include="Assets\LargeTile.scale-125.png" />
     <Content Include="Assets\LargeTile.scale-150.png" />

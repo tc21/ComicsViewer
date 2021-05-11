@@ -6,7 +6,6 @@ using ComicsViewer.Features;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.UI.Xaml.Media.Imaging;
 
 #nullable enable
 
@@ -27,20 +26,20 @@ namespace ComicsViewer.ViewModels {
             this.Comics = comics;
 
             if (comics.Any()) {
-                this.thumbnailComic = comics.First();
-                this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
+                var thumbnailComic = comics.First();
+                this.ThumbnailImageSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic));
             }
 
             comics.ComicsChanged += this.Comics_ComicsChanged;
         }
 
-        private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
+        private async void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                     if (this.Comics.Any() && this.Comics.First() != this.thumbnailComic) {
                         this.thumbnailComic = this.Comics.First();
-                        this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
-                        this.OnPropertyChanged(nameof(this.ThumbnailImage));
+                        this.ThumbnailImageSource = new Uri(Thumbnail.ThumbnailPath(this.thumbnailComic));
+                        this.OnPropertyChanged(nameof(this.ThumbnailImageSource));
                     }
 
                     this.OnPropertyChanged(nameof(this.Subtitle));
@@ -50,8 +49,7 @@ namespace ComicsViewer.ViewModels {
 
                 case ComicChangeType.ThumbnailChanged:
                     if (this.thumbnailComic is not null && e.Modified.Contains(this.thumbnailComic)) {
-                        this.ThumbnailImage = new BitmapImage { UriSource = new Uri(Thumbnail.ThumbnailPath(thumbnailComic)) };
-                        this.OnPropertyChanged(nameof(this.ThumbnailImage));
+                        await this.RefreshImageSourceAsync();
                     }
 
                     break;

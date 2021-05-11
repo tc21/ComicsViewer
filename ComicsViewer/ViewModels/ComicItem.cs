@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Windows.UI.Xaml.Media.Imaging;
 using ComicsViewer.Common;
+using System.Threading.Tasks;
 
 #nullable enable
 
@@ -15,5 +16,22 @@ namespace ComicsViewer.ViewModels {
         public abstract IEnumerable<Comic> ContainedComics();
 
         public BitmapImage? ThumbnailImage { get; protected set; }
+        public Uri? ThumbnailImageSource { get; protected set; }
+
+        private static readonly Uri placeholderThumbnailImageSource = new("ms-appx:///Assets/comics-px-padded.png");
+
+        protected async Task RefreshImageSourceAsync() {
+            // UWP is smart enough to not reload an image if the new source is the same (of course with no way to override that).
+            // So we have to set a placeholder.
+            var original = this.ThumbnailImageSource;
+
+            this.ThumbnailImageSource = placeholderThumbnailImageSource;
+            this.OnPropertyChanged(nameof(this.ThumbnailImageSource));
+
+            await Task.Delay(100);
+
+            this.ThumbnailImageSource = original;
+            this.OnPropertyChanged(nameof(this.ThumbnailImageSource));
+        }
     }
 }
