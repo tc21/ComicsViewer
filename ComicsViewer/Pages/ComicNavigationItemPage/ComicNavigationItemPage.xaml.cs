@@ -4,7 +4,6 @@ using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable
@@ -40,7 +39,11 @@ namespace ComicsViewer.Pages {
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { 
                     ViewModel = viewModel, 
-                    HighlightedComicItem = args.ComicItem 
+                    HighlightedComicItem = args.ComicItem,
+                    OnNavigatedTo = (grid, e) => {
+                        this.ComicItemGrid = grid;
+                        grid.FinishNavigateInConnectedAnimationIfExists(this.ComicItem);
+                    }
                 })
             );
         }
@@ -70,12 +73,7 @@ namespace ComicsViewer.Pages {
         public event Action<IMainPageContent>? Initialized;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {
-            throw new ProgrammerError();
-        }
-
-        private void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
-            this.ComicItemGrid = (ComicItemGrid)e.Content;
-            this.ComicItemGrid.FinishNavigateInConnectedAnimationIfExists(this.ComicItem);
+            throw new ProgrammerError("ComicNavigationItemPage: Navigation failed");
         }
     }
 }

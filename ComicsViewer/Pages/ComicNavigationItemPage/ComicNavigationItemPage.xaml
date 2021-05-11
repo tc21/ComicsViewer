@@ -8,7 +8,5 @@
     d:RequestedTheme="Dark"
     >
     <Frame x:Name="InnerContentFrame"
-           Grid.Row="1"
-           Navigated="InnerContentFrame_Navigated"
            NavigationFailed="InnerContentFrame_NavigationFailed" />
 </Page>

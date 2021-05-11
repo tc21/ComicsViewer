@@ -7,6 +7,5 @@
     mc:Ignorable="d"
     >
     <Frame x:Name="InnerContentFrame"
-           Navigated="InnerContentFrame_Navigated"
            NavigationFailed="InnerContentFrame_NavigationFailed" />
 </Page>

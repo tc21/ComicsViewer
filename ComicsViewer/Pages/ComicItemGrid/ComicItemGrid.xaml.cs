@@ -282,7 +282,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            _ = this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
+            this.HighlightedComicItemControl.TryStartConnectedAnimationToThumbnail(item);
         }
 
         public void DisposeAndInvalidate() {

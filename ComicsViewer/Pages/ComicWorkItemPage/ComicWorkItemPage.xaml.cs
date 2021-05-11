@@ -70,7 +70,7 @@ namespace ComicsViewer.Pages {
                 case NavigationMode.New:
                     // Note: We may change the HighlightedComicItem's thumbnail size by setting visual manager state,
                     // so we should start the connected animation after.
-                    _ = this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
+                    this.HighlightedComicItem.TryStartConnectedAnimationToThumbnail(this.ViewModel.ComicItem);
                     break;
 
                 case NavigationMode.Back:

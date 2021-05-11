@@ -70,8 +70,19 @@ namespace ComicsViewer.Controls {
             return ConnectedAnimationHelper.PrepareAnimation(this.ThumbnailImage, item, "navigateIn");
         }
 
-        public bool TryStartConnectedAnimationToThumbnail(ComicItem item) {
-            return ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
+        public void TryStartConnectedAnimationToThumbnail(ComicItem item) {
+            // When this method is called, the UI of this control hasn't properly initialized yet. 
+            // You can see this by hard-coding this.ThumbnailImage.Width, and the setting a breakpoint here.
+            // You will see 0: it hasn't finished initializing yet.
+            // As a workaround, we delay the starting of the connected animation until the thumbnail image is loaded,
+            // so we can guarantee the control is finished loading.
+            this.ThumbnailImage.ImageOpened += TryStartAnimation;
+
+            void TryStartAnimation(object sender, RoutedEventArgs e) {
+                _ = ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
+
+                this.ThumbnailImage.ImageOpened -= TryStartAnimation;
+            }
         }
     }
 }

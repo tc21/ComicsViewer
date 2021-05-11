@@ -14,7 +14,6 @@ namespace ComicsViewer.ViewModels {
 
         public abstract IEnumerable<Comic> ContainedComics();
 
-        public BitmapImage? ThumbnailImage { get; protected set; }
         public Uri? ThumbnailImageSource { get; protected set; }
 
         private static readonly Uri placeholderThumbnailImageSource = new("ms-appx:///Assets/comics-px-padded.png");

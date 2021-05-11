@@ -34,7 +34,10 @@ namespace ComicsViewer.Pages {
             this.Initialized?.Invoke(this);
 
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { ViewModel = viewModel }));
+                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { 
+                    ViewModel = viewModel,
+                    OnNavigatedTo = (grid, _) => this.ComicItemGrid = grid
+                }));
         }
 
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e) {
@@ -60,11 +63,7 @@ namespace ComicsViewer.Pages {
         public event Action<IMainPageContent>? Initialized;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {
-            throw new ProgrammerError();
-        }
-
-        private void InnerContentFrame_Navigated(object sender, NavigationEventArgs e) {
-            this.ComicItemGrid = (ComicItemGrid)e.Content;
+            throw new ProgrammerError("ComicRootPage: Navigation failed");
         }
     }
 }
