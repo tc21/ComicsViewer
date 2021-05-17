@@ -1,5 +1,8 @@
-﻿using ComicsViewer.Support;
+﻿using System;
+using System.Threading.Tasks;
+using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
+using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
@@ -13,6 +16,14 @@ namespace ComicsViewer.Controls {
         // Also, this control is not designed to be modified at runtime. 
         public HighlightedComicItem() {
             this.InitializeComponent();
+
+            this.ThumbnailImage.ImageOpened += this.ThumbnailImage_ImageOpened;
+        }
+
+        private bool imageOpened = false;
+
+        private void ThumbnailImage_ImageOpened(object sender, RoutedEventArgs e) {
+            this.imageOpened = true;
         }
 
         public ComicItem? Item {
@@ -71,15 +82,36 @@ namespace ComicsViewer.Controls {
         }
 
         public void TryStartConnectedAnimationToThumbnail(ComicItem item) {
-            // When this method is called, the UI of this control hasn't properly initialized yet. 
+            // When this method is called, the UI of this control may not have been properly initialized yet. 
             // You can see this by hard-coding this.ThumbnailImage.Width, and the setting a breakpoint here.
             // You will see 0: it hasn't finished initializing yet.
             // As a workaround, we delay the starting of the connected animation until the thumbnail image is loaded,
             // so we can guarantee the control is finished loading.
-            this.ThumbnailImage.ImageOpened += TryStartAnimation;
+            // Note: the reason for this is, before the image is opened, the ThumbnailImage control has a width and
+            // height of 0. Thus any animation would disappear into a dot.
+            if (this.imageOpened) {
+                _ = ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
+            } else {
+                this.ThumbnailImage.ImageOpened += TryStartAnimation;
+                
+                // Sometimes ImageOpened is invoked before we can bind TryStartAnimation.
+                // We wait one second, and then cancel the animation.
+                _ = Task.Delay(1000).ContinueWith(async _ => 
+                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                            Windows.UI.Core.CoreDispatcherPriority.Normal, 
+                            () => {
+                                if (ConnectedAnimationHelper.AnimationExists("navigateIn")) {
+                                    ConnectedAnimationHelper.CancelAnimation("navigateIn");
+                                }
+                            }
+                       )
+                );
+            }
 
             void TryStartAnimation(object sender, RoutedEventArgs e) {
-                _ = ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
+                if (ConnectedAnimationHelper.AnimationExists("navigateIn")) {
+                    _ = ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
+                }
 
                 this.ThumbnailImage.ImageOpened -= TryStartAnimation;
             }

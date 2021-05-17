@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using ComicsViewer.Common;
 using ComicsViewer.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -87,11 +85,11 @@ namespace ComicsViewer.Support {
                 throw new ArgumentException("An animation with this key was never prepared");
             }
 
-            if (ConnectedAnimationService.GetForCurrentView().GetAnimation(key) is not { } animation) {
-                throw new ProgrammerError("An animation with this key was not found");
+            if (ConnectedAnimationService.GetForCurrentView().GetAnimation(key) is { } animation) {
+                // If the animation was prepared, but not started in a short amount of time, it could have expired.
+                animation.Cancel();
             }
 
-            animation.Cancel();
             _ = preparedAnimationComicItems.Remove(key);
         }
     }
