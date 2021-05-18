@@ -17,7 +17,7 @@ namespace ComicsViewer.Pages {
     /* For, I'm assuming, security reasons, UWP dosen't allow you to open an File Picker to an arbitrary location. 
      * The result of this decision, obviously, isn't that programs won't want to open the file picker to arbitrary
      * locations, but that we will have to write our own file pickers. */
-    public sealed partial class RedefineThumbnailDialogContent : IPagedControlContent {
+    public sealed partial class RedefineThumbnailDialogContent : IPagedControlContent<RedefineThumbnailDialogNavigationArguments> {
         private MainViewModel? _mainViewModel;
         private ComicWorkItem? _item;
 

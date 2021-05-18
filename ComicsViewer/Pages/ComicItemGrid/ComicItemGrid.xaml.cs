@@ -113,10 +113,9 @@ namespace ComicsViewer.Pages {
 
         public async Task ShowEditComicInfoDialogAsync(ComicWorkItem item) {
             // Since the only preset UI is its title, there's no need to have this in the xaml. We can just create it here.
-            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
-                typeof(EditComicInfoDialogContent),
-                new EditComicInfoDialogNavigationArguments(this.MainViewModel, item)
-            );
+            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync<
+                    EditComicInfoDialogContent, EditComicInfoDialogNavigationArguments
+                >(new(this.MainViewModel, item));
         }
 
         public async Task ShowEditNavigationItemDialogAsync(ComicNavigationItem item) {
@@ -126,15 +125,15 @@ namespace ComicsViewer.Pages {
 
             var helper = new EditNavigationItemDialogViewModel(vm, item.Title);
 
-            _ = await new PagedContentDialog { Title = $"{vm.NavigationTag.Describe(capitalized: true)}: {item.Title}" }.NavigateAndShowAsync(
-                typeof(TextInputDialogContent),
-                new TextInputDialogNavigationArguments(
-                    properties: TextInputDialogProperties.ForSavingChanges("Name"),
-                    initialValue: item.Title,
-                    asyncAction: helper.SaveAsync,
-                    validate: helper.GetItemTitleInvalidReason
-                )
-            );
+            _ = await new PagedContentDialog { Title = $"{vm.NavigationTag.Describe(capitalized: true)}: {item.Title}" }
+                .NavigateAndShowAsync<TextInputDialogContent, TextInputDialogNavigationArguments>(
+                    new(
+                        properties: TextInputDialogProperties.ForSavingChanges("Name"),
+                        initialValue: item.Title,
+                        asyncAction: helper.SaveAsync,
+                        validate: helper.GetItemTitleInvalidReason
+                    )
+                );
         }
 
         public async Task ShowMoveFilesDialogAsync(IEnumerable<ComicItem> items) {
@@ -156,10 +155,9 @@ namespace ComicsViewer.Pages {
                 }
             );
 
-            _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync(
-                typeof(ItemPickerDialogContent),
-                arguments
-            );
+            _ = await new PagedContentDialog { Title = "Move files to a new category" }.NavigateAndShowAsync<
+                    ItemPickerDialogContent, ItemPickerDialogNavigationArguments
+                >(arguments);
         }
 
         public async Task ShowCreatePlaylistDialogAsync() {
@@ -170,7 +168,9 @@ namespace ComicsViewer.Pages {
                 validate: ValidatePlaylistName
             );
 
-            _ = await new PagedContentDialog { Title = $"Create playlist" }.NavigateAndShowAsync(typeof(TextInputDialogContent), arguments);
+            _ = await new PagedContentDialog { Title = $"Create playlist" }.NavigateAndShowAsync<
+                    TextInputDialogContent, TextInputDialogNavigationArguments
+                >(arguments);
 
             ValidateResult ValidatePlaylistName(string name) {
                 if (this.MainViewModel.Playlists.ContainsKey(name)) {
@@ -193,7 +193,9 @@ namespace ComicsViewer.Pages {
                 action: async selected => await this.MainViewModel.AddToPlaylistAsync(selected, items.SelectMany(item => item.ContainedComics()))
             );
 
-            _ = await new PagedContentDialog { Title = "Add items to a playlist " }.NavigateAndShowAsync(typeof(ItemPickerDialogContent), arguments);
+            _ = await new PagedContentDialog { Title = "Add items to a playlist " }.NavigateAndShowAsync<
+                    ItemPickerDialogContent, ItemPickerDialogNavigationArguments
+                >(arguments);
         }
 
         #endregion
@@ -320,10 +322,9 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync(
-                typeof(RedefineThumbnailDialogContent),
-                new RedefineThumbnailDialogNavigationArguments(folder.Path, item, this.MainViewModel)
-            );
+            _ = await new PagedContentDialog { Title = "Redefine thumbnail" }.NavigateAndShowAsync<
+                    RedefineThumbnailDialogContent, RedefineThumbnailDialogNavigationArguments
+                >(new(folder.Path, item, this.MainViewModel));
         }
 
         #endregion

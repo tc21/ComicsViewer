@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using ComicsViewer.Common;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -37,7 +37,7 @@ namespace ComicsViewer.Controls {
         public void CloseControl();
     }
 
-    public interface IPagedControlContent {
+    public interface IPagedControlContent<TNavigationArgument> {
         public PagedControlAccessor? PagedControlAccessor { get; }
     }
 
@@ -52,17 +52,13 @@ namespace ComicsViewer.Controls {
     }
 
     public static class PagedControlNavigationHelper {
-        public static void Navigate(IPagedControl container, Type pageType, object parameter) {
-            if (!typeof(IPagedControlContent).IsAssignableFrom(pageType)) {
-                throw new ProgrammerError("An argument to IPagedItemContainer.NavigateTo must conform to IPagedItemContent");
-            }
-
+        public static void Navigate<T, A>(IPagedControl container, [DisallowNull] A parameter) where T: IPagedControlContent<A> {
             if (container.Content != container.ContentFrame) {
                 throw new ProgrammerError("IPagedItemContainer cannot have custom content");
             }
 
             _ = container.ContentFrame.NavigateToType(
-                pageType,
+                typeof(T),
                 new PagedControlNavigationArguments(container, parameter),
                 new FrameNavigationOptions { IsNavigationStackEnabled = false }
             );
@@ -76,12 +72,13 @@ namespace ComicsViewer.Controls {
             this.container = container;
         }
 
-        public static (PagedControlAccessor, T) FromNavigationArguments<T>(object navigationArguments) {
-            if (!(navigationArguments is PagedControlNavigationArguments args)) {
+
+        public static (PagedControlAccessor, TArgs) FromNavigationArguments<TArgs>(object navigationArguments) {
+            if (navigationArguments is not PagedControlNavigationArguments args) {
                 throw new ProgrammerError("FromNavigationArguments must receive an argument of type PagedItemNavigationArguments as its argument");
             }
 
-            if (!(args.Parameter is T param)) {
+            if (args.Parameter is not TArgs param) {
                 throw new ProgrammerError("PagedItemNavigationArguments.Parameter was of incorrect type");
             }
 

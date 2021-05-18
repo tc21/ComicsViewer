@@ -7,7 +7,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class TextInputDialogContent : IPagedControlContent {
+    public sealed partial class TextInputDialogContent : IPagedControlContent<TextInputDialogNavigationArguments> {
         public TextInputDialogContent() {
             this.InitializeComponent();
         }

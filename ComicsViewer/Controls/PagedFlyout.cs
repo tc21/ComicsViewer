@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -19,9 +19,9 @@ namespace ComicsViewer.Controls {
             this.Hide();
         }
 
-        public void NavigateAndShowAt(
-                Type pageType, object parameter, FrameworkElement placementTarget, FlyoutShowOptions? showOptions = null) {
-            PagedControlNavigationHelper.Navigate(this, pageType, parameter);
+        public void NavigateAndShowAt<T, A>([DisallowNull] A parameter, FrameworkElement placementTarget, FlyoutShowOptions? showOptions = null)
+        where T: IPagedControlContent<A> {
+            PagedControlNavigationHelper.Navigate<T, A>(this, parameter);
 
             if (showOptions == null) {
                 this.ShowAt(placementTarget);

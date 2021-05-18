@@ -109,10 +109,9 @@ namespace ComicsViewer.Pages {
 
         private async void EditButton_Click(object sender, RoutedEventArgs e) {
             // TODO this code is copied from ComicItemGrid. We should evaluate whether it needs to be generalized.
-            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync(
-                typeof(EditComicInfoDialogContent),
-                new EditComicInfoDialogNavigationArguments(this.MainViewModel, this.ViewModel.ComicItem)
-            );
+            _ = await new PagedContentDialog { Title = "Edit info" }.NavigateAndShowAsync<
+                    EditComicInfoDialogContent, EditComicInfoDialogNavigationArguments
+                >(new(this.MainViewModel, this.ViewModel.ComicItem));
         }
 
         private async void LoveButton_Click(object sender, RoutedEventArgs e) {

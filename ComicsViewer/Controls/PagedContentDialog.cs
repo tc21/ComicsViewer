@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 
@@ -19,8 +20,8 @@ namespace ComicsViewer.Controls {
             this.Hide();
         }
 
-        public async Task<ContentDialogResult> NavigateAndShowAsync(Type pageType, object parameter) {
-            PagedControlNavigationHelper.Navigate(this, pageType, parameter);
+        public async Task<ContentDialogResult> NavigateAndShowAsync<T, TArgs>([DisallowNull] TArgs parameter) where T: IPagedControlContent<TArgs> {
+            PagedControlNavigationHelper.Navigate<T, TArgs>(this, parameter);
             return await this.ShowAsync();
         }
     }
