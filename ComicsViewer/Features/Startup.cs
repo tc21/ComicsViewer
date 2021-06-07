@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System;
@@ -37,11 +38,15 @@ namespace ComicsViewer.Features {
                     var testFile = files[0];
 
                     if (FileTypes.IsImage(testFile)) {
-                        // TODO: apparently if we transfer too much information in memory we cause an error. (The size of ValueSet is capped at ~100kb).
+                        // apparently if we transfer too much information in memory we cause an error. (The size of ValueSet is capped at ~100kb).
                         if (files.Count > 250) {
-                            await LaunchBuiltInViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///path", subitem.RootPath);
+                            var tempFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync("comics_file_list.txt", CreationCollisionOption.ReplaceExisting);
+                            await FileIO.WriteLinesAsync(tempFile, files);
+                            var fileToken = SharedStorageAccessManager.AddFile(tempFile);
+
+                            await LaunchBuiltInViewerWithFileTokenAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///shared_filelist", fileToken);
                         } else {
-                            await LaunchBuiltinViewerAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
+                            await LaunchBuiltinViewerWithFilenamesAsync("d4f1d4fc-69b2-4240-9627-b2ff603e62e8_jh3a8zm8ky434", "comics-imageviewer:///filenames", files);
                         }
 
                         return;
@@ -59,7 +64,7 @@ namespace ComicsViewer.Features {
                             description += "\n";
                         }
 
-                        await LaunchBuiltinViewerAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///filenames", files, description);
+                        await LaunchBuiltinViewerWithFilenamesAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///filenames", files, description);
                         return;
                     }
 
@@ -76,33 +81,15 @@ namespace ComicsViewer.Features {
                     throw new ProgrammerError($"{nameof(OpenComicSubitemAsync)}: unhandled switch case");
             }
 
-            static async Task LaunchBuiltinViewerAsync(string packageFamilyName, string uri, IEnumerable<string> filenames, string? description = null) {
-                var data = new ValueSet {
-                    ["Filenames"] = filenames.ToArray()
-                };
-
-                if (description != null) {
-                    data["Description"] = description;
-                }
-
-                var opt = new LauncherOptions {
-                    TargetApplicationPackageFamilyName = packageFamilyName
-                };
-
-                if (!await Launcher.LaunchUriAsync(new Uri(uri), opt, data)) {
-                    await ComicExpectedExceptions.IntendedBehaviorAsync(
-                        title: "Cannot open item",
-                        message: "The application failed to open this item in a built-in viewer. Is the built-in viewer installed?",
-                        cancelled: false
-                    );
-                }
+            static Task LaunchBuiltinViewerWithFilenamesAsync(string packageFamilyName, string uri, IEnumerable<string> filenames, string? description = null) {
+                return FinishLaunchingBuiltinViewerAsync(new() { ["Filenames"] = filenames.ToArray() }, packageFamilyName, uri, description);
             }
 
-            static async Task LaunchBuiltInViewerAsync(string packageFamilyName, string uri, string folder, string? description = null) {
-                var data = new ValueSet {
-                    ["Path"] = folder
-                };
+            static Task LaunchBuiltInViewerWithFileTokenAsync(string packageFamilyName, string uri, string token, string? description = null) {
+                return FinishLaunchingBuiltinViewerAsync(new() { ["FileToken"] = token }, packageFamilyName, uri, description);
+            }
 
+            static async Task FinishLaunchingBuiltinViewerAsync(ValueSet data, string packageFamilyName, string uri, string? description) {
                 if (description != null) {
                     data["Description"] = description;
                 }

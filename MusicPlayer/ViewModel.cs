@@ -77,21 +77,23 @@ namespace MusicPlayer {
             this.PlaylistChanged?.Invoke(this, this.PlaylistItems);
         }
 
-        public async Task OpenFilesAtPathAsync(string[] filenames) {
-            if (filenames.Length == 0) {
+        public async Task OpenFilesAtPathAsync(IEnumerable<string> filenames) {
+            var files = filenames.ToList();
+
+            if (filenames.Count() == 0) {
                 return;
             }
 
             // verify e permission
-            if (!(await ExpectedExceptions.TryGetFileWithPermission(filenames[0]) is { } firstFile)) {
+            if (!(await ExpectedExceptions.TryGetFileWithPermission(files[0]) is { } firstFile)) {
                 return;
             }
 
             await this.OpenFilesAsync(new[] { firstFile });
 
-            for (var i = 1; i < filenames.Length; i++) {
+            for (var i = 1; i < filenames.Count(); i++) {
                 // this will crash if any file doesn't exist
-                await this.OpenFilesAsync(new[] { await StorageFile.GetFileFromPathAsync(filenames[i]) }, append: true);
+                await this.OpenFilesAsync(new[] { await StorageFile.GetFileFromPathAsync(files[i]) }, append: true);
             } 
         }
 

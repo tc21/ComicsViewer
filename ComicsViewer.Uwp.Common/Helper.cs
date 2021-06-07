@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 
 #nullable enable
@@ -68,6 +70,38 @@ namespace ComicsViewer.Uwp.Common {
                 };
             }
 
+            if (args.Uri.AbsolutePath == "/shared_filelist") {
+                if (!(args.Data.TryGetValue("FileToken", out var o) && o is string token)) {
+                    return new ProtocolActivatedArguments {
+                        Result = ProtocolActivatedResult.InvalidArguments,
+                        ErrorMessage = "Required argument 'FileToken' not found."
+                    };
+                }
+
+                StorageFile file;
+
+                try {
+                    file = await SharedStorageAccessManager.RedeemTokenForFileAsync(token);
+                } catch {
+                    return new ProtocolActivatedArguments {
+                        Result = ProtocolActivatedResult.InvalidArguments,
+                        ErrorMessage = $"Could not retrieve file corresponding to file token '{token}'."
+                    };
+                }
+
+                var lines = await FileIO.ReadLinesAsync(file);
+
+                // the temp file is no longer needed
+                await file.DeleteAsync();
+
+                return new ProtocolActivatedArguments {
+                    Result = ProtocolActivatedResult.Success,
+                    Mode = ProtocolActivatedMode.Filenames,
+                    Filenames = lines
+                };
+                
+            }
+
             return new ProtocolActivatedArguments { 
                 Result = ProtocolActivatedResult.InvalidUri,
                 ErrorMessage = args.Uri.AbsolutePath
@@ -80,7 +114,7 @@ namespace ComicsViewer.Uwp.Common {
         public ProtocolActivatedMode Mode { get; set; }
 
         public string? ErrorMessage { get; set; }
-        public string[]? Filenames { get; set; }
+        public IEnumerable<string>? Filenames { get; set; }
         public StorageFolder? Folder { get; set; }
         public StorageFile? File { get; set; }
         public string? Description { get; set; }
