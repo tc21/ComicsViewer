@@ -147,6 +147,7 @@ namespace ImageViewer {
 
             var files = ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder)
                 .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
+                .Where(info => IsImage(info.Name))
                 .InNaturalOrder()
                 .ToList();
 
