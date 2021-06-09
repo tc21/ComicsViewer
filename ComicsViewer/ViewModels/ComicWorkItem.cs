@@ -19,7 +19,7 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => new[] { this.Comic };
 
-        private readonly ComicView? trackingChangesFrom;
+        private ComicView? trackingChangesFrom;
 
         public ComicWorkItem(Comic comic, ComicView trackChangesFrom) {
             this.Comic = comic;
@@ -75,6 +75,12 @@ namespace ComicsViewer.ViewModels {
             if (this.trackingChangesFrom is { } view) {
                 view.ComicsChanged -= this.View_ComicsChanged;
             }
+        }
+
+        public void UpdateChangesSource(ComicView view) {
+            this.RemoveEventHandlers();
+            this.trackingChangesFrom = view;
+            view.ComicsChanged += this.View_ComicsChanged;
         }
 
         public delegate void RequestingRefreshEventHandler(ComicWorkItem sender, RequestingRefreshType type);

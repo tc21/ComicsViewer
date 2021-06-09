@@ -64,6 +64,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var actualItems = items.Cast<ComicWorkItem>().ToList();
             foreach (var item in actualItems) {
+                item.UpdateChangesSource(this.comics);
                 item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
             }
 
