@@ -19,7 +19,7 @@ namespace ComicsViewer.Controls {
             _ = VisualStateManager.GoToState(this, "Collapsed", false);
         }
 
-        private List<CountedStringCheckBoxItem> itemListItemsSource = new List<CountedStringCheckBoxItem>();
+        private List<CountedStringCheckBoxItem> itemListItemsSource = new();
         /* We can generalize this control and let the user provide a DataTemplate and an ICollection of arbitrary type,
          * but let's not build anything that I wouldn't end up needing. 
          * Note that we use the implementation detail that duplicate CountedString.Names don't exist */
@@ -57,7 +57,7 @@ namespace ComicsViewer.Controls {
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(string), typeof(ExpandableChecklist), new PropertyMetadata(""));
 
-        private HashSet<CountedString> _selectedItems = new HashSet<CountedString>();
+        private HashSet<CountedString> _selectedItems = new();
         public IEnumerable<CountedString> SelectedItems {
             set {
                 var oldSelectedItems = this._selectedItems;
@@ -87,7 +87,7 @@ namespace ComicsViewer.Controls {
         }
 
         private void ChecklistItem_Unchecked(object sender, RoutedEventArgs e) {
-            if (!(((FrameworkElement)sender).DataContext is CountedStringCheckBoxItem item)) {
+            if (((FrameworkElement)sender).DataContext is not CountedStringCheckBoxItem item) {
                 throw new ProgrammerError("ChecklistItem_Unchecked received unexpected item");
             }
 
@@ -97,7 +97,7 @@ namespace ComicsViewer.Controls {
         }
 
         private void ChecklistItem_Checked(object sender, RoutedEventArgs e) {
-            if (!(((FrameworkElement)sender).DataContext is CountedStringCheckBoxItem item)) {
+            if (((FrameworkElement)sender).DataContext is not CountedStringCheckBoxItem item) {
                 throw new ProgrammerError("ChecklistItem_Checked received unexpected item");
             }
 

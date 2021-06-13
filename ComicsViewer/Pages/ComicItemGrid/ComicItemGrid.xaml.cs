@@ -85,7 +85,7 @@ namespace ComicsViewer.Pages {
         }
         // Prepares the grid before the right click context menu is shown
         private void VisibleComicsGrid_RightTapped(object sender, RightTappedRoutedEventArgs e) {
-            if (!(sender is GridView grid)) {
+            if (sender is not GridView grid) {
                 throw new ProgrammerError("Only ComicItemGrid should be able to call this event handler");
             }
 
@@ -119,7 +119,7 @@ namespace ComicsViewer.Pages {
         }
 
         public async Task ShowEditNavigationItemDialogAsync(ComicNavigationItem item) {
-            if (!(this.ViewModel is ComicNavigationItemGridViewModel vm)) {
+            if (this.ViewModel is not ComicNavigationItemGridViewModel vm) {
                 throw new ProgrammerError($"{nameof(this.ShowEditNavigationItemDialogAsync)} should not be called with a work item view model");
             }
 
@@ -448,7 +448,7 @@ namespace ComicsViewer.Pages {
         private void DragAndDropPlaylistItem_DragOver(object sender, DragEventArgs e) {
             var element = (FrameworkElement)sender;
 
-            if (!(element.DataContext is DragAndDropShortcutItem item)) {
+            if (element.DataContext is not DragAndDropShortcutItem item) {
                 throw ProgrammerError.Auto();
             }
 
@@ -467,7 +467,7 @@ namespace ComicsViewer.Pages {
         private void DragAndDropPlaylistItem_Drop(object sender, DragEventArgs e) {
             var element = (FrameworkElement)sender;
 
-            if (!(element.DataContext is DragAndDropShortcutItem item)) {
+            if (element.DataContext is not DragAndDropShortcutItem item) {
                 throw ProgrammerError.Auto();
             }
 

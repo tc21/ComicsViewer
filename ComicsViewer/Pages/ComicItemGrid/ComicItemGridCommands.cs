@@ -176,7 +176,7 @@ namespace ComicsViewer.Pages {
         ) {
             this.GetName = () => getName(new ComicItemGrid.CommandArgs<T, TItem>(grid));
             this.CanExecute = () => {
-                if (!(grid.ViewModel is T)) {
+                if (grid.ViewModel is not T) {
                     return false;
                 }
 

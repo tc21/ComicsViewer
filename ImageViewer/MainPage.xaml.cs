@@ -140,14 +140,14 @@ namespace ImageViewer {
         private const int ChangeViewDelay = 20;  // milliseconds
 
         private void ResetZoom() {
-            _ = new Timer(async __ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            _ = new Timer(async _state => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 _ = this.ImageContainer.ChangeView(0, 0, 1))
             , null, ChangeViewDelay, Timeout.Infinite);
         }
 
         private void ZoomImage(double scale) {
             // For some reason, you have to wait a while before calling ChangeView
-            _ = new Timer(async __ => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
+            _ = new Timer(async _state => await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
                 /* Although ChangeView automatically constrains zooms to MaxZoomFactor, we need the accurate value for our calculations below.
                  * We don't need to do this for MinZoomFactor, because the image is already forced to be centered in that case. */
                 var zoomTo = this.ImageContainer.ZoomFactor * (float)scale;
@@ -186,8 +186,6 @@ namespace ImageViewer {
                 );
             }), null, ChangeViewDelay, Timeout.Infinite);
         }
-
-        private const int InteractionDelay = 100;
 
         // We could alternatively use converters and implement INotifyPropertyChanged, but not for just one text block
         private void ImageContainer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e) {
@@ -255,11 +253,11 @@ namespace ImageViewer {
                 return;
             }
 
-            if (!(this.dragStart is { } dragStart)) {
+            if (this.dragStart is not { } dragStart) {
                 return;
             }
 
-            if (!(this.offsetsAtDragStart is { } startingOffsets)) {
+            if (this.offsetsAtDragStart is not { } startingOffsets) {
                 throw new ProgrammerError("This should be set in MouseDown!");
             }
 

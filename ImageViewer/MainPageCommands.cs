@@ -82,7 +82,7 @@ namespace ImageViewer {
         public ICommand DeleteCommand {
             get {
                 this.deleteCommand ??= new RelayCommand(
-                    async _ => {
+                    async _o => {
                         // this doesn't work currently because the image is still loaded and the file handle is still held!
                         var response = await new ContentDialog {
                             Title = "Confirm file deletion",
@@ -109,7 +109,7 @@ namespace ImageViewer {
         public ICommand CloseWindowCommand {
             get {
                 this.closeWindowCommand ??= new RelayCommand(
-                    async _ => await ApplicationView.GetForCurrentView().TryConsolidateAsync()
+                    async _o => await ApplicationView.GetForCurrentView().TryConsolidateAsync()
                 );
 
                 return this.closeWindowCommand;

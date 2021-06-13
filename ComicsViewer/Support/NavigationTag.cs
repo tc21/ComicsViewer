@@ -18,7 +18,7 @@ namespace ComicsViewer.Support {
         Comics, Author, Category, Tags, Playlist
     }
 
-    public static class NavigationTag_ToTagName {
+    public static class NavigationTagExtensions {
         public static string ToTagName(this NavigationTag tag) {
             return tag switch {
                 NavigationTag.Comics => "comics",
@@ -43,6 +43,10 @@ namespace ComicsViewer.Support {
 
         public static bool IsWorkItemNavigationTag(this NavigationTag tag) {
             return tag is NavigationTag.Comics;
+        }
+
+        public static bool RefersToFilename(this NavigationTag tag) {
+            return tag is NavigationTag.Comics or NavigationTag.Author or NavigationTag.Category;
         }
     }
 }

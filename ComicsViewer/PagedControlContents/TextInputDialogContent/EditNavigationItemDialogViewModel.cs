@@ -24,7 +24,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return Task.CompletedTask;
             }
 
-            return this.NavigationTag switch {
+            return this.NavigationTag switch {  // switch NavigationTag
                 NavigationTag.Tags => this.parent.MainViewModel.UpdateTagNameAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Category => this.parent.MainViewModel.RenameCategoryAsync(this.ItemTitle, newItemTitle),
@@ -43,6 +43,11 @@ namespace ComicsViewer.ViewModels.Pages {
                 return $"{this.NavigationTag.Describe(capitalized: true)} name cannot be empty.";
             }
 
+            if (this.NavigationTag.RefersToFilename() && Path.GetInvalidFileNameChars().Any(c => title.Contains(c))) {
+                return $"{this.NavigationTag.Describe(capitalized: true)} names cannot contain characters that are not valid in filesnames. " +
+                    $"({string.Join("", Path.GetInvalidFileNameChars())})";
+            }
+
             switch (this.NavigationTag) {  // switch NavigationTag
                 case NavigationTag.Tags:
                     if (title.Contains(",")) {
@@ -52,10 +57,6 @@ namespace ComicsViewer.ViewModels.Pages {
                     return ValidateResult.Ok($"Warning: if the tag '{title}' already exists, the two tags will be merged. This cannot be undone.");
 
                 case NavigationTag.Author:
-                    if (Path.GetInvalidFileNameChars().Any(c => title.Contains(c))) {
-                        return $"Author names cannot contain characters that are not valid in file names. ({string.Join("", Path.GetInvalidFileNameChars())})";
-                    }
-
                     return ValidateResult.Ok("Warning: renaming authors will change move the files representing the comic to a new folder. " +
                         "If the author already exists, the two authors will be merged. This cannot be undone.");
 
@@ -75,7 +76,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     return ValidateResult.Ok();
 
                 default:
-                    throw new ProgrammerError("Editing properties other than tags not yet supported");
+                    throw new ProgrammerError($"Editing this property ({this.NavigationTag.Describe()}) is not yet supported");
             }
 
         }

@@ -117,7 +117,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             foreach (var item in workItems) {
-                if (!(await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic) is { } subitems)) {
+                if (await this.MainViewModel.Profile.GetComicSubitemsAsync(item.Comic) is not { } subitems) {
                     return;
                 }
 

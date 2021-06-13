@@ -26,7 +26,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace ComicsViewer.ViewModels.Pages {
     public class MainViewModel : ViewModelBase {
-        internal readonly MainComicList Comics = new MainComicList();
+        internal readonly MainComicList Comics = new();
         public ComicView ComicView => this.Comics.Filtered();
         // TODO: we are currently using AggregateCollectionView, and casting IComicCollection to Playlist under the "promise"
         // that we'll only put playlists into this list.
@@ -48,7 +48,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #region Profiles 
 
-        internal UserProfile Profile = new UserProfile { Name = "<uninitialized>" };
+        internal UserProfile Profile = new() { Name = "<uninitialized>" };
         public bool IsLoadingProfile { get; private set; }
 
         public async Task SetDefaultProfileAsync() {
@@ -302,9 +302,9 @@ namespace ComicsViewer.ViewModels.Pages {
 
         /* The purpose of this section is to allow for ComicItemGrids to be notified of changes to the master list of
          * comics, so we don't have to reload the entire list of comics each time something is changed. */
-        public readonly ObservableCollection<ComicTask> Tasks = new ObservableCollection<ComicTask>();
+        public readonly ObservableCollection<ComicTask> Tasks = new();
         public bool IsTaskRunning => this.Tasks.Count > 0;
-        private readonly Dictionary<string, ComicTask> taskNames = new Dictionary<string, ComicTask>();
+        private readonly Dictionary<string, ComicTask> taskNames = new();
 
         private bool ScheduleTask<T>(
                 string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, 
