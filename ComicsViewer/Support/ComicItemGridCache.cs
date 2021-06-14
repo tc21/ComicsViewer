@@ -73,21 +73,10 @@ namespace ComicsViewer.Support {
         }
 
         private static void RemoveStackItemAt(int index) {
-            var (_, _, state) = stack[index];
             stack.RemoveAt(index);
-
-            state.Items.ForEach(item => item.RemoveEventHandlers());
         }
 
         public static void Clear() {
-            foreach (var (_, _, state) in stack) {
-                state.Items.ForEach(item => item.RemoveEventHandlers());
-            }
-
-            foreach (var state in roots.Values) {
-                state?.Items.ForEach(item => item.RemoveEventHandlers());
-            }
-
             stack.Clear();
             roots.Clear();
         }

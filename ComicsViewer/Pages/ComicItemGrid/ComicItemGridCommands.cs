@@ -110,6 +110,8 @@ namespace ComicsViewer.Pages {
                                 // note: we might want to consider moving this logic to MainViewModel
                                 var flyoutItem = new ComicsMenuFlyoutItem { Text = playlist.Name };
                                 flyoutItem.Click += (a, e) => {
+                                    // TODO: playlists do not use MainComicList.GetNavigationItem.
+                                    // We should switch over soon.
                                     var view = new ComicNavigationItem(playlist.Name, playlist.Comics);
                                     this.MainViewModel.NavigateInto(view);
                                 };

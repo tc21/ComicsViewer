@@ -17,6 +17,8 @@ namespace ComicsViewer.Pages {
         private ComicNavigationItem? _comicItem;
         public ComicNavigationItem ComicItem => this._comicItem ?? throw ProgrammerError.Unwrapped();
 
+        private ComicWorkItemGridViewModel? viewModel;
+
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicNavigationItemPageNavigationArguments args) {
                 throw new ProgrammerError("A ComicRootPage must receive a ComicNavigationItemPageNavigationArguments as its parameter.");
@@ -31,7 +33,7 @@ namespace ComicsViewer.Pages {
                 _ => throw new ProgrammerError("Unexpected switch case"),
             };
 
-            var viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, savedState);
+            this.viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, savedState);
             this.ComicsCount = viewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
@@ -58,6 +60,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
+            this.viewModel!.RemoveEventHandlers();
             this.ComicItemGrid.DisposeAndInvalidate();
         }
 

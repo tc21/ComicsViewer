@@ -32,7 +32,5 @@ namespace ComicsViewer.ViewModels {
             this.ThumbnailImageSource = original;
             this.OnPropertyChanged(nameof(this.ThumbnailImageSource));
         }
-
-        public abstract void RemoveEventHandlers();
     }
 }

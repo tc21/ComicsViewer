@@ -58,16 +58,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private protected override void SetComicItems(IEnumerable<ComicItem> items) {
-            foreach (var item in this.ComicItems.Cast<ComicWorkItem>()) {
-                item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-            }
-
             var actualItems = items.Cast<ComicWorkItem>().ToList();
-            foreach (var item in actualItems) {
-                item.UpdateChangesSource(this.comics);
-                item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
-            }
-
             base.SetComicItems(actualItems);
         }
 
@@ -76,8 +67,6 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void AddComicItem(ComicWorkItem item, int? index = null) {
-            item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
-
             if (index is { } i) {
                 this.ComicItems.Insert(i, item);
             } else {
@@ -86,27 +75,19 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RemoveComicItem(ComicWorkItem item) {
-            item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-            item.RemoveEventHandlers();
-
             if (!this.ComicItems.Remove(item)) {
                 throw new ProgrammerError("Removing a ComicWorkItem that didn't already exist.");
             }
         }
 
         private void RemoveComicItem(int index) {
-            var item = (ComicWorkItem)this.ComicItems[index];
-
-            item.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-            item.RemoveEventHandlers();
-
             this.ComicItems.RemoveAt(index);
         }
 
         private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
             // we make a copy of comics, since the returned enumerable is expectedly to be lazily evaluated, and comics might change
             comics = comics.ToList();
-            return comics.Select(comic => new ComicWorkItem(comic, trackChangesFrom: this.comics));
+            return comics.Select(comic => this.MainViewModel.Comics.GetWorkItem(comic));
         }
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
@@ -144,8 +125,21 @@ namespace ComicsViewer.ViewModels.Pages {
                         }
                     }
 
-                    /* individual ComicItems will call ComicItem_RequestingRefresh to update or remove themselves, 
-                     * so we don't need any logic in this section to handle modified and removed. */
+                    if (e.Removed.Any()) {
+                        foreach (var comic in e.Removed) {
+                            var (_, index) = this.ComicItems.Cast<ComicWorkItem>()
+                                .Select((item, index) => (item, index))
+                                .First(e => e.item.Comic.UniqueIdentifier == comic.UniqueIdentifier);
+
+                            this.RemoveComicItem(index);
+                        }
+
+                        if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
+                            this.MainViewModel.TryNavigateOut();
+                        }
+                    }
+
+                    /* Note: if an item was modified, the change is already propagated through bindings */
                     break;
 
                 case ComicChangeType.Refresh:
@@ -157,34 +151,6 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 default:
                     throw new ProgrammerError($"{nameof(ComicWorkItemGridViewModel)}.{nameof(this.Comics_ComicsChanged)}: unhandled switch case");
-            }
-        }
-
-
-        /* The ComicItem.RequestingRefresh event is used for items to request themselves be reloaded or removed. 
-         * This will most likely be moved to ...WorkItemViewModel when the new ComicPropertiesView events are implemented */
-        private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
-            if (!this.ComicItems.Contains(sender)) {
-                return;
-            }
-
-            switch (type) {
-                case ComicWorkItem.RequestingRefreshType.Reload:
-                    var index = this.ComicItems.IndexOf(sender);
-                    this.RemoveComicItem(index);
-                    this.AddComicItem(sender, index);
-                    break;
-                case ComicWorkItem.RequestingRefreshType.Remove:
-                    sender.RequestingRefresh -= this.ComicWorkItem_RequestingRefresh;
-                    this.RemoveComicItem(sender);
-
-                    if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
-                        this.MainViewModel.TryNavigateOut();
-                    }
-
-                    break;
-                default:
-                    throw new ProgrammerError("Unhandled switch case");
             }
         }
 
@@ -200,11 +166,15 @@ namespace ComicsViewer.ViewModels.Pages {
 
         #endregion
 
-        public override void DestroyComicItemsAndInvalidate() {
-            base.DestroyComicItemsAndInvalidate();
+        public override void RemoveEventHandlers() {
+            base.RemoveEventHandlers();
 
             this.comics.ComicsChanged -= this.Comics_ComicsChanged;
-            this.comics.DetachFromParent();
+
+            if (this.Properties.PlaylistName is { } name) {
+                var playlist = (Playlist)this.MainViewModel.Playlists.GetCollection(name);
+                playlist.ComicsChanged -= this.Comics_ComicsChanged;
+            }
         }
     }
 }

@@ -19,14 +19,14 @@ namespace ComicsViewer.ViewModels {
 
         public override IEnumerable<Comic> ContainedComics() => new[] { this.Comic };
 
-        private ComicView? trackingChangesFrom;
+        private readonly ComicList owner;
 
-        public ComicWorkItem(Comic comic, ComicView trackChangesFrom) {
+        public ComicWorkItem(Comic comic, ComicList owner) {
             this.Comic = comic;
             this.ThumbnailImageSource = new Uri(Thumbnail.ThumbnailPath(this.Comic));
 
-            this.trackingChangesFrom = trackChangesFrom;
-            this.trackingChangesFrom.ComicsChanged += this.View_ComicsChanged;
+            this.owner = owner;
+            this.owner.ComicsChanged += this.View_ComicsChanged;
         }
 
         private async void View_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
@@ -50,7 +50,7 @@ namespace ComicsViewer.ViewModels {
                         return;
                     }
 
-                    sender.ComicsChanged -= this.View_ComicsChanged;
+                    this.owner.ComicsChanged -= this.View_ComicsChanged;
                     this.RequestingRefresh(this, RequestingRefreshType.Remove);
                     return;
 
@@ -71,22 +71,10 @@ namespace ComicsViewer.ViewModels {
             }
         }
 
-        public override void RemoveEventHandlers() {
-            if (this.trackingChangesFrom is { } view) {
-                view.ComicsChanged -= this.View_ComicsChanged;
-            }
-        }
-
-        public void UpdateChangesSource(ComicView view) {
-            this.RemoveEventHandlers();
-            this.trackingChangesFrom = view;
-            view.ComicsChanged += this.View_ComicsChanged;
-        }
-
         public delegate void RequestingRefreshEventHandler(ComicWorkItem sender, RequestingRefreshType type);
         public event RequestingRefreshEventHandler RequestingRefresh = delegate { };
         public enum RequestingRefreshType {
-            Reload, Remove
+            Remove
         }
     }
 }

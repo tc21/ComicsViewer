@@ -168,7 +168,7 @@
     <Compile Include="Pages\ComicRootPage\ComicRootPageNavigationArguments.cs" />
     <Compile Include="Pages\MainPage\IMainPageContent.cs" />
     <Compile Include="Support\ComicItemGridCache.cs" />
-    <Compile Include="Support\ComicLists.cs" />
+    <Compile Include="Support\MainComicList.cs" />
     <Compile Include="Support\FileTypes.cs" />
     <Compile Include="ViewModels\ComicSubitemContainer.cs" />
     <Compile Include="Support\CommentedType.cs" />

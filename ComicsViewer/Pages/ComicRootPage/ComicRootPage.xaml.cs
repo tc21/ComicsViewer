@@ -14,6 +14,8 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
+        ComicItemGridViewModel? viewModel;
+
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicRootPageNavigationArguments args) {
                 throw new ProgrammerError("A ComicRootPage must receive a ComicRootPageNavigationArguments as its parameter.");
@@ -28,7 +30,7 @@ namespace ComicsViewer.Pages {
                 savedState.ScrollOffset = 0;
             }
 
-            var viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
+            this.viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
             this.ComicsCount = viewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
@@ -48,6 +50,7 @@ namespace ComicsViewer.Pages {
             ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.GetSaveState());
 
             // Ideally this should be automated
+            this.viewModel!.RemoveEventHandlers();
             this.ComicItemGrid.DisposeAndInvalidate();
         }
 

@@ -33,6 +33,10 @@ namespace ComicsLibrary.Collections {
         public ComicCollectionSortSelector Sort { get; private set; }
 
         public void SetSort(ComicCollectionSortSelector sortSelector) {
+            if (this.Sort == sortSelector) {
+                return;
+            }
+
             this.Sort = sortSelector;
 
             var previous = this.Properties.ToList();

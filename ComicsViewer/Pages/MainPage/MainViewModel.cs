@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
@@ -203,6 +202,14 @@ namespace ComicsViewer.ViewModels.Pages {
             this.NavigationRequested?.Invoke(this, new NavigationRequestedEventArgs { NavigationType = NavigationType.Out });
         }
 
+        public void NavigateInto(NavigationTag tag, string name) {
+            if (tag is NavigationTag.Playlist) {
+                
+            }
+
+            this.NavigateInto(this.Comics.GetNavigationItem(tag, name));
+        }
+
         public void NavigateInto(ComicItem item) {
             var navigationPageType = item switch {
                 ComicWorkItem _ => NavigationPageType.WorkItem,
@@ -228,10 +235,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateToAuthor(string author) {
-            var authorView = this.Comics.Filtered(c => c.Author == author);
-            var placeholder = new ComicNavigationItem(author, authorView);
-
-            this.NavigateInto(placeholder);
+            var view = this.Comics.GetNavigationItem(NavigationTag.Author, author);
+            this.NavigateInto(view);
         }
 
         private void FilterToComics(IEnumerable<Comic> comics) {

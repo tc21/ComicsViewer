@@ -91,29 +91,8 @@ namespace ComicsViewer.ViewModels.Pages {
             } else {
                 var initialSort = (ComicCollectionSortSelector)Defaults.SettingsAccessor.GetLastSortSelection(parent.NavigationTag, parent.NavigationPageType);
 
-                ComicCollectionView comicCollections;
-
-                if (parent.NavigationTag == NavigationTag.Playlist) {
-                    comicCollections = mainViewModel.Playlists;
-                    comicCollections.SetSort(initialSort);
-                } else {
-                    comicCollections = GetSortedProperties(mainViewModel.ComicView, parent.NavigationTag, initialSort);
-                }
-
-                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, comicCollections, savedState);
+                return ComicNavigationItemGridViewModel.ForViewModel(parent, mainViewModel, parent.NavigationTag, initialSort);
             }
-        }
-
-        private static ComicPropertiesCollectionView GetSortedProperties(ComicView comics, NavigationTag navigationTag, ComicCollectionSortSelector sortSelector) {
-            return comics.SortedProperties(
-                navigationTag switch {
-                    NavigationTag.Author => comic => new[] { comic.Author },
-                    NavigationTag.Category => comic => new[] { comic.Category },
-                    NavigationTag.Tags => comic => comic.Tags,
-                    _ => throw new ProgrammerError("unhandled switch case")
-                },
-                sortSelector
-            );
         }
 
         public static ComicWorkItemGridViewModel ForSecondLevelNavigationTag(
@@ -138,14 +117,18 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly ConcurrentQueue<(Comic comic, bool replace)> thumbnailQueue = new();
 
+        private readonly object thumbnailTaskStarting = new();
+
         public void ScheduleGenerateThumbnails(IEnumerable<Comic> comics, bool replace = false) {
             foreach (var comic in comics) {
                 this.thumbnailQueue.Enqueue((comic, replace));
             }
 
             // This may not be thread safe
-            if (!thumbnailQueue.IsEmpty && !this.MainViewModel.Tasks.Any(task => task.Name == "thumbnail")) {
-                this.StartProcessThumbnailQueueTask();
+            lock (thumbnailTaskStarting) {
+                if (!thumbnailQueue.IsEmpty && !this.MainViewModel.Tasks.Any(task => task.Name == "thumbnail")) {
+                    this.StartProcessThumbnailQueueTask();
+                }
             }
         }
 
@@ -211,11 +194,7 @@ namespace ComicsViewer.ViewModels.Pages {
             return result;
         }
 
-        public virtual void DestroyComicItemsAndInvalidate() {
-            foreach (var item in this.ComicItems) {
-                item.RemoveEventHandlers();
-            }
-
+        public virtual void RemoveEventHandlers() {
             this.PropertyChanged -= this.ComicItemGridViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;
         }

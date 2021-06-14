@@ -14,20 +14,38 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private readonly ComicCollectionView collections;
 
-        protected ComicNavigationItemGridViewModel(IMainPageContent parent, MainViewModel appViewModel, ComicCollectionView comicCollections)
-            : base(parent, appViewModel)
-        {
-            this.collections = comicCollections;
+        protected ComicNavigationItemGridViewModel(
+            IMainPageContent parent, 
+            MainViewModel appViewModel,
+            NavigationTag navigationTag,
+            ComicCollectionSortSelector initialSort
+        ) : base(parent, appViewModel) {
+            // Note: in the future, we may want to store this to remove the event handler
+            switch (navigationTag) {
+                case NavigationTag.Comics:
+                    throw new ProgrammerError("Cannot make of navigation item view model for work items");
+
+                case NavigationTag.Playlist:
+                    this.collections = this.MainViewModel.Playlists;
+                    this.collections.SetSort(initialSort);
+                    break;
+
+                default:
+                    this.collections = this.MainViewModel.Comics.SortedProperties(navigationTag, initialSort);
+                    break;
+            }
+
             this.collections.CollectionsChanged += this.Collections_CollectionsChanged;
         }
         
         public static ComicNavigationItemGridViewModel ForViewModel(
             IMainPageContent parent, 
-            MainViewModel mainViewModel, 
-            ComicCollectionView comicCollections, 
+            MainViewModel mainViewModel,
+            NavigationTag navigationTag,
+            ComicCollectionSortSelector initialSort,
             ComicItemGridState? savedState = null
         ) {
-            var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, comicCollections);
+            var viewModel = new ComicNavigationItemGridViewModel(parent, mainViewModel, navigationTag, initialSort);
 
             if (savedState?.LastModified is { } lastModified && lastModified == mainViewModel.LastModified) {
                 viewModel.SetComicItems(savedState.Items);
@@ -43,15 +61,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         protected void RefreshComicItems() {
-            var items = this.collections.Select(collection =>
-                new ComicNavigationItem(collection.Name, collection.Comics)
-            ).ToList();
-
+            var items = this.MainViewModel.Comics.GetNavigationItems(this.NavigationTag, this.SelectedSortSelector);
             this.SetComicItems(items);
         }
 
         public override void SortAndRefreshComicItems() {
-            this.collections.SetSort(this.SelectedSortSelector);
             this.RefreshComicItems();
         }
 
@@ -77,7 +91,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     if (e.Added.Any()) {
-                        var addedItems = e.Added.Select(name => new ComicNavigationItem(name, sender.GetView(name)));
+                        var addedItems = e.Added.Select(name => this.MainViewModel.Comics.GetNavigationItem(this.NavigationTag, name));
 
                         foreach (var item in addedItems) {
                             this.ComicItems.Insert(0, item);
@@ -95,11 +109,10 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public override void DestroyComicItemsAndInvalidate() {
-            base.DestroyComicItemsAndInvalidate();
+        public override void RemoveEventHandlers() {
+            base.RemoveEventHandlers();
 
             this.collections.CollectionsChanged -= this.Collections_CollectionsChanged;
-            this.collections.DetachFromParent();
         }
     }
 }

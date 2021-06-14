@@ -290,9 +290,6 @@ namespace ComicsViewer.Pages {
         }
 
         public void DisposeAndInvalidate() {
-            // We still have to call this manually, because sometimes xaml.cs classes aren't properly thrown away and garbage collected
-            this.ViewModel.DestroyComicItemsAndInvalidate();
-
             CoreWindow.GetForCurrentThread().ResizeStarted -= this.ComicItemGrid_ResizeStarted;
             CoreWindow.GetForCurrentThread().ResizeCompleted -= this.ComicItemGrid_ResizeCompleted;
         }
