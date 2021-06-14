@@ -187,13 +187,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.OnPropertyChanged(nameof(this.ProfileName));
         }
 
-        // Unlinks event handlers
-        public List<ComicItem> ExtractComicItems() {
-            var result = this.ComicItems.ToList();
-            this.ComicItems.Clear();
-            return result;
-        }
-
         public virtual void RemoveEventHandlers() {
             this.PropertyChanged -= this.ComicItemGridViewModel_PropertyChanged;
             this.MainViewModel.ProfileChanged -= this.MainViewModel_ProfileChanged;

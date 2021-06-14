@@ -1,6 +1,7 @@
 ﻿using ComicsLibrary.Sorting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
@@ -109,6 +110,31 @@ namespace ComicsLibrary.Collections {
 
             foreach (var comic in comics) {
                 this.AddComic(comic);
+            }
+        }
+
+        /// <summary>
+        /// Behavior is undefined if <c>comic</c> is not part of this view.
+        /// </summary>
+        public int? IndexOf(Comic comic) {
+            if (this.sortSelector is ComicSortSelector.Random) {
+                //var (_, index) = this.sortedComics.Select((comic, index) => (comic, index))
+                //    .First(e => e.comic.UniqueIdentifier == comic.UniqueIdentifier);
+
+                foreach (var (existingComic, index) in this.sortedComics.Select((comic, index) => (comic, index))) {
+                    if (existingComic.UniqueIdentifier == comic.UniqueIdentifier) {
+                        return index;
+                    }
+                }
+
+                return null;
+            } else {
+                var index = this.sortedComics.BinarySearch(comic, ComicComparers.Make(this.sortSelector));
+                if (this.sortedComics[index].UniqueIdentifier == comic.UniqueIdentifier) {
+                    return index;
+                } else {
+                    return null;
+                }
             }
         }
 

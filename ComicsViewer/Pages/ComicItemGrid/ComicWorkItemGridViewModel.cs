@@ -31,12 +31,6 @@ namespace ComicsViewer.ViewModels.Pages {
             this.comics = comics.Sorted(this.SelectedSortSelector);
             this.comics.ComicsChanged += this.Comics_ComicsChanged;
 
-            // Track changes if this is a playlist
-            if (this.Properties.PlaylistName is { } name) {
-                var playlist = (Playlist)this.MainViewModel.Playlists.GetCollection(name);
-                playlist.ComicsChanged += this.Comics_ComicsChanged;
-            }
-
             if (savedState?.LastModified is { } lastModified && lastModified == mainViewModel.LastModified) {
                 this.SetComicItems(savedState.Items);
             } else {
@@ -63,31 +57,8 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RefreshComicItems() {
-            this.SetComicItems(this.MakeComicItems(this.comics).ToList());
-        }
-
-        private void AddComicItem(ComicWorkItem item, int? index = null) {
-            if (index is { } i) {
-                this.ComicItems.Insert(i, item);
-            } else {
-                this.ComicItems.Add(item);
-            }
-        }
-
-        private void RemoveComicItem(ComicWorkItem item) {
-            if (!this.ComicItems.Remove(item)) {
-                throw new ProgrammerError("Removing a ComicWorkItem that didn't already exist.");
-            }
-        }
-
-        private void RemoveComicItem(int index) {
-            this.ComicItems.RemoveAt(index);
-        }
-
-        private IEnumerable<ComicWorkItem> MakeComicItems(IEnumerable<Comic> comics) {
-            // we make a copy of comics, since the returned enumerable is expectedly to be lazily evaluated, and comics might change
-            comics = comics.ToList();
-            return comics.Select(comic => this.MainViewModel.Comics.GetWorkItem(comic));
+            var comicItems = this.comics.Select(comic => this.MainViewModel.Comics.GetWorkItem(comic));
+            this.SetComicItems(comicItems);
         }
 
         public async Task OpenItemsAsync(IEnumerable<ComicItem> items) {
@@ -109,37 +80,48 @@ namespace ComicsViewer.ViewModels.Pages {
         private void Comics_ComicsChanged(ComicView sender, ComicsChangedEventArgs e) {
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
-                    if (e.Added.Any()) {
-                        var addedItems = this.MakeComicItems(e.Added).ToList();
-
-                        foreach (var item in addedItems) {
-                            // TODO implement live sorting
-                            this.AddComicItem(item, 0);
-                        }
-
-                        /* Generate thumbnails for added items */
-                        /* There may be many view models active at any given moment. The if statement ensures that only
-                         * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
-                        if (this.NavigationPageType is NavigationPageType.Root) {
-                            this.ScheduleGenerateThumbnails(e.Added);
+                    foreach (var comic in e.Removed) {
+                        if (IndexOf(comic) is { } index) {
+                            this.ComicItems.RemoveAt(index);
                         }
                     }
 
-                    if (e.Removed.Any()) {
-                        foreach (var comic in e.Removed) {
-                            var (_, index) = this.ComicItems.Cast<ComicWorkItem>()
-                                .Select((item, index) => (item, index))
-                                .First(e => e.item.Comic.UniqueIdentifier == comic.UniqueIdentifier);
+                    // we are receiving this event because this.comics just changed, and e.Added are the items that
+                    // aren't in this.ComicItems already. Since everything else is sorted, we can take a shortcut by
+                    // removing unsorted items, sorting the additions, and then binary searching this.comics:
+                    if (this.SelectedSortSelector is not ComicSortSelector.Random) {
+                        var additions = new ComicList();
 
-                            this.RemoveComicItem(index);
+                        foreach (var comic in e.Modified) {
+                            if (IndexOf(comic) is { } index) {
+                                additions.Add(((ComicWorkItem)this.ComicItems[index]).Comic);
+                                this.ComicItems.RemoveAt(index);
+                            }
                         }
 
-                        if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
-                            this.MainViewModel.TryNavigateOut();
+                        additions.Add(e.Added);
+
+                        foreach (var comic in additions.Sorted(this.SelectedSortSelector)) {
+                            var position = this.comics.IndexOf(comic) ?? 0;
+                            this.ComicItems.Insert(position, this.MainViewModel.Comics.GetWorkItem(comic));
+                        }
+                    } else {
+                        foreach (var comic in e.Added) {
+                            this.ComicItems.Insert(0, this.MainViewModel.Comics.GetWorkItem(comic));
                         }
                     }
 
-                    /* Note: if an item was modified, the change is already propagated through bindings */
+                    /* Generate thumbnails for added items */
+                    /* There may be many view models active at any given moment. The if statement ensures that only
+                     * the top level grid (guaranteed to be unique) requests thumbnails to be generated */
+                    if (e.Added.Any() && this.NavigationPageType is NavigationPageType.Root) {
+                        this.ScheduleGenerateThumbnails(e.Added);
+                    }
+
+                    if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
+                        this.MainViewModel.TryNavigateOut();
+                    }
+
                     break;
 
                 case ComicChangeType.Refresh:
@@ -151,6 +133,16 @@ namespace ComicsViewer.ViewModels.Pages {
 
                 default:
                     throw new ProgrammerError($"{nameof(ComicWorkItemGridViewModel)}.{nameof(this.Comics_ComicsChanged)}: unhandled switch case");
+            }
+
+            int? IndexOf(Comic comic) {
+                foreach (var (item, index) in this.ComicItems.Cast<ComicWorkItem>().Select((item, index) => (item, index))) {
+                    if (item.Comic.UniqueIdentifier == comic.UniqueIdentifier) {
+                        return index;
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -170,11 +162,6 @@ namespace ComicsViewer.ViewModels.Pages {
             base.RemoveEventHandlers();
 
             this.comics.ComicsChanged -= this.Comics_ComicsChanged;
-
-            if (this.Properties.PlaylistName is { } name) {
-                var playlist = (Playlist)this.MainViewModel.Playlists.GetCollection(name);
-                playlist.ComicsChanged -= this.Comics_ComicsChanged;
-            }
         }
     }
 }

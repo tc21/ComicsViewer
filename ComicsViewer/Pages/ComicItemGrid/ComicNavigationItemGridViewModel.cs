@@ -90,6 +90,7 @@ namespace ComicsViewer.ViewModels.Pages {
                         }
                     }
 
+                    // TODO: insert added items in sorted position, move modified items to their new sort positions
                     if (e.Added.Any()) {
                         var addedItems = e.Added.Select(name => this.MainViewModel.Comics.GetNavigationItem(this.NavigationTag, name));
 
