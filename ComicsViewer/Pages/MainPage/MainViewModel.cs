@@ -397,6 +397,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     result = await manager.RetrieveKnownMetadataAsync(result);
 
                     // A reload all completely replaces the current comics list. We won't send any events. We'll just refresh everything.
+                    // TODO: remove thumbnails on comics that didn't get reloaded
                     await this.RemoveComicsAsync(this.Comics);
                     _ = await this.AddComicsWithoutReplacingAsync(result, notifyDuplicates: true);
                 }, 
@@ -411,6 +412,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     var manager = await this.GetComicsManagerAsync();
                     result = await manager.RetrieveKnownMetadataAsync(result);
 
+                    // TODO: remove thumbnails on comics that didn't get reloaded
                     await this.RemoveComicsAsync(this.Comics.Where(comic => comic.Category == category.Name));
                     _ = await this.AddComicsWithoutReplacingAsync(result, notifyDuplicates: true);
                 },
@@ -438,7 +440,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 async result => {
                     if (result.Any()) {
                         if (await PromptRemoveComicsAsync(result)) {
-                            await this.RemoveComicsAsync(result);
+                            await this.RemoveComicsAsync(result, deleteThumbnails: true);
                         }
                     }
                 },
@@ -657,7 +659,7 @@ namespace ComicsViewer.ViewModels.Pages {
             return result == ContentDialogResult.Primary;
         }
 
-        public async Task RemoveComicsAsync(IEnumerable<Comic> comics) {
+        public async Task RemoveComicsAsync(IEnumerable<Comic> comics, bool deleteThumbnails = false) {
             var removed = comics.Where(comic => this.Comics.Contains(comic)).ToList();
 
             // this update must happen before this.Comics.Add because many view models listen to its events
@@ -667,6 +669,15 @@ namespace ComicsViewer.ViewModels.Pages {
             var manager = await this.GetComicsManagerAsync();
             await manager.RemoveComicsAsync(removed);
 
+            if (deleteThumbnails) {
+                foreach (var comic in removed) {
+                    var thumbnailPath = Thumbnail.ThumbnailPath(comic);
+
+                    if (IO.FileOrDirectoryExists(thumbnailPath)) {
+                        IO.RemoveFile(thumbnailPath);
+                    }
+                }
+            }
         }
 
         public async Task UpdateComicAsync(IEnumerable<Comic> comics) {

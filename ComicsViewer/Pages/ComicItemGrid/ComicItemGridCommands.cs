@@ -250,7 +250,7 @@ namespace ComicsViewer.Pages {
                     }
 
                     var comics = e.Items.SelectMany(item => item.ContainedComics()).ToList();
-                    await e.MainViewModel.RemoveComicsAsync(comics);
+                    await e.MainViewModel.RemoveComicsAsync(comics, deleteThumbnails: true);
                 },
                 canExecute: e => e.Count > 0
             );
