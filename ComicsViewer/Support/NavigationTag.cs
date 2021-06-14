@@ -45,7 +45,7 @@ namespace ComicsViewer.Support {
             return tag is NavigationTag.Comics;
         }
 
-        public static bool RefersToFilename(this NavigationTag tag) {
+        public static bool RefersToFileName(this NavigationTag tag) {
             return tag is NavigationTag.Comics or NavigationTag.Author or NavigationTag.Category;
         }
     }

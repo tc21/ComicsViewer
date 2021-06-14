@@ -51,7 +51,7 @@ namespace ComicsViewer.Pages {
 
                     return args.Validate?.Invoke(value) ?? ValidateResult.Ok();
                 },
-                canAlreadySubmit: args.Properties.CanInitiallySubmit
+                canSubmitUnedited: args.Properties.CanInitiallySubmit
             );
         }
 

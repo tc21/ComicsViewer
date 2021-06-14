@@ -12,6 +12,9 @@ using Windows.UI.Xaml.Input;
 #nullable enable
 
 namespace ComicsViewer.Controls {
+    /* Note: EditItemTextBox is designed to edit things in isolation. If multiple properties should be edited at the 
+     * same time, you should not use EditItemTextBox. */
+
     public sealed partial class EditItemTextBox : INotifyPropertyChanged {
         public EditItemTextBox() {
             this.InitializeComponent();
@@ -42,18 +45,24 @@ namespace ComicsViewer.Controls {
 
         public void RegisterHandlers(
             Func<string> get, 
-            Func<string, Task> saveAsync, 
+            Action<string>? save = null,
+            Func<string, Task>? saveAsync = null, 
             Func<string, ValidateResult>? validate = null,
-            bool canAlreadySubmit = false
+            bool canSubmitUnedited = false
         ) {
             this.GetItemValue = get;
+            this.SaveItemValue = save;
             this.SaveItemValueAsync = saveAsync;
             this.ValidateWithReason = validate;
-            this.canSubmitWhenReset = canAlreadySubmit;
+            this.canSubmitWhenReset = canSubmitUnedited;
         }
 
         private string GetText() {
             return this.GetItemValue?.Invoke() ?? "<error: unset>";
+        }
+
+        public string CurrentText() {
+            return this.TextBox.Text;
         }
 
         private void UpdateSaveButtonState() {

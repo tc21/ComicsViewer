@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Windows.Storage;
 
 #nullable enable
 
 namespace ComicsViewer.ClassExtensions {
-    public static class String_PathComparisons {
+    public static class String_PathExtensions {
         /// <summary>
         /// Tests whether <c>child</c> is <c>parent</c> or a subdirectory in <c>parent</c>.
         /// </summary>
@@ -41,6 +42,10 @@ namespace ComicsViewer.ClassExtensions {
 
         public static string RelativeTo(this IStorageItem child, string parentPath) {
             return GetPathRelativeTo(child.Path, parentPath);
+        }
+
+        public static bool IsValidFileName(this string name) {
+            return !Path.GetInvalidFileNameChars().Any(c => name.Contains(c));
         }
     }
 }

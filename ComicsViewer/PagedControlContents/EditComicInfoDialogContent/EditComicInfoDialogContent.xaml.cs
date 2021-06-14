@@ -9,6 +9,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
+using ComicsViewer.Support;
 
 #nullable enable
 
@@ -37,12 +38,32 @@ namespace ComicsViewer.Pages {
 
         private async void SaveChangesButton_Click(object sender, RoutedEventArgs e) {
             await this.ViewModel.SaveComicInfoAsync(
-                title: this.ComicTitleTextBox.Text,
+                displayTitle: this.DisplayTitleTextBox.Text,
+                title: this.TitleTextBox.Text,
+                author: this.AuthorTextBox.Text,
+                category: this.CategoryTextBox.Text,
+                dateAdded: this.DateAddedTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
                 loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError()
             );
 
             this.PagedControlAccessor!.CloseContainer();
+        }
+
+        private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            this.ViewModel.UpdateIntendedChanges(title: this.TitleTextBox.Text);
+        }
+
+        private void AuthorTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            this.ViewModel.UpdateIntendedChanges(author: this.AuthorTextBox.Text);
+        }
+
+        private void CategoryTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            this.ViewModel.UpdateIntendedChanges(category: this.CategoryTextBox.Text);
+        }
+
+        private void DateAddedTextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            this.ViewModel.UpdateIntendedChanges(dateAdded: this.DateAddedTextBox.Text);
         }
 
         private void DiscardChangesButton_Click(object sender, RoutedEventArgs e) {

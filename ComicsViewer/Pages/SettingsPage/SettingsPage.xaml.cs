@@ -1,12 +1,10 @@
-﻿using ComicsViewer.Common;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels.Pages;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -60,7 +58,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            if (Path.GetInvalidFileNameChars().Any(c => this.NewProfileTextBox.Text.Contains(c))) {
+            if (!this.NewProfileTextBox.Text.IsValidFileName()) {
                 this.NewProfileWarningTextBlock.Text = "The profile name contains invalid characters.";
                 this.NewProfileDialog.IsPrimaryButtonEnabled = false;
                 return;

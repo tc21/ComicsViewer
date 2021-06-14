@@ -196,7 +196,7 @@
     <Compile Include="ViewModels\InvalidatingViewModel.cs" />
     <Compile Include="XamlHelpers\Bindings.cs" />
     <Compile Include="ViewModels\CheckBoxItem.cs" />
-    <Compile Include="ClassExtensions\String_PathComparisons.cs" />
+    <Compile Include="ClassExtensions\String_PathExtensions.cs" />
     <Compile Include="ViewModels\ComicTask.cs" />
     <Compile Include="Pages\SettingsPage\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>

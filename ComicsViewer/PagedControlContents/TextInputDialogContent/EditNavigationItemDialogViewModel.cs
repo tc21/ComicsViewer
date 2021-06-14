@@ -1,4 +1,5 @@
-﻿using ComicsViewer.Common;
+﻿using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using ComicsViewer.Support;
 using System;
 using System.IO;
@@ -43,7 +44,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 return $"{this.NavigationTag.Describe(capitalized: true)} name cannot be empty.";
             }
 
-            if (this.NavigationTag.RefersToFilename() && Path.GetInvalidFileNameChars().Any(c => title.Contains(c))) {
+            if (this.NavigationTag.RefersToFileName() && !title.IsValidFileName()) {
                 return $"{this.NavigationTag.Describe(capitalized: true)} names cannot contain characters that are not valid in filesnames. " +
                     $"({string.Join("", Path.GetInvalidFileNameChars())})";
             }
@@ -57,10 +58,18 @@ namespace ComicsViewer.ViewModels.Pages {
                     return ValidateResult.Ok($"Warning: if the tag '{title}' already exists, the two tags will be merged. This cannot be undone.");
 
                 case NavigationTag.Author:
+                    if (title == ComicsLoader.UnknownAuthorName) {
+                        return "This author name is not available. It is reserved by the application.";
+                    }
+
                     return ValidateResult.Ok("Warning: renaming authors will change move the files representing the comic to a new folder. " +
                         "If the author already exists, the two authors will be merged. This cannot be undone.");
 
                 case NavigationTag.Category:
+                    if (title == ComicsLoader.UnknownCategoryName) {
+                        return "This category name is not available. It is reserved by the application.";
+                    }
+
                     if (this.parent.MainViewModel.Profile.RootPaths.ContainsName(title)) {
                         return $"The category '{title}' already exists. You cannot rename a category to one that already exists. " +
                             $"To merge categories, right click a category and select 'Move'.";

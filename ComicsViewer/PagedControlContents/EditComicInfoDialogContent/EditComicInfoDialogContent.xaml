@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="using:ComicsViewer.Controls"
     mc:Ignorable="d"
     d:RequestedTheme="Dark"
     Width="480"
@@ -13,9 +14,17 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="12"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <StackPanel>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="3">
                 <TextBlock Text="Thumbnail" />
                 <Border Margin="0 4 0 0" CornerRadius="2" Height="160"
                         AllowDrop="True"
@@ -30,19 +39,35 @@
                 </Border>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Margin="12 0 0 0" Padding="4 0 0 0">
-                <TextBox x:Name="ComicTitleTextBox" 
-                         Header="Title" 
-                         Text="{x:Bind ViewModel.ComicTitle, Mode=OneWay}"/>
-                <TextBox Margin="0 12 0 0" Header="Author" 
-                         IsReadOnly="True"
-                         BorderThickness="0"
-                         Text="{x:Bind ViewModel.ComicAuthor, Mode=OneWay}"/>
-                <TextBox Margin="0 12 0 0" Header="Category"
-                         IsReadOnly="True"
-                         BorderThickness="0"
-                         Text="{x:Bind ViewModel.ComicCategory, Mode=OneWay}"/>
-            </StackPanel>
+            <TextBox x:Name="DateAddedTextBox"
+                     Grid.Row="3" Grid.Column="0" 
+                     Margin="0 12 0 0"
+                     Header="Date added"
+                     TextChanged="DateAddedTextBox_TextChanged"
+                     Text="{x:Bind ViewModel.Comic.DateAdded}" d:Text="2007-01-01"/>
+
+            <TextBox x:Name="DisplayTitleTextBox"
+                     Grid.Row="0" Grid.Column="2" VerticalAlignment="Top"
+                     Header="Title"
+                     Text="{x:Bind ViewModel.Comic.DisplayTitle, Mode=OneWay}" d:Text="Everybody Else Is Doing It, So Why Can't We?"/>
+
+            <TextBox x:Name="AuthorTextBox"
+                     Grid.Row="1" Grid.Column="2" Margin="0 12 0 0" VerticalAlignment="Top"
+                     Header="Author"
+                     TextChanged="AuthorTextBox_TextChanged"
+                     Text="{x:Bind ViewModel.Comic.Author, Mode=OneWay}" d:Text="The Cranberries"/>
+
+            <TextBox x:Name="CategoryTextBox"
+                     Grid.Row="2" Grid.Column="2" Margin="0 12 0 0" VerticalAlignment="Top"
+                     Header="Category"
+                     TextChanged="CategoryTextBox_TextChanged"
+                     Text="{x:Bind ViewModel.Comic.Category, Mode=OneWay}" d:Text="Rock"/>
+
+            <TextBox x:Name="TitleTextBox"
+                     Grid.Row="3" Grid.Column="2" Margin="0 12 0 0" VerticalAlignment="Top"
+                     Header="Folder name"
+                     TextChanged="TitleTextBox_TextChanged"
+                     Text="{x:Bind ViewModel.Comic.Title, Mode=OneWay}" d:Text="Everybody Else Is Doing It So Why Can't We"/>
         </Grid>
 
         <Grid>
@@ -54,8 +79,14 @@
         <Grid Margin="0 12 0 0">
             <CheckBox x:Name="ComicLovedCheckBox" 
                       Content="Loved" 
-                      IsChecked="{x:Bind ViewModel.ComicLoved, Mode=OneWay}"/>
+                      IsChecked="{x:Bind ViewModel.Comic.Loved, Mode=OneWay}"/>
         </Grid>
+
+        <TextBlock x:Name="WarningTextBox" 
+                   Foreground="{ThemeResource SystemErrorTextColor}"
+                   TextWrapping="Wrap"
+                   Visibility="{x:Bind ViewModel.WarningTextVisibility, Mode=OneWay}"
+                   Text="{x:Bind ViewModel.WarningText, Mode=OneWay}" d:Text="Warning: for some reason you cannot save these changes."/>
 
         <Grid Margin="0 12 0 0">
             <Grid.ColumnDefinitions>
@@ -65,8 +96,10 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="1" 
+                    x:Name="SaveChangesButton"
                     Content="Save Changes" 
-                    Click="SaveChangesButton_Click"/>
+                    Click="SaveChangesButton_Click"
+                    IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"/>
             <Button Grid.Column="2" Margin="12 0 0 0" 
                     Content="Discard Changes" 
                     Click="DiscardChangesButton_Click"/>

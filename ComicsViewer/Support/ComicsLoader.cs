@@ -126,6 +126,10 @@ namespace ComicsViewer.Support {
                 var names = relativePath.Split(Path.DirectorySeparatorChar);
                 var authorName = names[0];
 
+                if (categoryName == UnknownCategoryName || authorName == UnknownAuthorName) {
+                    yield break;
+                }
+
                 switch (names.Length) {
                     case 1:
                         // Importing an author
@@ -147,8 +151,8 @@ namespace ComicsViewer.Support {
             // Assume we received a comic folder
             if (await profile.FolderContainsValidComicAsync(folder.Path)) {
                 var names = folder.Path.Split(Path.DirectorySeparatorChar);
-                var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
-                yield return new Comic(folder.Path, folder.Name, author, "Unknown Category");
+                var author = names.Length > 1 ? names[names.Length - 2] : UnknownAuthorName;
+                yield return new Comic(folder.Path, folder.Name, author, UnknownCategoryName);
                 yield break;
             }
 
@@ -169,6 +173,11 @@ namespace ComicsViewer.Support {
                 cc.ThrowIfCancellationRequested();
             }
         }
+
+        // This "magic string" is an unwritten rule: authors and categories cannot be named this.
+        // TODO: eliminate the "magic" aspect.
+        public const string UnknownAuthorName = "Unknown Author";
+        public const string UnknownCategoryName = "Unknown Category";
 
         private static async IAsyncEnumerable<Comic> FromCategoryAsync(
             UserProfile profile, NamedPath rootPath, [EnumeratorCancellation] CancellationToken cc = default
@@ -191,6 +200,10 @@ namespace ComicsViewer.Support {
         private static async IAsyncEnumerable<Comic> FromAuthorFolderAsync(
             UserProfile profile, StorageFolder folder, string category, string author, [EnumeratorCancellation] CancellationToken cc = default
         ) {
+            if (category == UnknownCategoryName || author == UnknownAuthorName) {
+                yield break;
+            }
+
             foreach (var comicFolder in await folder.GetFoldersInNaturalOrderAsync()) {
                 if (UserProfile.IsIgnoredFolder(comicFolder)) {
                     continue;
