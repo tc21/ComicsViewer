@@ -31,7 +31,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     break;
 
                 default:
-                    this.collections = this.MainViewModel.Comics.SortedProperties(navigationTag, initialSort);
+                    this.collections = this.MainViewModel.SortedComicCollectionsFor(navigationTag, initialSort);
                     break;
             }
 
@@ -61,7 +61,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         protected void RefreshComicItems() {
-            var items = this.MainViewModel.Comics.GetNavigationItems(this.NavigationTag, this.SelectedSortSelector);
+            var items = this.MainViewModel.NavigationItemsFor(this.NavigationTag, this.SelectedSortSelector);
             this.SetComicItems(items);
         }
 
@@ -92,7 +92,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
                     // TODO: insert added items in sorted position, move modified items to their new sort positions
                     if (e.Added.Any()) {
-                        var addedItems = e.Added.Select(name => this.MainViewModel.Comics.GetNavigationItem(this.NavigationTag, name));
+                        var addedItems = e.Added.Select(name => this.MainViewModel.NavigationItemFor(this.NavigationTag, name));
 
                         foreach (var item in addedItems) {
                             this.ComicItems.Insert(0, item);

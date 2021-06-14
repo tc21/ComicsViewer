@@ -64,6 +64,8 @@ namespace ComicsLibrary.Collections {
                     if (collection.Comics.Any()) {
                         this.Properties.Add(collection);
                         added = new[] { collection.Name };
+                    } else {
+                        _ = this.collections.Remove(collection.Name);
                     }
 
                     this.OnCollectionsChanged(new(CollectionsChangeType.ItemsChanged, added, removed));

@@ -1,5 +1,6 @@
 ﻿using ComicsLibrary;
 using ComicsLibrary.Collections;
+using ComicsLibrary.Sorting;
 using ComicsLibrary.SQL;
 using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
@@ -118,6 +119,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var manager = await this.GetComicsManagerAsync(migrate: true);
             this.Comics.Refresh(await manager.GetAllComicsAsync());
+            this.InvalidateComicItemCache();
 
             foreach (var playlist in await manager.GetPlaylistsAsync(this.Comics)) {
                 this.Playlists.AddCollection(playlist);
@@ -207,7 +209,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 
             }
 
-            this.NavigateInto(this.Comics.GetNavigationItem(tag, name));
+            this.NavigateInto(this.NavigationItemFor(tag, name));
         }
 
         public void NavigateInto(ComicItem item) {
@@ -235,7 +237,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateToAuthor(string author) {
-            var view = this.Comics.GetNavigationItem(NavigationTag.Author, author);
+            var view = this.NavigationItemFor(NavigationTag.Author, author);
             this.NavigateInto(view);
         }
 
@@ -481,20 +483,29 @@ namespace ComicsViewer.ViewModels.Pages {
                     IO.MoveDirectory(oldComic.Path, newComic.Path);
                 }
 
-                // thumbnail
+                // remove parent folder if possible
+                var authorFolder = Path.GetDirectoryName(oldComic.Path);
+
+                if (!IO.GetDirectoryContents(authorFolder).Any()) {
+                    IO.RemoveDirectory(authorFolder);
+                }
+
+                IEnumerable<string>? playlists = null;
+
                 if (oldComic.UniqueIdentifier != newComic.UniqueIdentifier) {
                     if (IO.FileOrDirectoryExists(Thumbnail.ThumbnailPath(newComic))) {
                         IO.RemoveFile(Thumbnail.ThumbnailPath(newComic));
                     }
 
                     IO.MoveFile(Thumbnail.ThumbnailPath(oldComic), Thumbnail.ThumbnailPath(newComic));
-                }
 
-                // remove parent folder if possible
-                var authorFolder = Path.GetDirectoryName(oldComic.Path);
+                    // This is the only place where a comic's UniqueId can possibly change.
+                    // We also need to handle playlists. Elsewhere we pretend we removed an item and added a new one.
 
-                if (!IO.GetDirectoryContents(authorFolder).Any()) {
-                    IO.RemoveDirectory(authorFolder);
+                    // We must call ToList to eagerly evaluate this query before the update happens below.
+                    playlists = this.Playlists.Where(playlist => playlist.Comics.Contains(oldComic))
+                        .Select(playlist => playlist.Name)
+                        .ToList();
                 }
 
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
@@ -507,8 +518,24 @@ namespace ComicsViewer.ViewModels.Pages {
                             _ = await this.AddComicsWithoutReplacingAsync(new[] { newComic });
                         }
 
+                        if (oldComic.UniqueIdentifier != newComic.UniqueIdentifier) {
+                            foreach (var playlist in playlists!) {
+                                // this playlist might have been deleted in the above operation
+                                // note: really this should be fixed, since if that happened the user would also be navigated out of the playlist
+                                if (this.Playlists.ContainsKey(playlist)) {
+                                    await this.AddToPlaylistAsync(playlist, new[] { newComic });
+                                } else {
+                                    await this.CreatePlaylistAsync(playlist, new[] { newComic });
+                                }
+                            }
+                        }
                     }
                 );
+
+                /* Design note: when we designed the app, we assumed we'd never change UniqueId. The above playlist
+                 * code, for example, is code that would be unnecessary if the rest of the app doesn't assume UniqueId
+                 * never changes. The else clause in the update code, for example, is required because (1) ComicList
+                 * does not have a way to update a comic's UniqueId, and (2) the Sqlite database cannot update a comic's UniqueId. */
 
                 counter += 1;
                 progress?.Report(counter);
@@ -626,6 +653,10 @@ namespace ComicsViewer.ViewModels.Pages {
             this.LastModified = DateTime.Now;
             this.Comics.Add(added);
 
+            // Adding any item will cause our cache to need to be updated.
+            // Considering adding items is a rarer occurence than navigation, we'll just invalidate the entire cache
+            this.InvalidateComicItemCache();
+
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(added);
 
@@ -684,6 +715,7 @@ namespace ComicsViewer.ViewModels.Pages {
             comics = comics.ToList();
 
             this.Comics.Modify(comics);
+            this.InvalidateComicItemCache();
 
             var manager = await this.GetComicsManagerAsync();
             await manager.AddOrUpdateComicsAsync(comics);
@@ -736,6 +768,98 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             await this.TryRedefineComicThumbnailAsync(comic, file);
+        }
+
+        #endregion
+
+        #region Retrieving ComicItem instances 
+
+
+
+        // Note: we haven't tested if the cache is actually needed for performance, so maybe we should test it
+        private readonly Dictionary<string, ComicWorkItem> comicWorkItems = new();
+        private readonly Dictionary<NavigationTag, ComicPropertiesCollectionView> comicPropertyCollections = new();
+        private readonly Dictionary<NavigationTag, Dictionary<string, ComicNavigationItem>> comicNavigationItems = new();
+
+        private void InvalidateComicItemCache() {
+            this.comicWorkItems.Clear();
+            this.comicPropertyCollections.Clear();
+            this.comicNavigationItems.Clear();
+        }
+
+        public ComicWorkItem WorkItemFor(Comic comic) {
+            if (!this.comicWorkItems.TryGetValue(comic.UniqueIdentifier, out var item)) {
+                item = new ComicWorkItem(comic, this.Comics);
+                item.RequestingRefresh += this.ComicWorkItem_RequestingRefresh;
+                this.comicWorkItems.Add(comic.UniqueIdentifier, item);
+            }
+
+            return item;
+        }
+
+        public ComicPropertiesCollectionView SortedComicCollectionsFor(NavigationTag navigationTag, ComicCollectionSortSelector? sortSelector) {
+            if (!this.comicPropertyCollections.TryGetValue(navigationTag, out var view)) {
+                view = this.Comics.SortedProperties(
+                    navigationTag switch {
+                        NavigationTag.Author => comic => new[] { comic.Author },
+                        NavigationTag.Category => comic => new[] { comic.Category },
+                        NavigationTag.Tags => comic => comic.Tags,
+                        _ => throw new ProgrammerError($"unsupported navigation tag ({navigationTag})")
+                    },
+                    sortSelector ?? default
+                );
+
+                this.comicPropertyCollections.Add(navigationTag, view);
+            } else if (sortSelector is { } selector) {
+                view.SetSort(selector);
+            }
+
+            return view;
+        }
+
+        public List<ComicNavigationItem> NavigationItemsFor(NavigationTag tag, ComicCollectionSortSelector? sortSelector = null) {
+            ComicCollectionView collectionsView = tag switch {
+                NavigationTag.Comics => throw new ProgrammerError("Cannot create navigation items for root page"),
+                NavigationTag.Playlist => this.Playlists,
+                _ => this.SortedComicCollectionsFor(tag, sortSelector)
+            };
+
+            return collectionsView.Select(collection => this.GetOrMakeNavigationItem(tag, collection.Name, collection.Comics)).ToList();
+        }
+
+        public ComicNavigationItem NavigationItemFor(NavigationTag tag, string name) {
+            var comics = tag switch {
+                NavigationTag.Comics => throw new ProgrammerError("Cannot create navigation items for root page"),
+                NavigationTag.Playlist => this.Playlists.GetCollection(name).Comics,
+                _ => this.SortedComicCollectionsFor(tag, null).GetView(name),
+            };
+
+            return this.GetOrMakeNavigationItem(tag, name, comics);
+        }
+
+        private ComicNavigationItem GetOrMakeNavigationItem(NavigationTag tag, string name, ComicView comics) {
+            if (!this.comicNavigationItems.TryGetValue(tag, out var items)) {
+                items = new();
+                this.comicNavigationItems.Add(tag, items);
+            }
+
+            if (!items.TryGetValue(name, out var item)) {
+                item = new ComicNavigationItem(name, comics);
+                items.Add(name, item);
+            }
+
+            return item;
+        }
+
+        private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
+            switch (type) {   // switch RequestingRefreshType
+                case ComicWorkItem.RequestingRefreshType.Remove:
+                    _ = this.comicWorkItems.Remove(sender.Comic.UniqueIdentifier);
+                    break;
+
+                default:
+                    throw new ProgrammerError("Unhandled switch case");
+            }
         }
 
         #endregion

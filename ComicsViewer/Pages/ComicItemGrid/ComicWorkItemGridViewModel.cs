@@ -57,7 +57,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void RefreshComicItems() {
-            var comicItems = this.comics.Select(comic => this.MainViewModel.Comics.GetWorkItem(comic));
+            var comicItems = this.comics.Select(comic => this.MainViewModel.WorkItemFor(comic));
             this.SetComicItems(comicItems);
         }
 
@@ -103,11 +103,11 @@ namespace ComicsViewer.ViewModels.Pages {
 
                         foreach (var comic in additions.Sorted(this.SelectedSortSelector)) {
                             var position = this.comics.IndexOf(comic) ?? 0;
-                            this.ComicItems.Insert(position, this.MainViewModel.Comics.GetWorkItem(comic));
+                            this.ComicItems.Insert(position, this.MainViewModel.WorkItemFor(comic));
                         }
                     } else {
                         foreach (var comic in e.Added) {
-                            this.ComicItems.Insert(0, this.MainViewModel.Comics.GetWorkItem(comic));
+                            this.ComicItems.Insert(0, this.MainViewModel.WorkItemFor(comic));
                         }
                     }
 
