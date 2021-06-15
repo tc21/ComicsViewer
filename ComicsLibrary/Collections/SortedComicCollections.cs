@@ -1,5 +1,5 @@
 ﻿using ComicsLibrary.Sorting;
-using ComicsViewer.Common;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +7,11 @@ using System.Linq;
 #nullable enable
 
 namespace ComicsLibrary.Collections {
-    internal class SortedComicCollections : IReadOnlyCollection<IComicCollection> {
-        // we'll use null to mark Random
+    internal class SortedComicCollections: IReadOnlyCollection<IComicCollection> {
         private readonly IComparer<IComicCollection>? comparer;
+        private readonly List<IComicCollection> items = new();
+        private readonly Dictionary<string, IComicCollection> itemsDictionary = new();
+
         public SortedComicCollections(ComicCollectionSortSelector sortSelector, IEnumerable<IComicCollection> initialItems) {
             var items = initialItems.ToList();
 
@@ -21,106 +23,74 @@ namespace ComicsLibrary.Collections {
                 items.Sort(this.comparer);
             }
 
-            this.Initialize(items);
-        }
-
-        // this is a useless node that exists to simplify our code
-        private readonly Node head = new(default);
-        private readonly Dictionary<string, Node> properties = new();
-
-        // Note: for some reason we'd get an ExecutionEngineException when Count was pointed to this.properties.Count,
-        // so we're doing it manually
-        public int Count { get; private set; }
-
-        private void Initialize(IEnumerable<IComicCollection> items) {
-            var current = head;
-            foreach (var item in items) {
-                var next = new Node(item);
-                this.properties.Add(item.Name, next);
-                this.Count += 1;
-
-                current.Next = next;
-                next.Prev = current;
-                current = next;
+            foreach (var item in initialItems) {
+                this.Add(item);
             }
         }
 
-        public void Add(IComicCollection property) {
-            var current = this.head;
-            var node = new Node(property);
+        public int Count => this.items.Count;
 
-            // advance to before where we insert the new item 
-            if (this.comparer is null) {
-                var index = General.Randomizer.Next(0, this.Count + 1);
-
-                while (index-- > 0) {
-                    current = current.Next!;
-                }
-            } else {
-                while (current.Next is { } _next && this.comparer.Compare(_next.Value!, property) < 0) {
-                    current = current.Next;
-                }
+        public void Add(IComicCollection collection) {
+            if (this.Contains(collection)) {
+                throw new ArgumentException($"Key already exists: {collection.Name}");
             }
 
-            if (current.Next is { } next) {
-                next.Prev = node;
-                node.Next = next;
+            this.items.Insert(this.BinarySearch(collection), collection);
+            this.itemsDictionary.Add(collection.Name, collection);
+        }
+
+        public IComicCollection Remove(string name) {
+            if (this.IndexOf(name) is not { } index) {
+                throw new KeyNotFoundException($"Key not found: {name}");
             }
 
-            node.Prev = current;
-            current.Next = node;
-
-            properties.Add(property.Name, node);
-            this.Count += 1;
+            var result = this.items[index];
+            this.items.RemoveAt(index);
+            _ = this.itemsDictionary.Remove(name);
+            return result;
         }
 
         public void Clear() {
-            this.head.Next = null;
-            this.properties.Clear();
-            this.Count = 0;
+            this.items.Clear();
+            this.itemsDictionary.Clear();
         }
 
-        public IComicCollection Remove(string property) {
-            var node = properties[property];
-            _ = properties.Remove(property);
-            this.Count -= 1;
+        public bool Contains(string name) => this.IndexOf(name) is not null;
+        public bool Contains(IComicCollection collection) => this.Contains(collection.Name);
 
-            if (node.Next is { } next) {
-                next.Prev = node.Prev;
-            }
-
-            if (node.Prev is { } prev) {
-                prev.Next = node.Next;
-            } else {
-                throw new ProgrammerError();
-            }
-
-            return node.Value!;
+        public IComicCollection Get(string name) {
+            return this.itemsDictionary[name];
         }
 
-        public bool Contains(string property) => this.properties.ContainsKey(property);
-
-        public IComicCollection Get(string property) => this.properties[property].Value!;
-
-        public IEnumerator<IComicCollection> GetEnumerator() {
-            var current = this.head;
-
-            while (current.Next is { } next) {
-                yield return next.Value!;
-                current = next;
+        public int? IndexOf(string name) {
+            if (this.comparer is null) {
+                return this.items.FindIndex(coll => coll.Name == name) switch {
+                    -1 => null,
+                    int x => x
+                };
             }
+
+            if (this.itemsDictionary.TryGetValue(name, out var collection)) {
+                return this.BinarySearch(collection);
+            }
+
+            return null;
         }
 
+        public IEnumerator<IComicCollection> GetEnumerator() => this.items.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        private class Node {
-            public Node? Prev;
-            public Node? Next;
-            public IComicCollection? Value;
+        private int BinarySearch(IComicCollection name) {
+            if (this.comparer is { } comparer) {
+                var result = this.items.BinarySearch(name, comparer);
 
-            public Node(IComicCollection? value) {
-                this.Value = value;
+                return result switch {
+                    < 0 => ~result,
+                    _ => result
+                };
             }
+
+            return 0;
         }
     }
 }

@@ -90,12 +90,24 @@ namespace ComicsViewer.ViewModels.Pages {
                         }
                     }
 
-                    // TODO: insert added items in sorted position, move modified items to their new sort positions
                     if (e.Added.Any()) {
-                        var addedItems = e.Added.Select(name => this.MainViewModel.NavigationItemFor(this.NavigationTag, name));
+                        if (this.SelectedSortSelector is ComicCollectionSortSelector.Random) {
+                            var addedItems = e.Added.Select(name => this.MainViewModel.NavigationItemFor(this.NavigationTag, name));
 
-                        foreach (var item in addedItems) {
-                            this.ComicItems.Insert(0, item);
+                            foreach (var item in addedItems) {
+                                this.ComicItems.Insert(0, item);
+                            }
+                        } else {
+                            var indices = e.Added.Select(item => (index: this.collections.IndexOf(item), item))
+                                .Where(x => x.index.HasValue)
+                                .Select(x => (x.index!.Value, x.item))
+                                .ToList();
+
+                            indices.Sort();
+
+                            foreach (var (index, name) in indices) {
+                                this.ComicItems.Insert(index, this.MainViewModel.NavigationItemFor(this.NavigationTag, name));
+                            }
                         }
                     }
 

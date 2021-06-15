@@ -118,9 +118,6 @@ namespace ComicsLibrary.Collections {
         /// </summary>
         public int? IndexOf(Comic comic) {
             if (this.sortSelector is ComicSortSelector.Random) {
-                //var (_, index) = this.sortedComics.Select((comic, index) => (comic, index))
-                //    .First(e => e.comic.UniqueIdentifier == comic.UniqueIdentifier);
-
                 foreach (var (existingComic, index) in this.sortedComics.Select((comic, index) => (comic, index))) {
                     if (existingComic.UniqueIdentifier == comic.UniqueIdentifier) {
                         return index;

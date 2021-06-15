@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace ComicsLibrary.Collections {
     public class AggregateCollectionView : ComicCollectionView {
-        public override int Count => this.Properties.Count;
         private readonly Dictionary<string, (IComicCollection collection, ComicView.ComicsChangedEventHandler handler)> collections = new();
 
         public void AddCollection(IComicCollection collection) {
@@ -78,10 +77,6 @@ namespace ComicsLibrary.Collections {
                 default:
                     break;
             }
-        }
-
-        public override IEnumerator<IComicCollection> GetEnumerator() {
-            return this.Properties.GetEnumerator();
         }
 
         public override void DetachFromParent() {

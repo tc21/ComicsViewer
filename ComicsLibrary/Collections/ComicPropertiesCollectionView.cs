@@ -10,8 +10,6 @@ namespace ComicsLibrary.Collections {
         private readonly ComicView parent;
         private readonly Func<Comic, IEnumerable<string>> getProperties;
 
-        public override int Count => this.Properties.Count;
-
         public ComicPropertiesCollectionView(ComicView parent, Func<Comic, IEnumerable<string>> getProperties) {
             this.parent = parent;
             this.getProperties = getProperties;
@@ -110,10 +108,6 @@ namespace ComicsLibrary.Collections {
             }
 
             this.InitializeProperties();
-        }
-
-        public override IEnumerator<IComicCollection> GetEnumerator() {
-            return this.Properties.GetEnumerator();
         }
 
         public override void DetachFromParent() {
