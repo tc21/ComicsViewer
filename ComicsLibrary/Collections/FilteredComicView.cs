@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ComicsViewer.Common;
-
-#nullable enable
 
 namespace ComicsLibrary.Collections {
     /// <summary>

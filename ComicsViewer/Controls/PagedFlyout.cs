@@ -9,7 +9,7 @@ namespace ComicsViewer.Controls {
     /* Unfortunately since interfaces cannot provide default implementations in .NET Standard 2.0 / .NET Native 2, 
      * we have to duplicate some code when implementing IPagedItemContainer */
     public class PagedFlyout : Flyout, IPagedControl {
-        public Frame ContentFrame { get; } = new Frame();
+        public Frame ContentFrame { get; } = new();
 
         public PagedFlyout() {
             this.Content = this.ContentFrame;

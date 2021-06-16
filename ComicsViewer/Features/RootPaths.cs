@@ -14,7 +14,7 @@ namespace ComicsViewer.Features {
     /// It's important to note that modifications to NamedPaths returned from this thing will not be reflected in this collection.
     /// </summary>
     public class RootPaths : ICollection<NamedPath> {
-        private readonly Dictionary<string, string> paths = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> paths = new();
 
         public RootPaths(IEnumerable<NamedPath>? paths = null) {
             if (paths == null) {

@@ -1,20 +1,20 @@
-﻿using ComicsViewer.Support;
-using ComicsViewer.ClassExtensions;
-using ComicsViewer.Features;
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using ComicsLibrary.Collections;
-using ComicsViewer.Common;
-using ComicsLibrary.Sorting;
-using System.Collections.Concurrent;
 using ComicsLibrary;
-using System.Linq;
+using ComicsLibrary.Collections;
+using ComicsLibrary.Sorting;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
+using ComicsViewer.Features;
+using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
+using Windows.ApplicationModel.Core;
 
 #nullable enable
 

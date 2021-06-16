@@ -47,8 +47,9 @@ namespace ComicsViewer.Pages {
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             var (accessor, args) = PagedControlAccessor.FromNavigationArguments<ItemPickerDialogNavigationArguments>(
-                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+                e.Parameter ?? throw ProgrammerError.Unwrapped("e.Parameter")
             );
+
             this.PagedControlAccessor = accessor;
             this.Action = args.Action;
             this.Properties = args.Properties;

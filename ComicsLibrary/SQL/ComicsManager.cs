@@ -1,9 +1,8 @@
-﻿using ComicsLibrary.Collections;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using ComicsLibrary.Collections;
 using ComicsLibrary.SQL.Migrations;
 using ComicsLibrary.SQL.Sqlite;
-using ComicsViewer.Common;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ComicsLibrary.SQL {
     public class ComicsManager {

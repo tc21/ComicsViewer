@@ -8,9 +8,9 @@ using System.Linq;
 
 namespace ComicsViewer.Features {
     public class Filter : DeferredNotify {
-        private readonly HashSet<string> selectedAuthors = new HashSet<string>();
-        private readonly HashSet<string> selectedCategories = new HashSet<string>();
-        private readonly HashSet<string> selectedTags = new HashSet<string>();
+        private readonly HashSet<string> selectedAuthors = new();
+        private readonly HashSet<string> selectedCategories = new();
+        private readonly HashSet<string> selectedTags = new();
         private Func<Comic, bool>? _generatedFilter;
         private Func<Comic, bool>? _search;
         private bool _onlyShowLoved;
@@ -33,7 +33,7 @@ namespace ComicsViewer.Features {
         public bool RemoveTag(string tag) => this.RemoveFrom(this.selectedTags, tag);
         public void ClearTags() => this.Clear(this.selectedTags);
 
-        public readonly FilterMetadata Metadata = new FilterMetadata();
+        public readonly FilterMetadata Metadata = new();
 
         public Func<Comic, bool>? GeneratedFilter {
             get => this._generatedFilter;

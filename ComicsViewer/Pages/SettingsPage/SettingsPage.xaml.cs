@@ -1,10 +1,10 @@
-﻿using ComicsViewer.ClassExtensions;
+﻿using System.Collections.Generic;
+using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels.Pages;
-using System.Collections.Generic;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -21,11 +21,12 @@ namespace ComicsViewer.Pages {
         }
 
         private SettingsPageViewModel? _viewModel;
-        public SettingsPageViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        public SettingsPageViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
+
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (!(e.Parameter is SettingsPageNavigationArguments args)) {
+            if (e.Parameter is not SettingsPageNavigationArguments args) {
                 throw new ProgrammerError();
             }
 
@@ -100,7 +101,7 @@ namespace ComicsViewer.Pages {
                 return;
             }
 
-            if (!(((FrameworkElement)sender).DataContext is NamedPath namedPath)) {
+            if (((FrameworkElement)sender).DataContext is not NamedPath namedPath) {
                 throw new ProgrammerError();
             }
 
@@ -126,11 +127,6 @@ namespace ComicsViewer.Pages {
 
         /* these classes recreate the structure of ExternalDescriptionSpecification to work with the default
          * configurations of DataGrid */
-
-        // These are used for UI in SettingsPage via Binding and DisplayMemberPath, here we disable ReSharper's warnings
-        // ReSharper disable CollectionNeverQueried.Local
-        // ReSharper disable UnusedAutoPropertyAccessor.Local
-        // ReSharper disable MemberCanBeMadeStatic.Local
 
         private class ExternalDescriptionTypeInfo {
             public string Name { get; }
@@ -162,25 +158,20 @@ namespace ComicsViewer.Pages {
             }
         }
 
-        private List<ExternalDescriptionTypeInfo> ExternalDescriptionTypes => new List<ExternalDescriptionTypeInfo> {
+        private List<ExternalDescriptionTypeInfo> ExternalDescriptionTypes => new() {
             new ExternalDescriptionTypeInfo("Text", ExternalDescriptionType.Text),
             new ExternalDescriptionTypeInfo("Link", ExternalDescriptionType.Link)
         };
 
-        private List<ExternalDescriptionFileInfo> ExternalDescriptionFileTypes => new List<ExternalDescriptionFileInfo> {
+        private List<ExternalDescriptionFileInfo> ExternalDescriptionFileTypes => new() {
             new ExternalDescriptionFileInfo("Content", ExternalFileType.Content),
             new ExternalDescriptionFileInfo("File name", ExternalFileType.FileName)
         };
 
-        private List<ExternalDescriptionFilterInfo> ExternalDescriptionFilterTypes => new List<ExternalDescriptionFilterInfo> {
+        private List<ExternalDescriptionFilterInfo> ExternalDescriptionFilterTypes => new() {
             new ExternalDescriptionFilterInfo("None", ExternalDescriptionFilterType.None),
             new ExternalDescriptionFilterInfo("Regex replace", ExternalDescriptionFilterType.RegexReplace)
         };
-
-        // ReSharper restore CollectionNeverQueried.Local
-        // ReSharper restore UnusedAutoPropertyAccessor.Local
-        // ReSharper restore MemberCanBeMadeStatic.Local
-
 
         #endregion
     }

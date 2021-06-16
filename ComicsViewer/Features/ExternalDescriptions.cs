@@ -11,14 +11,7 @@ using Windows.Storage;
 
 namespace ComicsViewer.Features {
     public class ExternalDescriptionSpecification {
-
-        // ReSharper disable MemberCanBePrivate.Global
-        // ReSharper disable UnusedAutoPropertyAccessor.Global
-
-        // The following items are used during serialization/deserialization, and shouldn't be marked as unused
-
         // The name of the file to read, or a pattern identifying the file
-        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public string FileNamePattern { get; set; } = "info.txt";
         // Whether the result should be shown as plaintext, or a link
         public ExternalDescriptionType DescriptionType { get; set; }
@@ -28,9 +21,6 @@ namespace ComicsViewer.Features {
         public ExternalDescriptionFilterType FilterType { get; set; }
         // If so, the regex replacement string
         public string? FilterContent { get; set; }
-
-        // ReSharper restore MemberCanBePrivate.Global
-        // ReSharper restore UnusedAutoPropertyAccessor.Global
 
         public async Task<ExternalDescription?> FetchFromFolderAsync(StorageFolder folder) {
             foreach (var file in await folder.GetFilesInNaturalOrderAsync()) {

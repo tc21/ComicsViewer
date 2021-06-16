@@ -1,8 +1,8 @@
-﻿#nullable enable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using ComicsLibrary;
+
+#nullable enable
 
 namespace ComicsViewer.ViewModels {
     public class DragAndDropShortcutItem {

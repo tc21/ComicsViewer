@@ -203,7 +203,7 @@ namespace ImageViewer {
     }
 
     internal class RelayCommand : ICommand {
-        internal static readonly List<RelayCommand> CreatedCommands = new List<RelayCommand>();
+        internal static readonly List<RelayCommand> CreatedCommands = new();
 
         // reference: https://stackoverflow.com/questions/1468791
         private readonly Predicate<object>? _canExecute;

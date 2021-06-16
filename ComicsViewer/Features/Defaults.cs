@@ -14,7 +14,7 @@ using Windows.Storage;
 namespace ComicsViewer.Features {
     // You can nest ApplicationDataContainers infinitely, but we'll only use two levels 
     internal class DefaultSettingsAccessor {
-        private readonly Dictionary<string, DefaultSetting> defaults = new Dictionary<string, DefaultSetting>();
+        private readonly Dictionary<string, DefaultSetting> defaults = new();
         private static ApplicationDataContainer SettingsContainer => ApplicationData.Current.LocalSettings;
 
         public T Get<T>(string key) {
@@ -145,7 +145,7 @@ namespace ComicsViewer.Features {
 
 
     public static class Defaults {
-        private static readonly Dictionary<string, object> DefaultSettings = new Dictionary<string, object> {
+        private static readonly Dictionary<string, object> DefaultSettings = new() {
             ["LastProfile"] = "",
             ["SortSelections"] = new DefaultDictionary<string, int>(() => 0) {
                 [$"{NavigationTag.Comics}.{NavigationPageType.Root}"] = (int)ComicSortSelector.Author,
@@ -157,7 +157,7 @@ namespace ComicsViewer.Features {
             ["SavedSearches"] = new DefaultDictionary<string, string>(() => ""),
         };
 
-        private static readonly DefaultSettingsAccessor DefaultSettingsAccessor = new DefaultSettingsAccessor(DefaultSettings);
+        private static readonly DefaultSettingsAccessor DefaultSettingsAccessor = new(DefaultSettings);
 
         public static class SettingsAccessor {
             public static string LastProfile {

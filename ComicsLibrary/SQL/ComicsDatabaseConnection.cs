@@ -1,11 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ComicsLibrary.SQL.Sqlite;
 using ComicsLibrary.Collections;
-
-#nullable enable
+using ComicsLibrary.SQL.Sqlite;
+using Microsoft.Data.Sqlite;
 
 namespace ComicsLibrary.SQL {
     public class ComicsDatabaseConnection {
@@ -58,7 +56,7 @@ namespace ComicsLibrary.SQL {
 
             // Note: in .net standard, 'is not' doesn't always work property, despite compiling without errors.
             // Avoid using it in ComicsLibrary for now.
-            if (!(await this.connection.ExecuteInsertAsync("comics", parameters) is { } comicid)) {
+            if (await this.connection.ExecuteInsertAsync("comics", parameters) is not { } comicid) {
                 throw new ComicsDatabaseException("Insertion of comic failed for unknown reasons.");
             }
         }
@@ -74,7 +72,7 @@ namespace ComicsLibrary.SQL {
             // Update tags
             var storedMetadata = await this.TryGetComicMetadataAsync(comic);
 
-            if (!(storedMetadata is { } metadata)) {
+            if (storedMetadata is not { } metadata) {
                 return;
             }
 
@@ -118,11 +116,6 @@ namespace ComicsLibrary.SQL {
 
         public Task<bool> HasComicAsync(Comic comic) {
             return this.HasPrimaryKeyAsync("comics", "unique_identifier", comic.UniqueIdentifier);
-        }
-
-        private async Task AddTagAsync(string tag) {
-            // The insertion may be ignored; 
-            _ = await this.connection.ExecuteInsertAsync("tags", new Dictionary<string, object> { ["name"] = tag });
         }
 
         private async Task AssociateTagAsync(Comic comic, string tag) {

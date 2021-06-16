@@ -17,7 +17,7 @@ namespace ComicsViewer.Support {
      * without adding at least two more subclasses of StringConvertible, we should delete this class.
      */
     public static class StringConversions {
-        public static readonly DelimitedList CommaDelimitedList = new DelimitedList(',');
+        public static readonly DelimitedList CommaDelimitedList = new(',');
 
         public class DelimitedList : StringConvertible<IEnumerable<string>> {
             private readonly char separator;

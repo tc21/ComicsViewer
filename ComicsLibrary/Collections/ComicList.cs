@@ -7,7 +7,7 @@ namespace ComicsLibrary.Collections {
     /// A list of comics, whose items can be freely added and removed at will.
     /// </summary>
     public class ComicList : MutableComicView {
-        private readonly Dictionary<string, Comic> comics = new Dictionary<string, Comic>();
+        private readonly Dictionary<string, Comic> comics = new();
 
         public ComicList() : base(null) { }
 

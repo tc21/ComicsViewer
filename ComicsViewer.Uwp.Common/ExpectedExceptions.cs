@@ -1,7 +1,7 @@
-﻿using ComicsViewer.Common;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using ComicsViewer.Common;
 using Windows.Storage;
 using Windows.UI.Xaml.Controls;
 

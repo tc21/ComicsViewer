@@ -1,8 +1,7 @@
-﻿using ComicsLibrary.Collections;
-using ComicsViewer.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using ComicsLibrary.Collections;
+using ComicsViewer.Common;
 
 namespace ComicsLibrary.Sorting {
     public enum ComicCollectionSortSelector {

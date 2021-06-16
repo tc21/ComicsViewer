@@ -10,7 +10,7 @@ namespace ComicsViewer.Features {
         /* Note: This can be optimized a lot by relying on the cached data in ComicStore. We'll see if it comes to it */
         /* Note 2: We are currently ANDing every search term. It's probably better to create a filter UI than to 
          * implement AND/OR keywords into the search box */
-        private static readonly Dictionary<string, Func<Comic, string>> SearchFields = new Dictionary<string, Func<Comic, string>> {
+        private static readonly Dictionary<string, Func<Comic, string>> SearchFields = new() {
             { "title", comic => comic.DisplayTitle },
             { "author", comic => comic.Author },
             { "category", comic => comic.Category },

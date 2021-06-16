@@ -1,4 +1,11 @@
-﻿using ComicsLibrary;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using ComicsLibrary;
 using ComicsLibrary.Collections;
 using ComicsLibrary.Sorting;
 using ComicsLibrary.SQL;
@@ -10,13 +17,6 @@ using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -853,6 +853,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
             switch (type) {   // switch RequestingRefreshType
+                // TODO: RequestingRefreshType now only hase one case. Evaluate if it needs to be removed
                 case ComicWorkItem.RequestingRefreshType.Remove:
                     _ = this.comicWorkItems.Remove(sender.Comic.UniqueIdentifier);
                     break;
@@ -996,7 +997,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
     public class ProfileChangedEventArgs {
         public ProfileChangeType ChangeType { get; set; } = ProfileChangeType.ProfileChanged;
-        public UserProfile NewProfile { get; set; } = new UserProfile();
+        public UserProfile NewProfile { get; set; } = new();
     }
 
     public enum ProfileChangeType {

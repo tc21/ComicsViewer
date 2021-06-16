@@ -1,8 +1,7 @@
-﻿using ComicsLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Windows.UI.Xaml.Media.Imaging;
 using System.Threading.Tasks;
+using ComicsLibrary;
 using ComicsViewer.Common;
 
 #nullable enable

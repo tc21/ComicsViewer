@@ -12,8 +12,6 @@ namespace ComicsViewer {
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
     sealed partial class App {
-        public static readonly Random Randomizer = new Random();
-
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -31,7 +29,7 @@ namespace ComicsViewer {
         protected override void OnLaunched(LaunchActivatedEventArgs e) {
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
-            if (!(Window.Current.Content is Frame rootFrame)) {
+            if (Window.Current.Content is not Frame rootFrame) {
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 

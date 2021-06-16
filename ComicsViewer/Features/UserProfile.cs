@@ -24,9 +24,9 @@ namespace ComicsViewer.Features {
         public int ImageWidth { get; set; } = 240;
         public List<string> FileExtensions { get; set; } = ImageFileExtensions.ToList();
         [JsonConverter(typeof(RootPathsJsonConverter))]
-        public RootPaths RootPaths { get; set; } = new RootPaths();
+        public RootPaths RootPaths { get; set; } = new();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
-        public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new List<ExternalDescriptionSpecification>();
+        public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new();
 
         // ReSharper restore AutoPropertyCanBeMadeGetOnly.Global
         // ReSharper restore MemberCanBePrivate.Global

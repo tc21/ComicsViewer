@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace ComicsLibrary.Sorting {
     public static class General {
-        internal static readonly Random Randomizer = new Random();
+        internal static readonly Random Randomizer = new();
 
         /// <summary>
         /// Shuffles a list in-place in O(N) time.

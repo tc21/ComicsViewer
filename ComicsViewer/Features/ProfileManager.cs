@@ -18,7 +18,7 @@ namespace ComicsViewer.Features {
         private const string ProfileFileNameExtension = ".profile.json";
 
         public static bool Initialized { get; private set; }
-        public static readonly List<string> LoadedProfiles = new List<string>();
+        public static readonly List<string> LoadedProfiles = new();
 
         /// <summary>
         /// To be called when the application loads. Loads existing profiles from the application data folder, 

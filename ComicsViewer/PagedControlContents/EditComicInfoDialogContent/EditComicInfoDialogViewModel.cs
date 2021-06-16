@@ -24,9 +24,6 @@ namespace ComicsViewer.ViewModels.Pages {
         public Comic Comic => this.Item.Comic;
         public string ComicTags => string.Join(", ", this.Comic.Tags);
 
-        /* Category editing is currently disabled */
-        public string ComicCategory => this.Comic.Category;
-
         /// <summary>
         /// Saves the modified comic to disk, and to the application. 
         /// The viewmodel is no longer valid after this call. Do not attempt to use it further.

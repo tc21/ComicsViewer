@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ComicsLibrary.Collections;
 
@@ -9,7 +7,7 @@ namespace ComicsLibrary {
         public string Name { get; }
         public ComicView Comics => this;
 
-        private readonly HashSet<string> uniqueIds = new HashSet<string>();
+        private readonly HashSet<string> uniqueIds = new();
 
         private Playlist(ComicView parent, string name, HashSet<string> uniqueIds) : base(parent, comic => uniqueIds.Contains(comic.UniqueIdentifier)) {
             this.uniqueIds = uniqueIds;

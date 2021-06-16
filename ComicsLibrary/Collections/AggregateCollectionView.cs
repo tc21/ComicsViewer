@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-
-#nullable enable
 
 namespace ComicsLibrary.Collections {
     public class AggregateCollectionView : ComicCollectionView {

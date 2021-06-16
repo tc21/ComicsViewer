@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +9,11 @@ using Windows.ApplicationModel.Core;
 using Windows.Media.Core;
 using Windows.Storage;
 
+#nullable enable
+
 namespace MusicPlayer {
     public class ViewModel : ViewModelBase {
-        public List<PlaylistItem> PlaylistItems { get; } = new List<PlaylistItem>();
+        public List<PlaylistItem> PlaylistItems { get; } = new();
         public string Title { get; private set; } = "Player";
 
         public ViewModel() {
@@ -37,7 +37,7 @@ namespace MusicPlayer {
         private PlaylistItem? nowPlaying;
 
         public async Task OpenContainingFolderAsync(StorageFile item, bool append = false) {
-            if (!(await item.GetParentAsync() is { } folder)) {
+            if (await item.GetParentAsync() is not { } folder) {
                 await ExpectedExceptions.UnauthorizedAccessAsync(cancelled: false);
                 return;
             }
@@ -85,7 +85,7 @@ namespace MusicPlayer {
             }
 
             // verify e permission
-            if (!(await ExpectedExceptions.TryGetFileWithPermission(files[0]) is { } firstFile)) {
+            if (await ExpectedExceptions.TryGetFileWithPermission(files[0]) is not { } firstFile) {
                 return;
             }
 

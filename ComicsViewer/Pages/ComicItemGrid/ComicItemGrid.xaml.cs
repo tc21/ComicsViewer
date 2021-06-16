@@ -1,13 +1,13 @@
-﻿using ComicsViewer.Common;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Devices.Input;
 using Windows.Storage;
@@ -27,7 +27,7 @@ namespace ComicsViewer.Pages {
         private ComicItemGridViewModel? _viewModel;
 
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
-        public ComicItemGridViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        public ComicItemGridViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
 
         public ComicItemGrid() {
             this.InitializeComponent();
@@ -244,23 +244,16 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("A ComicItemGrid must receive a ComicItemGridNavigationArguments as its parameter.");
             }
 
+            if (e.NavigationMode is not NavigationMode.New) {
+                throw new ProgrammerError("ComicItemGrid should only be navigated with NavigationMode.New");
+            }
+
             if (args.ViewModel is null) {
                 throw new ProgrammerError("A ComicItemGrid must received a viewmodel in its navigation arguments");
             }
 
-            switch (e.NavigationMode) {
-                case NavigationMode.New:
-                    // Initialize this page only when creating a new page, 
-                    // not when the user returned to this page by pressing the back button
-                    this._viewModel = args.ViewModel;
-                    break;
-                case NavigationMode.Back:
-                case NavigationMode.Forward:
-                case NavigationMode.Refresh:
-                    throw new ProgrammerError("ComicItemGrid should only be navigated with NavigationMode.New");
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+
+            this._viewModel = args.ViewModel;
 
             if (args.HighlightedComicItem is { } item) {
                 this.HighlightedComicItem = item;

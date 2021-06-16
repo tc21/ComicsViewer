@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using ComicsViewer.Common;
 
-#nullable enable
-
 namespace ComicsLibrary.Sorting {
     public enum ComicSortSelector {
         Title, Author, DateAdded, Random

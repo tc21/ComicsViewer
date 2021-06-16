@@ -25,7 +25,7 @@ namespace ComicsViewer.Features {
         }
 
         public static async Task<bool> GenerateThumbnailAsync(Comic comic, UserProfile profile, bool replace = false) {
-            if (!(await TryGetThumbnailSourceAsync(comic) is { } imageFile)) {
+            if (await TryGetThumbnailSourceAsync(comic) is not { } imageFile) {
                 return false;
             }
 

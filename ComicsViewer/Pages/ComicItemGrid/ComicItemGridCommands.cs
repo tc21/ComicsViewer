@@ -1,4 +1,8 @@
-﻿using ComicsViewer.ClassExtensions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
@@ -6,10 +10,6 @@ using ComicsViewer.Support;
 using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
@@ -18,8 +18,8 @@ using Windows.UI.Xaml.Input;
 
 namespace ComicsViewer.Pages {
     using ComicItemGridCommand = ComicItemGridCommand<ComicItemGridViewModel, ComicItem>;
-    using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
     using ComicNavigationItemGridCommand = ComicItemGridCommand<ComicNavigationItemGridViewModel, ComicNavigationItem>;
+    using ComicWorkItemGridCommand = ComicItemGridCommand<ComicWorkItemGridViewModel, ComicWorkItem>;
 
     public partial class ComicItemGrid {
         /* A note on keyboard shortcuts: KeyboardAccelerators seem to only run when the control responsible for the 

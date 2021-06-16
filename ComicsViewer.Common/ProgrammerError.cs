@@ -25,7 +25,7 @@ namespace ComicsViewer.Common {
             [CallerFilePath] string? filePath = null,
             [CallerLineNumber] int? lineNumber = null
         ) {
-            return new ProgrammerError($"{propertyName} must not be null: on {filePath}: Line {lineNumber}");
+            return new ProgrammerError($"found null when unwrapping {propertyName}: on {filePath}: Line {lineNumber}");
         }
     }
 }

@@ -1,20 +1,20 @@
-﻿using ComicsViewer.Features;
-using ComicsViewer.Pages;
-using ComicsViewer.ViewModels.Pages;
-using System;
+﻿using System;
 using System.Linq;
+using ComicsViewer.Common;
+using ComicsViewer.Features;
+using ComicsViewer.Pages;
+using ComicsViewer.Support;
+using ComicsViewer.ViewModels;
+using ComicsViewer.ViewModels.Pages;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Navigation;
-using Windows.UI.ViewManagement;
-using Windows.ApplicationModel.Core;
-using Windows.UI.Core;
-using MUXC = Microsoft.UI.Xaml.Controls;
-using ComicsViewer.Support;
-using ComicsViewer.Common;
 using Windows.UI.Xaml.Media.Animation;
-using ComicsViewer.ViewModels;
+using Windows.UI.Xaml.Navigation;
+using MUXC = Microsoft.UI.Xaml.Controls;
 
 #nullable enable
 
@@ -48,7 +48,7 @@ namespace ComicsViewer {
         }
 
         // Public because it's used in the xaml
-        public readonly MainViewModel ViewModel = new MainViewModel();
+        public readonly MainViewModel ViewModel = new();
 
         #region Navigation
 

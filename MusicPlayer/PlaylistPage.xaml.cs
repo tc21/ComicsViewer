@@ -9,19 +9,19 @@ namespace MusicPlayer {
     public sealed partial class PlaylistPage {
         private ViewModel? _parentViewModel;
 
-        private PlaylistViewModel ViewModel { get; } = new PlaylistViewModel();
-        private ViewModel ParentViewModel => this._parentViewModel ?? throw ProgrammerError.Auto();
+        private PlaylistViewModel ViewModel { get; } = new();
+        private ViewModel ParentViewModel => this._parentViewModel ?? throw ProgrammerError.Unwrapped();
 
         public PlaylistPage() {
             this.InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            if (e.NavigationMode != NavigationMode.New && e.NavigationMode != NavigationMode.Refresh) {
+            if (e.NavigationMode is not (NavigationMode.New or NavigationMode.Refresh)) {
                 return;
             }
 
-            if (!(e.Parameter is PlaylistPageNavigationArguments args)) {
+            if (e.Parameter is not PlaylistPageNavigationArguments args) {
                 throw ProgrammerError.Auto();
             }
 
@@ -46,7 +46,7 @@ namespace MusicPlayer {
         }
 
         private async void ListView_ItemClick(object sender, ItemClickEventArgs e) {
-            if (!(e.ClickedItem is PlaylistItem item)) {
+            if (e.ClickedItem is not PlaylistItem item) {
                 // The click happened on an empty space
                 this.ListView.SelectedItems.Clear();
                 return;

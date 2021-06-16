@@ -1,7 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-
-// ReSharper disable All since we're using Win32 stuff
-
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 #nullable enable

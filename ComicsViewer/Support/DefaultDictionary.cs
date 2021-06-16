@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ComicsViewer.Support {
     internal class DefaultDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue> {
-        private readonly Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
+        private readonly Dictionary<TKey, TValue> dictionary = new();
         private readonly Func<TValue> makeDefault;
 
         public DefaultDictionary() : this(() => default) { }

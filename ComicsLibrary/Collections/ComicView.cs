@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ComicsViewer.Common;
-
-#nullable enable
 
 namespace ComicsLibrary.Collections {
     /// <summary>
@@ -26,7 +23,7 @@ namespace ComicsLibrary.Collections {
 
         public abstract int Count { get; }
 
-        private ComicView? parent;
+        private readonly ComicView? parent;
 
         private protected ComicView(ComicView? parent = null) {
             if (parent != null) {
@@ -39,12 +36,9 @@ namespace ComicsLibrary.Collections {
             this.OnComicChanged(e);
         }
 
-        public virtual SortedComicView Sorted(Sorting.ComicSortSelector sortSelector)
-            => new SortedComicView(this, comics: this, sortSelector);
+        public virtual SortedComicView Sorted(Sorting.ComicSortSelector sortSelector) => new(this, comics: this, sortSelector);
 
-
-        public FilteredComicView Filtered(Func<Comic, bool> filter)
-            => new FilteredComicView(this, filter);
+        public FilteredComicView Filtered(Func<Comic, bool> filter) => new(this, filter);
 
         public ComicPropertiesCollectionView SortedProperties(
             Func<Comic, IEnumerable<string>> getProperties, Sorting.ComicCollectionSortSelector sortSelector

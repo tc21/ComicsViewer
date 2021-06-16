@@ -23,14 +23,14 @@ namespace ComicsViewer.Pages {
         }
 
         private EditComicInfoDialogViewModel? _viewModel;
-        private EditComicInfoDialogViewModel ViewModel => this._viewModel ?? throw new ProgrammerError("ViewModel must be initialized");
+        private EditComicInfoDialogViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
 
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
-            var (controller, args) = 
+            var (controller, args) =
                 PagedControlAccessor.FromNavigationArguments<EditComicInfoDialogNavigationArguments>(
-                    e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null"));
+                    e.Parameter ?? throw ProgrammerError.Unwrapped("e.Parameter"));
             this.PagedControlAccessor = controller;
 
             this._viewModel = new EditComicInfoDialogViewModel(args.MainViewModel, args.ComicItem);
@@ -44,7 +44,7 @@ namespace ComicsViewer.Pages {
                 category: this.CategoryTextBox.Text,
                 dateAdded: this.DateAddedTextBox.Text,
                 tags: this.ComicTagsTextBox.Text,
-                loved: this.ComicLovedCheckBox.IsChecked ?? throw new ProgrammerError()
+                loved: this.ComicLovedCheckBox.IsChecked ?? throw ProgrammerError.Unwrapped()
             );
 
             this.PagedControlAccessor!.CloseContainer();

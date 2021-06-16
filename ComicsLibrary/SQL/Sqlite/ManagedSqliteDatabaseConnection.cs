@@ -6,7 +6,7 @@ namespace ComicsLibrary.SQL.Sqlite {
     public class ManagedSqliteDatabaseConnection {
         /* We store migrations as a list, where migrations[i] refers the the i'th migration, migrating from version i to i+1.
          * For example, migrations[0] is the init script, which "migrates the database from version 0 to 1". */
-        private readonly List<SqliteDatabaseMigration> migrations = new List<SqliteDatabaseMigration>();
+        private readonly List<SqliteDatabaseMigration> migrations = new();
         private readonly SqliteDatabaseConnection connection;
 
         public int Version => this.migrations.Count;

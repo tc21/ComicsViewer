@@ -16,7 +16,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace MusicPlayer {
     public sealed partial class MainPage {
-        private ViewModel ViewModel { get; } = new ViewModel();
+        private ViewModel ViewModel { get; } = new();
 
         public MainPage() {
             this.InitializeComponent();

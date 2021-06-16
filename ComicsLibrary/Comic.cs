@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-#nullable enable
-
 namespace ComicsLibrary {
     public class Comic {
         public string Title { get; }
@@ -83,7 +81,7 @@ namespace ComicsLibrary {
 
     public class ComicMetadata {
         public string? DisplayTitle { get; set; }
-        public HashSet<string> Tags { get; set; } = new HashSet<string>();
+        public HashSet<string> Tags { get; set; } = new();
         public bool Loved { get; set; }
         public string? ThumbnailSource { get; set; }
         public string DateAdded { get; set; } = DateTime.Now.ToString("yyyy-MM-dd");

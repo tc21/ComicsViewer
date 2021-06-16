@@ -1,13 +1,13 @@
-﻿using ComicsViewer.ClassExtensions;
-using ComicsViewer.Features;
-using ComicsViewer.Support;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
+using ComicsViewer.Features;
+using ComicsViewer.Support;
 
 #nullable enable
 
@@ -20,9 +20,8 @@ namespace ComicsViewer.ViewModels.Pages {
         internal readonly MainViewModel MainViewModel;
 
         // We will directly edit this list. We will need to save the profile and notify others of changes. 
-        public ObservableCollection<NamedPath> RootPaths { get; }  = new ObservableCollection<NamedPath>();
-        public ObservableCollection<ExternalDescriptionSpecification> ExternalDescriptions { get; }
-            = new ObservableCollection<ExternalDescriptionSpecification>();
+        public ObservableCollection<NamedPath> RootPaths { get; } = new();
+        public ObservableCollection<ExternalDescriptionSpecification> ExternalDescriptions { get; } = new();
 
         public SettingsPageViewModel(MainViewModel mainViewModel, UserProfile profile) {
             this.MainViewModel = mainViewModel;
@@ -37,16 +36,16 @@ namespace ComicsViewer.ViewModels.Pages {
             this.profile = profile;
 
             this.ProfileSettings = new List<SettingsItemViewModel>() {
-                new SettingsItemViewModel(this, "Profile name", () => this.profile.Name),
-                new SettingsItemViewModel(this, "Image height", () => this.profile.ImageHeight.ToString(),
+                new(this, "Profile name", () => this.profile.Name),
+                new(this, "Image height", () => this.profile.ImageHeight.ToString(),
                     str => this.profile.ImageHeight = int.Parse(str),
                     IsValidImageDimension
                 ),
-                new SettingsItemViewModel(this, "Image width", () => this.profile.ImageWidth.ToString(),
+                new(this, "Image width", () => this.profile.ImageWidth.ToString(),
                     str => this.profile.ImageWidth = int.Parse(str),
                     IsValidImageDimension
                 ),
-                new SettingsItemViewModel(this, "File extensions",
+                new(this, "File extensions",
                     getValue: () => StringConversions.CommaDelimitedList.ConvertToString(this.profile.FileExtensions),
                     setValue: value => this.profile.FileExtensions = StringConversions.CommaDelimitedList.Convert(value).ToList(),
                     validateValue: StringConversions.CommaDelimitedList.CanConvert
@@ -86,7 +85,7 @@ namespace ComicsViewer.ViewModels.Pages {
             await ProfileManager.SaveProfileAsync(this.profile);
         }
 
-        public List<SettingsItemViewModel> ProfileSettings { get; private set; } = new List<SettingsItemViewModel>();
+        public List<SettingsItemViewModel> ProfileSettings { get; private set; } = new();
 
         public async Task CreateProfileAsync(string suggestedName, bool copyCurrent = false) {
             var profile = await ProfileManager.CreateProfileAsync(suggestedName, copyCurrent ? this.MainViewModel.Profile : null);

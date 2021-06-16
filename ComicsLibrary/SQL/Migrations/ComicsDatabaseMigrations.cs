@@ -2,7 +2,7 @@
 
 namespace ComicsLibrary.SQL.Migrations {
     internal static class ComicsDatabaseMigrations {
-        public static readonly List<ComicsDatabaseMigration> Migrations = new List<ComicsDatabaseMigration> {
+        public static readonly List<ComicsDatabaseMigration> Migrations = new() {
             // An initializes the database. We could just use instances of ComicsDatabaseMigration, but this allows us
             // to give them a descriptive name and keep them in separate files
             new Migration_Initialize(),

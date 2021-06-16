@@ -1,6 +1,6 @@
-﻿using ComicsViewer.ViewModels;
+﻿using System;
+using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
-using System;
 using Windows.UI.Xaml.Navigation;
 
 #nullable enable

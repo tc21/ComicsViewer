@@ -1,9 +1,7 @@
-﻿using ComicsLibrary.Sorting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
-#nullable enable
+using ComicsLibrary.Sorting;
 
 namespace ComicsLibrary.Collections {
     /// <summary>

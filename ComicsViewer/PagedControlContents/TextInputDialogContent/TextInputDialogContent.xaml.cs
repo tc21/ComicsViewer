@@ -28,7 +28,7 @@ namespace ComicsViewer.Pages {
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             var (controller, args) =
                 PagedControlAccessor.FromNavigationArguments<TextInputDialogNavigationArguments>(
-                    e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+                    e.Parameter ?? throw ProgrammerError.Unwrapped("e.Parameter")
                 );
 
             this.PagedControlAccessor = controller;

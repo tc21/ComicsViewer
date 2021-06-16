@@ -7,7 +7,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace ComicsViewer.Controls {
     public class PagedContentDialog : ContentDialog, IPagedControl {
-        public Frame ContentFrame { get; } = new Frame();
+        public Frame ContentFrame { get; } = new();
 
         public PagedContentDialog() {
             this.Content = this.ContentFrame;

@@ -22,8 +22,8 @@ namespace ComicsViewer.Pages {
         private ComicWorkItem? _item;
 
         public PagedControlAccessor? PagedControlAccessor { get; private set; }
-        private MainViewModel MainViewModel => this._mainViewModel ?? throw new ProgrammerError("ViewModel must be initialized");
-        private ComicWorkItem Item => this._item ?? throw new ProgrammerError("Item must be initialized");
+        private MainViewModel MainViewModel => this._mainViewModel ?? throw ProgrammerError.Unwrapped();
+        private ComicWorkItem Item => this._item ?? throw ProgrammerError.Unwrapped();
 
         public RedefineThumbnailDialogContent() {
             this.InitializeComponent();
@@ -33,7 +33,7 @@ namespace ComicsViewer.Pages {
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             var (accessor, args) = PagedControlAccessor.FromNavigationArguments<RedefineThumbnailDialogNavigationArguments>(
-                e.Parameter ?? throw new ProgrammerError("e.Parameter must not be null")
+                e.Parameter ?? throw ProgrammerError.Unwrapped("e.Parameter")
             );
 
             this.PagedControlAccessor = accessor;

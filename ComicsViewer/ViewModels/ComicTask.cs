@@ -1,8 +1,8 @@
-﻿using ComicsViewer.ClassExtensions;
-using ComicsViewer.Common;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml;
 
@@ -18,8 +18,8 @@ namespace ComicsViewer.ViewModels {
         public Exception? StoredException { get; private set; }
 
         private readonly ComicTaskDelegate<object> userAction;
-        private readonly Progress<int> progress = new Progress<int>();
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly Progress<int> progress = new();
+        private readonly CancellationTokenSource cancellationTokenSource = new();
         private Task? task;
 
         public delegate Task ComicTaskDelegate(CancellationToken cancellationToken, IProgress<int> progress);
@@ -82,7 +82,7 @@ namespace ComicsViewer.ViewModels {
             this.cancellationTokenSource.Cancel();
 
             _ = Task.Run(async () => {
-                if (this.task.Status == TaskStatus.WaitingForActivation || this.task.Status == TaskStatus.Running) {
+                if (this.task.Status is TaskStatus.WaitingForActivation or TaskStatus.Running) {
                     await this.task;
                 }
 
