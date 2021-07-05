@@ -124,8 +124,9 @@ namespace ComicsLibrary.Collections {
 
                 return null;
             } else {
+                // Note: BinarySearch returns >= 0 if found, <0 if not found
                 var index = this.sortedComics.BinarySearch(comic, ComicComparers.Make(this.sortSelector));
-                if (this.sortedComics[index].UniqueIdentifier == comic.UniqueIdentifier) {
+                if (index >= 0) {
                     return index;
                 } else {
                     return null;
