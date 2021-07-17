@@ -1,4 +1,5 @@
 ﻿using ComicsLibrary;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using System;
 using System.Collections.Generic;
@@ -104,7 +105,7 @@ namespace ComicsViewer.Features {
             string folder, 
             [EnumeratorCancellation] CancellationToken ct = default
         ) {
-            var files = IO.GetDirectoryContents(folder);
+            var files = IO.GetDirectoryContents(folder).InNaturalOrder();
             var subfolders = new List<string>();
             var maxFiles = 5;
 
