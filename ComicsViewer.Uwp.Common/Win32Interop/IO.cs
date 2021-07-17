@@ -219,10 +219,16 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
                     continue;
                 }
 
-
                 var path = Path.Combine(rootPath, findFileData.cFileName);
 
-                if (!GetFileAttributesExFromApp(path, Flags.GetFileExInfoLevel.Standard, out var fileInformation)) {
+                // While rt seems to "just work", win32 can't accept pathnames longer than 260 characters.
+                // This is an experimental workaround, not to be blindly trusted.
+                var win32path = path;
+                if (path.Length >= 260) {
+                    win32path = @"\\?\" + path;
+                }
+
+                if (!GetFileAttributesExFromApp(win32path, Flags.GetFileExInfoLevel.Standard, out var fileInformation)) {
                     throw General.ThrowLastError(path);
                 }
 
