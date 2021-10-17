@@ -43,8 +43,8 @@ namespace ImageViewer {
 
                 var parsed = await Helper.ParseActivationArguments(eventArgs);
 
-                if (parsed.Result != ProtocolActivatedResult.Success) {
-                    await this.StopAppLaunch(parsed.Result.Description(), parsed.ErrorMessage ?? "An error occurred");
+                if (parsed is ProtocolErrorActivatedArguments error) {
+                    await this.StopAppLaunch(error.Reason.Description(), error.ErrorMesage);
                     return;
                 }
 
@@ -63,15 +63,12 @@ namespace ImageViewer {
 
             var files = args.Files.OfType<StorageFile>().ToList();
 
-            if (files.Count() != 1) {
+            if (files.Count() == 1) {
                 await this.StopAppLaunch("Not supported", "we only allow opening individual images");
                 return;
             }
 
-            _ = rootFrame.Navigate(typeof(MainPage), new ProtocolActivatedArguments {
-                Mode = ProtocolActivatedMode.File,
-                File = files.First()
-            });
+            _ = rootFrame.Navigate(typeof(MainPage), new ProtocolContainingFileActivatedArguments(files.First()));
 
             Window.Current.Activate();
         }

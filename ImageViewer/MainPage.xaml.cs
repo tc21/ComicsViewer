@@ -60,16 +60,18 @@ namespace ImageViewer {
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is ProtocolActivatedArguments args) {
-                switch (args.Mode) {
-                    case ProtocolActivatedMode.Filenames:
-                        await this.ViewModel.LoadImagesAtPathsAsync(args.Filenames!);
+                switch (args) {
+                    case ProtocolFilenamesActivatedArguments filenames:
+                        await this.ViewModel.LoadImagesAtPathsAsync(filenames.Filenames);
                         break;
-                    case ProtocolActivatedMode.Folder:
-                        await this.ViewModel.LoadDirectoryAsync(args.Folder!);
+                    case ProtocolFolderActivatedArguments folder:
+                        await this.ViewModel.LoadDirectoryAsync(folder.Folder);
                         break;
-                    case ProtocolActivatedMode.File:
-                        await this.ViewModel.OpenContainingFolderAsync(args.File!);
+                    case ProtocolContainingFileActivatedArguments file:
+                        await this.ViewModel.OpenContainingFolderAsync(file.File);
                         break;
+                    case ProtocolErrorActivatedArguments:
+                        throw new ProgrammerError("unexpected error arguments");
                     default:
                         throw new ProgrammerError("unhandled switch case");
                 }

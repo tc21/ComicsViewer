@@ -46,8 +46,8 @@ namespace MusicPlayer {
 
                 var parsed = await Helper.ParseActivationArguments(eventArgs);
 
-                if (parsed.Result != ProtocolActivatedResult.Success) {
-                    await this.StopAppLaunch(parsed.Result.Description(), parsed.ErrorMessage ?? "An error occurred");
+                if (parsed is ProtocolErrorActivatedArguments error) {
+                    await this.StopAppLaunch(error.Reason.Description(), error.ErrorMesage);
                     return;
                 }
 

@@ -24,30 +24,19 @@ namespace ComicsViewer.Uwp.Common {
         private static async Task<ProtocolActivatedArguments> ParseActivationArgumentsWithoutDescription(ProtocolActivatedEventArgs args) {
             if (args.Uri.AbsolutePath == "/path") {
                 if (!(args.Data.TryGetValue("Path", out var o) && o is string path)) {
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.InvalidArguments,
-                        ErrorMessage = "Required argument 'Path' not found."
-                    };
+                    return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.InvalidArguments, "Required argument 'Path' not found.");
                 }
 
                 try {
                     var folder = await StorageFolder.GetFolderFromPathAsync(path);
 
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.Success,
-                        Mode = ProtocolActivatedMode.Folder,
-                        Folder = folder
-                    };
+                    return new ProtocolFolderActivatedArguments(folder);
                 } catch (UnauthorizedAccessException) {
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.AccessDenied,
-                        ErrorMessage = "Please ensure file system access for this app is turned on in Settings."
-                    };
+                    return new ProtocolErrorActivatedArguments(
+                        ProtocolActivatedErrorReason.AccessDenied, 
+                        "Please ensure file system access for this app is turned on in Settings.");
                 } catch (FileNotFoundException) {
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.FilesNotFound,
-                        ErrorMessage = $"The directory doesn't exist: {path}"
-                    };
+                    return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.FilesNotFound, $"The directory doesn't exist: {path}");
                 }
             }
 
@@ -57,25 +46,15 @@ namespace ComicsViewer.Uwp.Common {
 
             if (args.Uri.AbsolutePath == "/filenames") {
                 if (!(args.Data.TryGetValue("Filenames", out var o2) && o2 is string[] filenames)) {
-                    return new ProtocolActivatedArguments { 
-                        Result = ProtocolActivatedResult.InvalidArguments,
-                        ErrorMessage = "Required argument 'Filenames' not found."
-                    };
+                    return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.InvalidArguments, "Required argument 'Filenames' not found.");
                 }
 
-                return new ProtocolActivatedArguments {
-                    Result = ProtocolActivatedResult.Success,
-                    Mode = ProtocolActivatedMode.Filenames,
-                    Filenames = filenames
-                };
+                return new ProtocolFilenamesActivatedArguments(filenames);
             }
 
             if (args.Uri.AbsolutePath == "/shared_filelist") {
                 if (!(args.Data.TryGetValue("FileToken", out var o) && o is string token)) {
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.InvalidArguments,
-                        ErrorMessage = "Required argument 'FileToken' not found."
-                    };
+                    return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.InvalidArguments, "Required argument 'FileToken' not found.");
                 }
 
                 StorageFile file;
@@ -83,10 +62,9 @@ namespace ComicsViewer.Uwp.Common {
                 try {
                     file = await SharedStorageAccessManager.RedeemTokenForFileAsync(token);
                 } catch {
-                    return new ProtocolActivatedArguments {
-                        Result = ProtocolActivatedResult.InvalidArguments,
-                        ErrorMessage = $"Could not retrieve file corresponding to file token '{token}'."
-                    };
+                    return new ProtocolErrorActivatedArguments(
+                        ProtocolActivatedErrorReason.InvalidArguments,
+                        $"Could not retrieve file corresponding to file token '{token}'.");
                 }
 
                 var lines = await FileIO.ReadLinesAsync(file);
@@ -94,50 +72,70 @@ namespace ComicsViewer.Uwp.Common {
                 // the temp file is no longer needed
                 await file.DeleteAsync();
 
-                return new ProtocolActivatedArguments {
-                    Result = ProtocolActivatedResult.Success,
-                    Mode = ProtocolActivatedMode.Filenames,
-                    Filenames = lines
-                };
-                
+                return new ProtocolFilenamesActivatedArguments(lines);
             }
 
-            return new ProtocolActivatedArguments { 
-                Result = ProtocolActivatedResult.InvalidUri,
-                ErrorMessage = args.Uri.AbsolutePath
-            };
+            return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.InvalidUri, args.Uri.AbsolutePath);
         }
     }
 
-    public class ProtocolActivatedArguments {
-        public ProtocolActivatedResult Result { get; set; }
-        public ProtocolActivatedMode Mode { get; set; }
-
-        public string? ErrorMessage { get; set; }
-        public IEnumerable<string>? Filenames { get; set; }
-        public StorageFolder? Folder { get; set; }
-        public StorageFile? File { get; set; }
+    public abstract class ProtocolActivatedArguments {
         public string? Description { get; set; }
+
+        private protected ProtocolActivatedArguments() { }
     }
 
-    public enum ProtocolActivatedResult {
-        Success, InvalidUri, InvalidArguments, FilesNotFound, AccessDenied
+    public sealed class ProtocolFilenamesActivatedArguments : ProtocolActivatedArguments {
+        public IEnumerable<string> Filenames { get; }
+
+        public ProtocolFilenamesActivatedArguments(IEnumerable<string> filenames) {
+            this.Filenames = filenames;
+        }
+    }
+
+    public sealed class ProtocolFolderActivatedArguments : ProtocolActivatedArguments {
+        public StorageFolder Folder { get; }
+
+        public ProtocolFolderActivatedArguments(StorageFolder folder) {
+            this.Folder = folder;
+        }
+    }
+
+    public sealed class ProtocolContainingFileActivatedArguments : ProtocolActivatedArguments {
+        public StorageFile File { get; }
+
+        public ProtocolContainingFileActivatedArguments(StorageFile file) {
+            this.File = file;
+        }
+    }
+
+    public sealed class ProtocolErrorActivatedArguments : ProtocolActivatedArguments {
+        public ProtocolActivatedErrorReason Reason { get; }
+        public string ErrorMesage { get; }
+
+        public ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason reason, string errorMessage) {
+            this.Reason = reason;
+            this.ErrorMesage = errorMessage;
+        }
+    }
+
+    public enum ProtocolActivatedErrorReason {
+        InvalidUri, InvalidArguments, FilesNotFound, AccessDenied
     }
 
     public static class ProtocolActivatedResult_ToString {
-        public static string Description (this ProtocolActivatedResult result) {
-            return result switch {
-                ProtocolActivatedResult.Success => "Success",
-                ProtocolActivatedResult.InvalidUri => "Invalid startup URI",
-                ProtocolActivatedResult.InvalidArguments => "Invalid arguments",
-                ProtocolActivatedResult.FilesNotFound => "Files not found",
-                ProtocolActivatedResult.AccessDenied => "Access denied",
+        public static string Description(this ProtocolActivatedErrorReason reason) {
+            return reason switch {
+                ProtocolActivatedErrorReason.InvalidUri => "Invalid startup URI",
+                ProtocolActivatedErrorReason.InvalidArguments => "Invalid arguments",
+                ProtocolActivatedErrorReason.FilesNotFound => "Files not found",
+                ProtocolActivatedErrorReason.AccessDenied => "Access denied",
                 _ => throw new ProgrammerError("unhandled switch case")
             };
         }
     }
 
     public enum ProtocolActivatedMode {
-        Filenames, Folder, File
+        Filenames, Folder, ContainingFile
     }
 }
