@@ -29,8 +29,7 @@ namespace ComicsViewer.Uwp.Common {
 
                 try {
                     var folder = await StorageFolder.GetFolderFromPathAsync(path);
-
-                    return new ProtocolFolderActivatedArguments(folder);
+                    return new ProtocolFoldersActivatedArguments(new[] { folder });
                 } catch (UnauthorizedAccessException) {
                     return new ProtocolErrorActivatedArguments(
                         ProtocolActivatedErrorReason.AccessDenied, 
@@ -93,11 +92,19 @@ namespace ComicsViewer.Uwp.Common {
         }
     }
 
-    public sealed class ProtocolFolderActivatedArguments : ProtocolActivatedArguments {
-        public StorageFolder Folder { get; }
+    public sealed class ProtocolFilesActivatedArguments : ProtocolActivatedArguments {
+        public IEnumerable<StorageFile> Files { get; }
 
-        public ProtocolFolderActivatedArguments(StorageFolder folder) {
-            this.Folder = folder;
+        public ProtocolFilesActivatedArguments(IEnumerable<StorageFile> files) {
+            this.Files = files;
+        }
+    }
+
+    public sealed class ProtocolFoldersActivatedArguments : ProtocolActivatedArguments {
+        public IEnumerable<StorageFolder> Folders { get; }
+
+        public ProtocolFoldersActivatedArguments(IEnumerable<StorageFolder> folders) {
+            this.Folders = folders;
         }
     }
 
@@ -136,6 +143,6 @@ namespace ComicsViewer.Uwp.Common {
     }
 
     public enum ProtocolActivatedMode {
-        Filenames, Folder, ContainingFile
+        Filenames, Files, Folders, ContainingFile
     }
 }

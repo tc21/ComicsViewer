@@ -107,35 +107,49 @@ namespace ImageViewer {
             }
         }
 
-        public async Task LoadImagesAsync(IEnumerable<StorageFile> files) {
+        public Task LoadImagesAsync(IEnumerable<StorageFile> files)
+            => this.LoadImagesAsync(files.Select(AbstractStorageFile.FromStorageFile));
+
+        public Task LoadDirectoryAsync(StorageFolder folder)
+            => this.LoadImagesAtPathsAsync(this.DirectorySubitems(folder));
+
+        public Task LoadDirectoriesAndFilesAsync(IEnumerable<IStorageItem> items)
+            => this.LoadImagesAsync(this.ReadDirectoriesAndFilesAsync(items));
+
+        public Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int? seekTo = 0)
+            => this.LoadImagesAsync(paths.Select(AbstractStorageFile.FromPath), seekTo);
+
+        public async Task LoadImagesAsync(IEnumerable<AbstractStorageFile> files, int? seekTo = 0) {
             this.CanSeek = false;
 
             this.Images.Clear();
-            this.Images.AddRange(files.Where(f => IsImage(f.Path)).Select(AbstractStorageFile.FromStorageFile));
-
-            this.CanSeek = true;
-            await this.SeekAsync(0, reload: true);
-        }
-
-        public Task LoadDirectoryAsync(StorageFolder folder) {
-            var files = ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder.Path)
-                .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
-                .InNaturalOrder()
-                .Select(info => info.Path);
-
-            return this.LoadImagesAtPathsAsync(files);
-        }
-
-        public async Task LoadImagesAtPathsAsync(IEnumerable<string> paths, int? seekTo = 0) {
-            this.CanSeek = false;
-
-            this.Images.Clear();
-            this.Images.AddRange(paths.Where(IsImage).Select(AbstractStorageFile.FromPath));
+            this.Images.AddRange(files);
 
             this.CanSeek = true;
 
             if (seekTo is { } index) {
                 await this.SeekAsync(index, reload: true);
+            }
+        }
+
+        private IEnumerable<string> DirectorySubitems(StorageFolder folder) {
+            return ComicsViewer.Uwp.Common.Win32Interop.IO.GetDirectoryContents(folder.Path)
+                .Where(info => info.ItemType == ComicsViewer.Uwp.Common.Win32Interop.IO.FileOrDirectoryType.FileOrLink)
+                .InNaturalOrder()
+                .Select(info => info.Path);
+        }
+
+        private IEnumerable<AbstractStorageFile> ReadDirectoriesAndFilesAsync(IEnumerable<IStorageItem> items) {
+            foreach (var item in items) {
+                if (item is StorageFile file) {
+                    yield return AbstractStorageFile.FromStorageFile(file);
+                }
+
+                if (item is StorageFolder folder) {
+                    foreach (var path in this.DirectorySubitems(folder)) {
+                        yield return AbstractStorageFile.FromPath(path);
+                    }
+                }
             }
         }
 

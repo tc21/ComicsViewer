@@ -64,8 +64,11 @@ namespace ImageViewer {
                     case ProtocolFilenamesActivatedArguments filenames:
                         await this.ViewModel.LoadImagesAtPathsAsync(filenames.Filenames);
                         break;
-                    case ProtocolFolderActivatedArguments folder:
-                        await this.ViewModel.LoadDirectoryAsync(folder.Folder);
+                    case ProtocolFilesActivatedArguments files:
+                        await this.ViewModel.LoadImagesAsync(files.Files);
+                        break;
+                    case ProtocolFoldersActivatedArguments folders:
+                        await this.ViewModel.LoadDirectoriesAndFilesAsync(folders.Folders);
                         break;
                     case ProtocolContainingFileActivatedArguments file:
                         await this.ViewModel.OpenContainingFolderAsync(file.File);
@@ -113,23 +116,14 @@ namespace ImageViewer {
                 return;
             }
 
-            var items = (await e.DataView.GetStorageItemsAsync()).InNaturalOrder();
+            // Sorting files before folders is only my personal preference
+            var items = (await e.DataView.GetStorageItemsAsync()).InNaturalOrder(
+                StorageItemSortPreference.DirectoriesLast);
 
-            if (items.Count == 1) {
-                switch (items.First()) {
-                    case StorageFile file:
-                        await this.ViewModel.OpenContainingFolderAsync(file);
-                        break;
-
-                    case StorageFolder folder:
-                        await this.ViewModel.LoadDirectoryAsync(folder);
-                        break;
-                }
+            if (items.Count == 1 && items.First() is StorageFile file) {
+                await this.ViewModel.OpenContainingFolderAsync(file);
             } else {
-                var files = items.Where(item => item.IsOfType(StorageItemTypes.File))
-                                 .Cast<StorageFile>();
-
-                await this.ViewModel.LoadImagesAsync(files);
+                await this.ViewModel.LoadDirectoriesAndFilesAsync(items);
             }
         }
 

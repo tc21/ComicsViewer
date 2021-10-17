@@ -41,16 +41,24 @@ namespace MusicPlayer {
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is ProtocolActivatedArguments args) {
-                switch (args.Mode) {
-                    case ProtocolActivatedMode.Filenames:
-                        await this.ViewModel.OpenFilesAtPathAsync(args.Filenames!);
+                switch (args) {
+                    case ProtocolFilenamesActivatedArguments filenames:
+                        await this.ViewModel.OpenFilesAtPathAsync(filenames.Filenames);
                         break;
-                    case ProtocolActivatedMode.Folder:
-                        await this.ViewModel.OpenFolderAsync(args.Folder!);
+                    case ProtocolFilesActivatedArguments:
+                        throw new NotImplementedException();
+                    case ProtocolFoldersActivatedArguments folders:
+                        if (folders.Folders.Count() != 1) {
+                            throw new NotImplementedException();
+                        }
+
+                        await this.ViewModel.OpenFolderAsync(folders.Folders.First());
                         break;
-                    case ProtocolActivatedMode.File:
-                        await this.ViewModel.OpenContainingFolderAsync(args.File!);
+                    case ProtocolContainingFileActivatedArguments file:
+                        await this.ViewModel.OpenContainingFolderAsync(file.File);
                         break;
+                    case ProtocolErrorActivatedArguments:
+                        throw new ProgrammerError("unexpected error arguments");
                     default:
                         throw new ProgrammerError("unhandled switch case");
                 }

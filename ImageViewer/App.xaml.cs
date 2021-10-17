@@ -57,18 +57,19 @@ namespace ImageViewer {
             var rootFrame = this.EnsureInitialized();
 
             if (args.Files.OfType<StorageFolder>().Any()) {
+                // Although we can open folders, we do not yet support opening the app in this way
                 await this.StopAppLaunch("Not supported", "we cannot open folders");
                 return;
             }
 
             var files = args.Files.OfType<StorageFile>().ToList();
 
-            if (files.Count() == 1) {
-                await this.StopAppLaunch("Not supported", "we only allow opening individual images");
-                return;
-            }
+            ProtocolActivatedArguments arguments = files.Count() switch {
+                1 => new ProtocolContainingFileActivatedArguments(files.First()),
+                _ => new ProtocolFilesActivatedArguments(files)
+            };
 
-            _ = rootFrame.Navigate(typeof(MainPage), new ProtocolContainingFileActivatedArguments(files.First()));
+            _ = rootFrame.Navigate(typeof(MainPage), arguments);
 
             Window.Current.Activate();
         }
