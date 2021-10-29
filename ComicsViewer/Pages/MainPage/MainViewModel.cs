@@ -612,8 +612,11 @@ namespace ComicsViewer.ViewModels.Pages {
                 $"Moving {oldComics.Count.PluralString("item")} to category '{category.Name}'...",
 
                 async (ct, p) => {
-                    // We should probably try to catch FileNotFound and UnauthorizedAccess here
-                    _ = await StorageFolder.GetFolderFromPathAsync(category.Path);
+                    try {
+                        _ = await StorageFolder.GetFolderFromPathAsync(category.Path);
+                    } catch (FileNotFoundException) {
+                        throw new IntendedBehaviorException($"The destination folder {category.Path} does not exist. You must create it manually.", "Folder not found");
+                    }
 
                     await this.MoveComicsAsync(oldComics, newComics, ct, p);
                 }, 
