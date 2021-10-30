@@ -8,7 +8,7 @@ namespace ComicsViewer.ClassExtensions {
             }
 
             if (i == 1) {
-                return $"{i} counter";
+                return $"{i} {counter}";
             }
 
             return $"{i} {counter}{pluralSuffix}";
