@@ -1,7 +1,7 @@
-﻿using ComicsViewer.Support;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ComicsViewer.Support;
 
 #nullable enable
 
@@ -18,7 +18,7 @@ namespace ComicsViewer.Pages {
         }
 
         // Note: we can't use generic types in a xaml, so we do this
-        public static ItemPickerDialogNavigationArguments New<T>(ItemPickerDialogProperties properties, IEnumerable<T> items, Action<T> action) 
+        public static ItemPickerDialogNavigationArguments New<T>(ItemPickerDialogProperties properties, IEnumerable<T> items, Action<T> action)
         where T : ISelectable {
             return new ItemPickerDialogNavigationArguments(properties, items.Cast<ISelectable>(), x => action((T)x));
         }

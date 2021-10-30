@@ -1,12 +1,12 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Uwp.Common;
-using ComicsViewer.Uwp.Common.Win32Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ComicsLibrary;
+using ComicsViewer.Uwp.Common;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 
@@ -102,7 +102,7 @@ namespace ComicsViewer.Features {
         }
 
         public static async IAsyncEnumerable<StorageFile> GetPossibleThumbnailFilesAsync(
-            string folder, 
+            string folder,
             [EnumeratorCancellation] CancellationToken ct = default
         ) {
             var files = IO.GetDirectoryContents(folder).InNaturalOrder();

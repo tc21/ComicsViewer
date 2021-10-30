@@ -1,13 +1,13 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Uwp.Common;
-using ComicsViewer.Uwp.Common.Win32Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using ComicsLibrary;
+using ComicsViewer.Uwp.Common;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using Windows.Storage;
 
 #nullable enable 
@@ -15,10 +15,6 @@ using Windows.Storage;
 namespace ComicsViewer.Features {
     public class UserProfile {
         // fields to be serialized
-
-        // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
-        // ReSharper disable MemberCanBePrivate.Global
-
         public string Name { get; set; } = string.Empty;
         public int ImageHeight { get; set; } = 240;
         public int ImageWidth { get; set; } = 240;
@@ -27,9 +23,6 @@ namespace ComicsViewer.Features {
         public RootPaths RootPaths { get; set; } = new();
         public StartupApplicationType StartupApplicationType { get; set; } = StartupApplicationType.OpenFirstFile;
         public List<ExternalDescriptionSpecification> ExternalDescriptions { get; set; } = new();
-
-        // ReSharper restore AutoPropertyCanBeMadeGetOnly.Global
-        // ReSharper restore MemberCanBePrivate.Global
 
         // generated properties
         [JsonIgnore]
@@ -76,7 +69,7 @@ namespace ComicsViewer.Features {
             return Task.Run(() =>
                 IO.GetDirectoryContents(folder)
                     .InNaturalOrder()
-                    .Where(file => file.ItemType == IO.FileOrDirectoryType.FileOrLink && 
+                    .Where(file => file.ItemType == IO.FileOrDirectoryType.FileOrLink &&
                                    this.FileExtensions.Contains(Path.GetExtension(file.Name))));
         }
 
@@ -123,7 +116,7 @@ namespace ComicsViewer.Features {
                 subitems.Add(rootItem);
             }
 
-            var subfolders = await Task.Run(() => 
+            var subfolders = await Task.Run(() =>
                 IO.GetDirectoryContents(comic.Path)
                     .InNaturalOrder()
                     .Where(file => file.ItemType == IO.FileOrDirectoryType.Directory)

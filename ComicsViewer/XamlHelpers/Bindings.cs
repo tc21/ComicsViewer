@@ -6,10 +6,10 @@ using Windows.UI.Xaml.Data;
 
 namespace ComicsViewer.XamlHelpers {
     public static class Bindings {
-        public static readonly DependencyProperty VisibilityToEnabledProperty = 
-            DependencyProperty.RegisterAttached("VisibilityToEnabled", typeof(bool), typeof(Bindings), 
+        public static readonly DependencyProperty VisibilityToEnabledProperty =
+            DependencyProperty.RegisterAttached("VisibilityToEnabled", typeof(bool), typeof(Bindings),
                 new PropertyMetadata(defaultValue: false, propertyChangedCallback: OnVisibilityToEnabledChanged));
-        
+
         public static bool GetVisibilityToEnabled(DependencyObject obj) {
             return (bool)obj.GetValue(VisibilityToEnabledProperty);
         }
@@ -19,7 +19,7 @@ namespace ComicsViewer.XamlHelpers {
         }
 
         private static void OnVisibilityToEnabledChanged(object sender, DependencyPropertyChangedEventArgs args) {
-            if (!(sender is Control control)) {
+            if (sender is not Control control) {
                 throw new ProgrammerError("This binding is not valid except on controls");
             }
 

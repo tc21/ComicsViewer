@@ -20,7 +20,7 @@ namespace ComicsViewer.Controls {
         }
 
         public void NavigateAndShowAt<T, A>([DisallowNull] A parameter, FrameworkElement placementTarget, FlyoutShowOptions? showOptions = null)
-        where T: IPagedControlContent<A> {
+        where T : IPagedControlContent<A> {
             PagedControlNavigationHelper.Navigate<T, A>(this, parameter);
 
             if (showOptions == null) {

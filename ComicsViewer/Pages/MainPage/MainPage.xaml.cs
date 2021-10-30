@@ -131,7 +131,7 @@ namespace ComicsViewer {
                         default:
                             throw new ProgrammerError("NavigationPageType must be NavigationItem or WorkItem when navigating in");
                     }
-                    
+
                     break;
                 }
 

@@ -70,7 +70,6 @@ namespace ComicsViewer.Pages {
                 case NavigationMode.Back:
                     _ = ComicItemGridCache.PopStack(this.NavigationTag, this.PageName);
                     break;
-
                 default:
                     throw new ProgrammerError("Unexpected navigation mode");
             }

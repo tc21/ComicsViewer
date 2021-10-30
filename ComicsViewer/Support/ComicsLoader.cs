@@ -110,7 +110,7 @@ namespace ComicsViewer.Support {
 
             if (matchingPaths.Any()) {
                 var bestMatch = matchingPaths.OrderBy(pair => folder.RelativeTo(pair.Path).Length).First();
-         
+
                 // If in a category folder: assume it's properly laid out
                 var categoryName = bestMatch.Name;
                 var relativePath = folder.RelativeTo(bestMatch.Path);
@@ -143,7 +143,9 @@ namespace ComicsViewer.Support {
                         yield return new Comic(folder.Path, folder.Name, authorName, categoryName);
                         yield break;
 
-                    // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
+                    default:
+                        // otherwise - we don't treat improperly laid out works as part of the category: execution falls through
+                        break;
                 }
 
             }

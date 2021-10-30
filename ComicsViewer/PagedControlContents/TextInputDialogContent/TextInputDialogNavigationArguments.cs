@@ -12,9 +12,9 @@ namespace ComicsViewer.Pages {
         public Func<string, ValidateResult>? Validate { get; }
 
         public TextInputDialogNavigationArguments(
-            TextInputDialogProperties properties, 
-            string initialValue, 
-            Func<string, Task> asyncAction, 
+            TextInputDialogProperties properties,
+            string initialValue,
+            Func<string, Task> asyncAction,
             Func<string, ValidateResult>? validate = null
         ) {
             this.Properties = properties;
@@ -39,7 +39,7 @@ namespace ComicsViewer.Pages {
         }
 
         public static TextInputDialogProperties ForSavingChanges(string propertyName) {
-            return new TextInputDialogProperties(propertyName, "Save changes", "Discard changes") {  CanInitiallySubmit = false };
+            return new TextInputDialogProperties(propertyName, "Save changes", "Discard changes") { CanInitiallySubmit = false };
         }
 
         public static TextInputDialogProperties ForNewItem(string propertyName) {

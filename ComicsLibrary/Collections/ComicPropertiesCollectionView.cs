@@ -30,7 +30,7 @@ namespace ComicsLibrary.Collections {
             if (this.lastChange is not { } e) {
                 return;
             }
-            
+
             switch (e.Type) {
                 case ComicChangeType.ItemsChanged:
                     // here we get a list of added/removed/modified comics, and we need to create a list of
@@ -60,7 +60,7 @@ namespace ComicsLibrary.Collections {
                         if (this.Properties.Contains(property)) {
                             _ = removedProperties.Add(property);
                         } else {
-                            var view = this.parent.Filtered(comic => getProperties(comic).Contains(property));
+                            var view = this.parent.Filtered(comic => this.getProperties(comic).Contains(property));
                             this.Properties.Add(new ComicCollection(property, view));
                         }
 
@@ -87,11 +87,11 @@ namespace ComicsLibrary.Collections {
             var propertyNames = new HashSet<string>();
 
             foreach (var comic in this.parent) {
-                propertyNames.UnionWith(getProperties(comic));
+                propertyNames.UnionWith(this.getProperties(comic));
             }
 
             var collections = propertyNames.Select(name => {
-                var view = this.parent.Filtered(comic => getProperties(comic).Contains(name));
+                var view = this.parent.Filtered(comic => this.getProperties(comic).Contains(name));
                 return new ComicCollection(name, view);
             });
 
@@ -113,8 +113,8 @@ namespace ComicsLibrary.Collections {
                 property.Comics.DetachFromParent();
             }
 
-            parent.ViewChanged -= this.ParentComicView_ViewChanged;
-            parent.ComicsChanged -= this.ParentComicView_ComicsChanged;
+            this.parent.ViewChanged -= this.ParentComicView_ViewChanged;
+            this.parent.ComicsChanged -= this.ParentComicView_ComicsChanged;
         }
     }
 }

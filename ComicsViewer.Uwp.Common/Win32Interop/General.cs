@@ -50,7 +50,7 @@ namespace ComicsViewer.Uwp.Common.Win32Interop {
             message = message.Trim();
 
             if (!makeCsharpExceptions) {
-                return new NativeException((int) error, message, additionalInfo);
+                return new NativeException((int)error, message, additionalInfo);
             }
 
             Exception? exception = error switch {

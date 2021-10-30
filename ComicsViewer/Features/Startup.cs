@@ -1,12 +1,12 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Common;
-using ComicsViewer.Support;
-using ComicsViewer.Uwp.Common.Win32Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ComicsLibrary;
+using ComicsViewer.Common;
+using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common.Win32Interop;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation.Collections;
 using Windows.Storage;

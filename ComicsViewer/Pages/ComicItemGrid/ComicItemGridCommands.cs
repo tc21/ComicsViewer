@@ -171,7 +171,7 @@ namespace ComicsViewer.Pages {
         public ComicItemGridCommand(
             ComicItemGrid grid,
             Func<ComicItemGrid.CommandArgs<T, TItem>, string> getName,
-            Action<ComicItemGrid.CommandArgs<T, TItem>> execute, 
+            Action<ComicItemGrid.CommandArgs<T, TItem>> execute,
             Func<ComicItemGrid.CommandArgs<T, TItem>, bool>? canExecute = null
         ) {
             this.GetName = () => getName(new ComicItemGrid.CommandArgs<T, TItem>(grid));
@@ -359,7 +359,7 @@ namespace ComicsViewer.Pages {
 
             // Removes an item from the currently active playlist
             this.RemoveFromSelectedPlaylistCommand = new ComicWorkItemGridCommand(parent,
-                getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'", 
+                getName: e => $"Remove from playlist '{e.ViewModel.Properties.PlaylistName}'",
                 execute: async e => await e.MainViewModel.RemoveFromPlaylistAsync(e.ViewModel.Properties.PlaylistName!, e.Items.Select(item => item.Comic)),
                 canExecute: e => e.Count > 0 && e.ViewModel.Properties.ParentType == NavigationTag.Playlist
             );

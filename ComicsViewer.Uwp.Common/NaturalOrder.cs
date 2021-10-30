@@ -22,8 +22,8 @@ namespace ComicsViewer.Uwp.Common {
         }
 
         public static IReadOnlyList<T> InNaturalOrder<T>(
-            this IEnumerable<T> list, StorageItemSortPreference sortPreference = StorageItemSortPreference.None    
-        ) where T: IStorageItem {
+            this IEnumerable<T> list, StorageItemSortPreference sortPreference = StorageItemSortPreference.None
+        ) where T : IStorageItem {
             return Sort(list, sortPreference, info => info.Name, info => info.IsOfType(StorageItemTypes.Folder));
         }
 

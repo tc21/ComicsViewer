@@ -10,8 +10,8 @@ CREATE TABLE __application_name (
 INSERT INTO __application_name (name)
     VALUES ('ComicsViewer (UWP)');
 ",
-            beforeMigrate: manager => {},
-            afterMigrate: manager => {}
+            beforeMigrate: manager => { },
+            afterMigrate: manager => { }
         ) { }
     }
 }

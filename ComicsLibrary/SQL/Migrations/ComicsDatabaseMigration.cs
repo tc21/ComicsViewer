@@ -6,9 +6,9 @@ namespace ComicsLibrary.SQL.Migrations {
         protected ComicsDatabaseMigration(
             int version, string? sql, Action<ComicsManager>? beforeMigrate = null, Action<ComicsManager>? afterMigrate = null
         ) : base(
-            version, 
-            sql, 
-            conn => beforeMigrate?.Invoke(new ComicsManager(conn)), 
+            version,
+            sql,
+            conn => beforeMigrate?.Invoke(new ComicsManager(conn)),
             conn => afterMigrate?.Invoke(new ComicsManager(conn))
         ) { }
     }

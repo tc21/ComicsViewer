@@ -88,6 +88,9 @@ namespace ImageViewer {
                         command.OnCanExecuteChanged();
                     }
                     break;
+
+                default:
+                    break;
             }
         }
 
@@ -161,7 +164,7 @@ namespace ImageViewer {
                 }
 
                 scale = zoomTo / this.ImageContainer.ZoomFactor;
-                
+
                 /* zoomOriginX is the origin of the zoom relative to (0, 0), in the extent coordinate space
                  * (i.e. if a 100x100 image is zoomed at 200%, then ExtentSize = 200x200, while ActualSize = 100x100
                  * 

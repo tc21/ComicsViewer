@@ -43,7 +43,7 @@ namespace ComicsViewer.Support {
             }
 
             var comicId = comicItem.ContainedComics().First().UniqueIdentifier;
-            var success = (comicId == preparedAnimationComicItems[key] && animation.TryStart(destination));
+            var success = comicId == preparedAnimationComicItems[key] && animation.TryStart(destination);
 
             if (!success) {
                 animation.Cancel();
@@ -65,7 +65,8 @@ namespace ComicsViewer.Support {
             }
 
             var comicId = comicItem.ContainedComics().First().UniqueIdentifier;
-            var success = (comicId == preparedAnimationComicItems[key] && await destination.TryStartConnectedAnimationAsync(animation, comicItem, elementName));
+            var success = comicId == preparedAnimationComicItems[key] &&
+                await destination.TryStartConnectedAnimationAsync(animation, comicItem, elementName);
 
             if (!success) {
                 animation.Cancel();

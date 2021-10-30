@@ -1,9 +1,9 @@
-﻿using ComicsViewer.Common;
-using ComicsViewer.Support;
-using ComicsViewer.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ComicsViewer.Common;
+using ComicsViewer.Support;
+using ComicsViewer.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
 

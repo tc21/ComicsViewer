@@ -1,10 +1,8 @@
-﻿using ComicsViewer.ClassExtensions;
+﻿using System.IO;
+using System.Threading.Tasks;
+using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Support;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -30,6 +28,7 @@ namespace ComicsViewer.ViewModels.Pages {
                 NavigationTag.Author => this.parent.MainViewModel.StartRenameAuthorTaskAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Category => this.parent.MainViewModel.RenameCategoryAsync(this.ItemTitle, newItemTitle),
                 NavigationTag.Playlist => this.parent.MainViewModel.RenamePlaylistAsync(this.ItemTitle, newItemTitle),
+                NavigationTag.Comics => throw new ProgrammerError("This code path should not be invokable"),
                 _ => throw new ProgrammerError("unhandled switch case"),
             };
         }

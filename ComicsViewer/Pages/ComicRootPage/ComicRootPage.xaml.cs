@@ -36,7 +36,7 @@ namespace ComicsViewer.Pages {
             this.Initialized?.Invoke(this);
 
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { 
+                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments {
                     ViewModel = viewModel,
                     OnNavigatedTo = (grid, _) => this.ComicItemGrid = grid
                 }));
@@ -56,7 +56,7 @@ namespace ComicsViewer.Pages {
 
         private NavigationTag? _navigationTag;
 
-        public NavigationTag NavigationTag => _navigationTag ?? throw ProgrammerError.Unwrapped();
+        public NavigationTag NavigationTag => this._navigationTag ?? throw ProgrammerError.Unwrapped();
         public NavigationPageType NavigationPageType => NavigationPageType.Root;
         public Page Page => this;
         public int ComicsCount { get; private set; } = 0;

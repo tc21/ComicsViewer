@@ -42,7 +42,7 @@ namespace ComicsLibrary.Collections {
                     this.UpdateCache();
 
                     var add = e.Add.Where(this.filter).ToList();
-                    var remove = e.Remove.Where(this.filter).ToList(); 
+                    var remove = e.Remove.Where(this.filter).ToList();
 
                     if (add.Any() || remove.Any()) {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add, remove));
@@ -62,7 +62,7 @@ namespace ComicsLibrary.Collections {
                         this.OnComicChanged(new ViewChangedEventArgs(e.Type, add: changed));
                     }
                     return;
- 
+
                 default:
                     throw new ProgrammerError($"{nameof(FilteredComicView)}.{nameof(this.ParentComicView_ViewChanged)}: unhandled switch case");
             }

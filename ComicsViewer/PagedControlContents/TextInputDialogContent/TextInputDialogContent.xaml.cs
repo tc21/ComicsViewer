@@ -16,13 +16,13 @@ namespace ComicsViewer.Pages {
         private TextInputDialogProperties? properties;
 
         public PagedControlAccessor PagedControlAccessor {
-            get => pagedControlAccessor ?? throw ProgrammerError.Unwrapped();
-            private set => pagedControlAccessor = value;
+            get => this.pagedControlAccessor ?? throw ProgrammerError.Unwrapped();
+            private set => this.pagedControlAccessor = value;
         }
 
         private TextInputDialogProperties Properties {
-            get => properties ?? throw ProgrammerError.Unwrapped();
-            set => properties = value;
+            get => this.properties ?? throw ProgrammerError.Unwrapped();
+            set => this.properties = value;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {

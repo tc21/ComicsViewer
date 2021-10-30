@@ -1,14 +1,14 @@
-﻿using ComicsLibrary.SQL;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using ComicsLibrary.SQL;
 using ComicsLibrary.SQL.Sqlite;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Windows.Storage;
 
 #nullable enable

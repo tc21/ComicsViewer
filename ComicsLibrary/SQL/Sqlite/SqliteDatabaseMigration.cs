@@ -9,8 +9,8 @@ namespace ComicsLibrary.SQL.Sqlite {
         private readonly Action<SqliteDatabaseConnection>? afterMigrate;
 
         protected SqliteDatabaseMigration(
-            int version, string? command, 
-            Action<SqliteDatabaseConnection>? beforeMigrate = null, 
+            int version, string? command,
+            Action<SqliteDatabaseConnection>? beforeMigrate = null,
             Action<SqliteDatabaseConnection>? afterMigrate = null
         ) {
             this.Version = version;

@@ -93,12 +93,12 @@ namespace ComicsViewer.Controls {
                 _ = ConnectedAnimationHelper.TryStartAnimation(this.ThumbnailImage, item, "navigateIn");
             } else {
                 this.ThumbnailImage.ImageOpened += TryStartAnimation;
-                
+
                 // Sometimes ImageOpened is invoked before we can bind TryStartAnimation.
                 // We wait one second, and then cancel the animation.
-                _ = Task.Delay(1000).ContinueWith(async _task => 
+                _ = Task.Delay(1000).ContinueWith(async _task =>
                         await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                            Windows.UI.Core.CoreDispatcherPriority.Normal, 
+                            Windows.UI.Core.CoreDispatcherPriority.Normal,
                             () => {
                                 if (ConnectedAnimationHelper.AnimationExists("navigateIn")) {
                                     ConnectedAnimationHelper.CancelAnimation("navigateIn");

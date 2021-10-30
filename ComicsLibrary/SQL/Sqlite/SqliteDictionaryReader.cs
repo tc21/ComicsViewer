@@ -46,7 +46,7 @@ namespace ComicsLibrary.SQL.Sqlite {
         private T? GetValueOrNull<T>(string key, Func<int, T> getExistingValue) where T : struct {
             var col = this.keys[key];
             return this.reader.IsDBNull(col)
-                ? (T?) null
+                ? null
                 : getExistingValue(col);
         }
 

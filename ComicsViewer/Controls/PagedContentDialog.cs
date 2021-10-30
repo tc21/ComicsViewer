@@ -20,7 +20,8 @@ namespace ComicsViewer.Controls {
             this.Hide();
         }
 
-        public async Task<ContentDialogResult> NavigateAndShowAsync<T, TArgs>([DisallowNull] TArgs parameter) where T: IPagedControlContent<TArgs> {
+        public async Task<ContentDialogResult> NavigateAndShowAsync<T, TArgs>([DisallowNull] TArgs parameter)
+        where T : IPagedControlContent<TArgs> {
             PagedControlNavigationHelper.Navigate<T, TArgs>(this, parameter);
             return await this.ShowAsync();
         }

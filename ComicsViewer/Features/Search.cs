@@ -1,7 +1,7 @@
-﻿using ComicsLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ComicsLibrary;
 
 #nullable enable
 
@@ -46,7 +46,7 @@ namespace ComicsViewer.Features {
                     // Encountering non-existent token
                     return null;
                 }
-                
+
 
                 requiredSearches.Add(comic => SearchFields[lower](comic).Contains(value, StringComparison.OrdinalIgnoreCase));
             }
@@ -91,12 +91,12 @@ namespace ComicsViewer.Features {
 
                 // key == "" indicates raw string 
                 var tagNameSuggestions =
-                    (from key in SearchFields.Keys 
-                        orderby key
-                        select Decompile(Replacing(tokens, token, (key, token.value)))).ToList();
+                    (from key in SearchFields.Keys
+                     orderby key
+                     select Decompile(Replacing(tokens, token, (key, token.value)))).ToList();
 
                 var index = tokens.IndexOf(token);
-                    
+
                 if (index > 0) {
                     var (key, value) = tokens[index - 1];
                     tokens[index - 1] = (key, $"{value} {token.value}");
@@ -202,6 +202,8 @@ namespace ComicsViewer.Features {
                     }
                     case "string-end" when !": ".Contains(character):
                         return ReturnValueOnError("Cannot mix quoted and non-quoted strings");
+                    default:
+                        break;
                 }
 
                 switch (character) {

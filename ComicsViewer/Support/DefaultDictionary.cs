@@ -13,7 +13,7 @@ namespace ComicsViewer.Support {
             this.makeDefault = makeDefault;
         }
 
-        public TValue this[TKey key] { 
+        public TValue this[TKey key] {
             get {
                 if (!this.dictionary.ContainsKey(key)) {
                     this.dictionary[key] = this.makeDefault();
@@ -21,7 +21,7 @@ namespace ComicsViewer.Support {
 
                 return this.dictionary[key];
             }
-            set => this.dictionary[key] = value; 
+            set => this.dictionary[key] = value;
         }
 
         public bool IsReadOnly => false;
@@ -45,7 +45,8 @@ namespace ComicsViewer.Support {
 
         public void Add(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Add(item);
         public bool Remove(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).Remove(item);
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).CopyTo(array, arrayIndex);
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) =>
+            ((ICollection<KeyValuePair<TKey, TValue>>)this.dictionary).CopyTo(array, arrayIndex);
 
         IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => this.Keys;
         IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => this.Values;

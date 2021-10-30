@@ -52,7 +52,7 @@ namespace ComicsViewer.Controls {
     }
 
     public static class PagedControlNavigationHelper {
-        public static void Navigate<T, A>(IPagedControl container, [DisallowNull] A parameter) where T: IPagedControlContent<A> {
+        public static void Navigate<T, A>(IPagedControl container, [DisallowNull] A parameter) where T : IPagedControlContent<A> {
             if (container.Content != container.ContentFrame) {
                 throw new ProgrammerError("IPagedItemContainer cannot have custom content");
             }

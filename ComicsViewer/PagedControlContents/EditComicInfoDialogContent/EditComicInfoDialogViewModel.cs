@@ -1,13 +1,13 @@
-﻿using ComicsLibrary;
-using ComicsViewer.Support;
-using System.Threading.Tasks;
-using ComicsViewer.Common;
-using System.IO;
-using ComicsViewer.ClassExtensions;
-using Windows.UI.Xaml;
-using System;
+﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using ComicsLibrary;
+using ComicsViewer.ClassExtensions;
+using ComicsViewer.Common;
+using ComicsViewer.Support;
+using Windows.UI.Xaml;
 
 #nullable enable
 
@@ -33,9 +33,9 @@ namespace ComicsViewer.ViewModels.Pages {
             if (result.IsErr) {
                 throw new ProgrammerError("Comic info must be verified to be valid before saving");
             }
-            
+
             var assignTags = (tags == this.ComicTags)
-                ? null 
+                ? null
                 : StringConversions.CommaDelimitedList.Convert(tags);
 
             var metadata = new ComicMetadata {
@@ -89,7 +89,7 @@ namespace ComicsViewer.ViewModels.Pages {
             if (dateAdded is not null) {
                 result = result.CombineWith(this.ValidateDateAdded(dateAdded));
             }
-            
+
             if (result.Comment is { } comment) {
                 this.WarningText = comment;
                 this.WarningTextVisibility = Visibility.Visible;

@@ -22,7 +22,7 @@ namespace ComicsViewer.Controls {
             DependencyProperty.Register(nameof(FontIcon), typeof(string), typeof(ComicsMenuFlyoutItem), new PropertyMetadata(null));
 
         public Symbol SymbolIcon {
-            get =>(Symbol)this.GetValue(SymbolIconProperty);
+            get => (Symbol)this.GetValue(SymbolIconProperty);
             set {
                 this.SetValue(SymbolIconProperty, value);
                 this.Icon = new SymbolIcon { Symbol = value };

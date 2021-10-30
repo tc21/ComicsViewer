@@ -44,7 +44,7 @@ namespace ImageViewer {
                         return false;
                     }
                 );
-                
+
 
                 return this.seekCommand;
             }
@@ -122,7 +122,7 @@ namespace ImageViewer {
                 this.zoomCommand ??= new RelayCommand(
                     val => this.ZoomImage(double.Parse((string)val))
                 );
-                
+
                 return this.zoomCommand;
             }
         }
@@ -133,7 +133,7 @@ namespace ImageViewer {
                 this.resetZoomCommand ??= new RelayCommand(
                     val => this.ResetZoom()
                 );
-                
+
                 return this.resetZoomCommand;
             }
         }

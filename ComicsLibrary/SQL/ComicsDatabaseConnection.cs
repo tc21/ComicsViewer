@@ -130,9 +130,9 @@ namespace ComicsLibrary.SQL {
         private async Task UnassociateTagAsync(Comic comic, string tag) {
             var rowsChanged = await this.connection.ExecuteNonQueryAsync(
                 $"DELETE FROM comic_tags WHERE comic = @comic AND tag = @tag",
-                new Dictionary<string, object> { 
-                    ["@comic"] = comic.UniqueIdentifier, 
-                    ["@tag"] = tag 
+                new Dictionary<string, object> {
+                    ["@comic"] = comic.UniqueIdentifier,
+                    ["@tag"] = tag
                 }
             );
 
@@ -194,7 +194,15 @@ namespace ComicsLibrary.SQL {
         ";
 
         private static readonly List<string> GetComicQueryColumnNames = new() {
-            "path", "title", "author", "category", "display_title", "thumbnail_source", "loved", "date_added", "tag_list"
+            "path",
+            "title",
+            "author",
+            "category",
+            "display_title",
+            "thumbnail_source",
+            "loved",
+            "date_added",
+            "tag_list"
         };
 
         private Task<SqliteDictionaryReader> GetComicReaderWithConstraintAsync(string constraintName, object constraintValue) {
@@ -254,7 +262,7 @@ namespace ComicsLibrary.SQL {
         }
 
         public async Task AddPlaylistAsync(string name) {
-            _ =  await this.connection.ExecuteInsertAsync("playlists", new Dictionary<string, object> {
+            _ = await this.connection.ExecuteInsertAsync("playlists", new Dictionary<string, object> {
                 ["name"] = name
             });
         }

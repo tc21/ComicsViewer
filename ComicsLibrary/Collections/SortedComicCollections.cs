@@ -5,7 +5,7 @@ using System.Linq;
 using ComicsLibrary.Sorting;
 
 namespace ComicsLibrary.Collections {
-    internal class SortedComicCollections: IReadOnlyCollection<IComicCollection> {
+    internal class SortedComicCollections : IReadOnlyCollection<IComicCollection> {
         private readonly IComparer<IComicCollection>? comparer;
         private readonly List<IComicCollection> items = new();
         private readonly Dictionary<string, IComicCollection> itemsDictionary = new();
@@ -64,7 +64,7 @@ namespace ComicsLibrary.Collections {
             if (this.comparer is null) {
                 return this.items.FindIndex(coll => coll.Name == name) switch {
                     -1 => null,
-                    int x => x
+                    var x => x
                 };
             }
 

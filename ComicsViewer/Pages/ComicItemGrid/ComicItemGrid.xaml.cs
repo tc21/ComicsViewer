@@ -210,7 +210,7 @@ namespace ComicsViewer.Pages {
             var scrollViewer = this.ComicsGridScrollViewer();
 
             // A null value means the grid hasn't even loaded yet, just ignore the request
-            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => 
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 _ = scrollViewer?.ChangeView(null, -scrollViewer.VerticalOffset + offset, null, disableAnimation: !animated));
         }
 

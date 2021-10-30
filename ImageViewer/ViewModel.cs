@@ -200,11 +200,11 @@ namespace ImageViewer {
         public bool CanSeek {
             get => this.canSeek;
             private set {
-                if (value == canSeek) {
+                if (value == this.canSeek) {
                     return;
                 }
 
-                canSeek = value;
+                this.canSeek = value;
 
                 if (value && this.whenCanSeekAction is { } action) {
                     this.whenCanSeekAction = null;

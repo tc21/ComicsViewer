@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ComicsViewer.ClassExtensions;
@@ -31,7 +30,7 @@ namespace ComicsViewer.ViewModels {
             }
 
             var file = await StorageFile.GetFileFromPathAsync(firstFile);
-            var image = new BitmapImage { DecodePixelType = DecodePixelType.Logical } ;
+            var image = new BitmapImage { DecodePixelType = DecodePixelType.Logical };
 
             if (decodePixelHeight is { } h) {
                 image.DecodePixelHeight = h;

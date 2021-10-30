@@ -1,11 +1,10 @@
-﻿using ComicsViewer.Common;
+﻿using System;
+using System.Collections.ObjectModel;
+using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;

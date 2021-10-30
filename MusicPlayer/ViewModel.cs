@@ -94,7 +94,7 @@ namespace MusicPlayer {
             for (var i = 1; i < filenames.Count(); i++) {
                 // this will crash if any file doesn't exist
                 await this.OpenFilesAsync(new[] { await StorageFile.GetFileFromPathAsync(files[i]) }, append: true);
-            } 
+            }
         }
 
         public async Task PlayAsync(PlaylistItem item) {
@@ -104,7 +104,7 @@ namespace MusicPlayer {
 
                 // sometimes this gets called from the wrong thread
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                    Windows.UI.Core.CoreDispatcherPriority.Normal, 
+                    Windows.UI.Core.CoreDispatcherPriority.Normal,
                     () => {
                         this.PlayRequested?.Invoke(this, source);
                         this.PlayStarted?.Invoke(this, item);

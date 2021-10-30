@@ -36,7 +36,7 @@ namespace MusicPlayer {
         }
 
         private void ParentViewModel_PlayStarted(ViewModel sender, PlaylistItem item) {
-            if (this.ListView.Items!.IndexOf(item) is var index && index != -1) { 
+            if (this.ListView.Items!.IndexOf(item) is var index && index != -1) {
                 this.ListView.SelectedIndex = index;
             }
         }

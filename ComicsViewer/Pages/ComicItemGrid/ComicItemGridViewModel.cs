@@ -139,12 +139,13 @@ namespace ComicsViewer.ViewModels.Pages {
                 // We call this again, to rerun the task if we didn't successfully clear the queue
                 asyncCallback: () => { this.ScheduleGenerateThumbnails(Array.Empty<Comic>()); return Task.CompletedTask; },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
-            ); ;
+            );
+            ;
         }
 
         private async Task GenerateAndApplyThumbnailsInBackgroundThreadAsync(CancellationToken cc, IProgress<int> progress) {
             var i = 0;
-            
+
             while (!this.thumbnailQueue.IsEmpty) {
                 if (cc.IsCancellationRequested) {
                     return;

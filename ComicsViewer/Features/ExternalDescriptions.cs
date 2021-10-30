@@ -1,10 +1,10 @@
-﻿using ComicsViewer.Common;
-using ComicsViewer.Uwp.Common;
-using Microsoft.Toolkit.Uwp.Helpers;
-using System;
+﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ComicsViewer.Common;
+using ComicsViewer.Uwp.Common;
+using Microsoft.Toolkit.Uwp.Helpers;
 using Windows.Storage;
 
 #nullable enable
@@ -38,7 +38,8 @@ namespace ComicsViewer.Features {
                     ExternalDescriptionFilterType.RegexReplace
                         // Programatically, we must ensure FilterContent is not null when FilterType is RegexReplace
                         => Regex.Replace(content, this.FileNamePattern, this.FilterContent!),
-                    _ => content
+                    ExternalDescriptionFilterType.None => content,
+                    _ => throw new ProgrammerError("Unhandled switch case")
                 };
 
                 return new ExternalDescription {

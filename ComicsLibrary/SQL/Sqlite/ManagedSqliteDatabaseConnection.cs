@@ -31,7 +31,7 @@ namespace ComicsLibrary.SQL.Sqlite {
 
                 this.migrations.Add(migrationTracker[i]);
             }
-        } 
+        }
 
         private int ConnectionVersion {
             get {

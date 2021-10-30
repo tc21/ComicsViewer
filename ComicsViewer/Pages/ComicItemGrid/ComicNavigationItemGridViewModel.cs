@@ -15,7 +15,7 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly ComicCollectionView collections;
 
         protected ComicNavigationItemGridViewModel(
-            IMainPageContent parent, 
+            IMainPageContent parent,
             MainViewModel appViewModel,
             NavigationTag navigationTag,
             ComicCollectionSortSelector initialSort
@@ -30,14 +30,19 @@ namespace ComicsViewer.ViewModels.Pages {
                     this.collections.SetSort(initialSort);
                     break;
 
-                default:
+                case NavigationTag.Author:
+                case NavigationTag.Category:
+                case NavigationTag.Tags:
                     this.collections = this.MainViewModel.SortedComicCollectionsFor(navigationTag, initialSort);
                     break;
+
+                default:
+                    throw new ProgrammerError("Unhandled switch case");
             }
 
             this.collections.CollectionsChanged += this.Collections_CollectionsChanged;
         }
-        
+
         public static ComicNavigationItemGridViewModel ForViewModel(
             IMainPageContent parent,
             MainViewModel mainViewModel,

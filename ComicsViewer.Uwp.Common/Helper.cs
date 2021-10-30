@@ -17,7 +17,7 @@ namespace ComicsViewer.Uwp.Common {
             if (args.Data.TryGetValue("Description", out var o) && o is string description) {
                 result.Description = description;
             }
-            
+
             return result;
         }
 
@@ -26,13 +26,13 @@ namespace ComicsViewer.Uwp.Common {
                 if (!(args.Data.TryGetValue("Path", out var o) && o is string path)) {
                     return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.InvalidArguments, "Required argument 'Path' not found.");
                 }
-                
+
                 try {
                     var folder = await StorageFolder.GetFolderFromPathAsync(path);
                     return new ProtocolFoldersActivatedArguments(new[] { folder });
                 } catch (UnauthorizedAccessException) {
                     return new ProtocolErrorActivatedArguments(
-                        ProtocolActivatedErrorReason.AccessDenied, 
+                        ProtocolActivatedErrorReason.AccessDenied,
                         "Please ensure file system access for this app is turned on in Settings.");
                 } catch (FileNotFoundException) {
                     return new ProtocolErrorActivatedArguments(ProtocolActivatedErrorReason.FilesNotFound, $"The directory doesn't exist: {path}");

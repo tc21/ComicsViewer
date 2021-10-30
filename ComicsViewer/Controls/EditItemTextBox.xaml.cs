@@ -1,9 +1,9 @@
-﻿using ComicsViewer.Support;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using ComicsViewer.Support;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -44,9 +44,9 @@ namespace ComicsViewer.Controls {
         private bool canSubmitWhenReset;
 
         public void RegisterHandlers(
-            Func<string> get, 
+            Func<string> get,
             Action<string>? save = null,
-            Func<string, Task>? saveAsync = null, 
+            Func<string, Task>? saveAsync = null,
             Func<string, ValidateResult>? validate = null,
             bool canSubmitUnedited = false
         ) {
@@ -216,7 +216,7 @@ namespace ComicsViewer.Controls {
         private string? _errorText;
         public string? ErrorText {
             get => this._errorText ?? this.WarningText;
-            private set { 
+            private set {
                 this._errorText = value;
                 this.OnPropertyChanged();
                 this.OnPropertyChanged(nameof(this.IsErrorIndicatorVisible));
@@ -283,7 +283,7 @@ namespace ComicsViewer.Controls {
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             // Make sure its set, since there's no runtime check. If you make this an exception then XAML previews will fail.
             Debug.WriteLine($"Warning: {nameof(EditItemTextBox)} was loaded without setting the property {nameof(this.GetItemValue)}");
-            
+
             this.Reset();
             this.UpdateSaveButtonState();
         }

@@ -24,8 +24,8 @@ namespace ComicsViewer.Uwp.Common {
         public static Task UnauthorizedAccessAsync(bool cancelled = true) {
             return ShowDialogAsync(
                 $"{ApplicationName} could not access files that it needs to correctly work. " +
-                    "Please enable file system access in settings to open comics.", 
-                "Access denied", 
+                    "Please enable file system access in settings to open comics.",
+                "Access denied",
                 cancelled
             );
         }
