@@ -160,7 +160,7 @@ namespace ComicsViewer {
 
                     break;
 
-                default: 
+                default:
                     throw new ProgrammerError($"Unhandled NavigationType '{e.NavigationType}'.");
             }
         }

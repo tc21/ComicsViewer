@@ -14,7 +14,7 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        ComicItemGridViewModel? viewModel;
+        private ComicItemGridViewModel? viewModel;
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicRootPageNavigationArguments args) {
@@ -31,7 +31,7 @@ namespace ComicsViewer.Pages {
             }
 
             this.viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
-            this.ComicsCount = viewModel.TotalItemCount;
+            this.ComicsCount = this.viewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
 

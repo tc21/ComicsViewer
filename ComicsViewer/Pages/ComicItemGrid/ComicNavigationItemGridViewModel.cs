@@ -39,7 +39,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
         
         public static ComicNavigationItemGridViewModel ForViewModel(
-            IMainPageContent parent, 
+            IMainPageContent parent,
             MainViewModel mainViewModel,
             NavigationTag navigationTag,
             ComicCollectionSortSelector initialSort,

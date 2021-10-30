@@ -176,7 +176,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public void Navigate(NavigationTag navigationTag, NavigationTransitionInfo? transitionInfo = null, bool requireRefresh = false) {
             NavigationRequestedEventArgs navigationArguments;
-            
+
             if (!requireRefresh && this.ActiveNavigationPageType is NavigationPageType.Root && this.ActiveNavigationTag == navigationTag) {
                 navigationArguments = new NavigationRequestedEventArgs { NavigationType = NavigationType.ScrollToTop };
             } else {
@@ -205,17 +205,13 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public void NavigateInto(NavigationTag tag, string name) {
-            if (tag is NavigationTag.Playlist) {
-                
-            }
-
             this.NavigateInto(this.NavigationItemFor(tag, name));
         }
 
         public void NavigateInto(ComicItem item) {
             var navigationPageType = item switch {
-                ComicWorkItem _ => NavigationPageType.WorkItem,
-                ComicNavigationItem _ => NavigationPageType.NavigationItem,
+                ComicWorkItem => NavigationPageType.WorkItem,
+                ComicNavigationItem => NavigationPageType.NavigationItem,
                 _ => throw new ProgrammerError("Unexpected ComicItem type"),
             };
 
@@ -261,8 +257,8 @@ namespace ComicsViewer.ViewModels.Pages {
         public void SubmitSearch(Func<Comic, bool> search, string? searchText = null, bool rememberSearch = true) {
             searchText = searchText?.Trim();
 
-            if (searchText != lastSearch) {
-                lastSearch = searchText;
+            if (searchText != this.lastSearch) {
+                this.lastSearch = searchText;
                 this.Comics.Filter.Search = search;
             }
 
@@ -316,14 +312,14 @@ namespace ComicsViewer.ViewModels.Pages {
         private readonly Dictionary<string, ComicTask> taskNames = new();
 
         private bool ScheduleTask<T>(
-                string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction, 
+                string tag, string description, ComicTask.ComicTaskDelegate<T> asyncAction,
                 Func<T, Task>? asyncCallback, Func<Exception, Task<bool>>? exceptionHandler) {
-            if (this.taskNames.ContainsKey(tag)) { 
+            if (this.taskNames.ContainsKey(tag)) {
                 return false;
             }
 
             var comicTask = new ComicTask(description, async (cc, p) => (await asyncAction(cc, p))!);
-            comicTask.TaskCompleted += async (task, result)  => {
+            comicTask.TaskCompleted += async (task, result) => {
                 _ = this.taskNames.Remove(tag);
                 _ = this.Tasks.Remove(task);
 
@@ -336,7 +332,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     exceptionHandler ??= ExpectedExceptions.HandleIntendedBehaviorExceptionsAsync;
 
                     if (await exceptionHandler(task.StoredException) == false) {
-                        _ = await new ContentDialog{
+                        _ = await new ContentDialog {
                             Content = task.StoredException.ToString(),
                             Title = $"Unhandled {task.StoredException!.GetType()} when running task {task.Name}",
                             CloseButtonText = "OK"
@@ -370,16 +366,16 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public Task StartUniqueTaskAsync(
-                string tag, string name, ComicTask.ComicTaskDelegate asyncAction, 
+                string tag, string name, ComicTask.ComicTaskDelegate asyncAction,
                 Func<Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
-            return this.StartUniqueTaskAsync(tag, name, 
+            return this.StartUniqueTaskAsync(tag, name,
                 asyncAction: async (cc, p) => { await asyncAction(cc, p); return 0; },
                 asyncCallback: asyncCallback == null ? null : (_ => asyncCallback()),
                 exceptionHandler: exceptionHandler);
         }
 
         private async Task StartUniqueTaskAsync<T>(
-                string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction, 
+                string tag, string name, ComicTask.ComicTaskDelegate<T> asyncAction,
                 Func<T, Task>? asyncCallback = null, Func<Exception, Task<bool>>? exceptionHandler = null) {
             if (!this.ScheduleTask(tag, name, asyncAction, asyncCallback, exceptionHandler)) {
                 _ = await new ContentDialog {
@@ -391,7 +387,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task StartReloadAllComicsTaskAsync() {
-            await this.StartUniqueTaskAsync("reload", "Reloading all comics...", 
+            await this.StartUniqueTaskAsync("reload", "Reloading all comics...",
                 async (cc, p) => await ComicsLoader.FromProfilePathsAsync(this.Profile).WithProgressAsync(p, cc).ToListAsync(),
                 async result => {
                     // TODO: we should probably figure out how to only update what we need
@@ -402,7 +398,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     // TODO: remove thumbnails on comics that didn't get reloaded
                     await this.RemoveComicsAsync(this.Comics);
                     _ = await this.AddComicsWithoutReplacingAsync(result, notifyDuplicates: true);
-                }, 
+                },
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
@@ -577,7 +573,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }).ToList();
 
             return this.StartUniqueTaskAsync(
-                "moveFiles", 
+                "moveFiles",
                 $"Moving {oldComics.Count.PluralString("item")} belonging to author {oldAuthor}...",
 
                 async (ct, p) => {
@@ -619,8 +615,8 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     await this.MoveComicsAsync(oldComics, newComics, ct, p);
-                }, 
-                
+                },
+
                 exceptionHandler: ExpectedExceptions.HandleFileRelatedExceptionsAsync
             );
         }
@@ -802,7 +798,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
         public ComicPropertiesCollectionView SortedComicCollectionsFor(NavigationTag navigationTag, ComicCollectionSortSelector? sortSelector) {
             if (!this.comicPropertyCollections.TryGetValue(navigationTag, out var view)) {
-                view = this.Comics.SortedProperties(
+                view = this.ComicView.SortedProperties(
                     navigationTag switch {
                         NavigationTag.Author => comic => new[] { comic.Author },
                         NavigationTag.Category => comic => new[] { comic.Category },
@@ -855,15 +851,11 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         private void ComicWorkItem_RequestingRefresh(ComicWorkItem sender, ComicWorkItem.RequestingRefreshType type) {
-            switch (type) {   // switch RequestingRefreshType
+            _ = type switch {
                 // TODO: RequestingRefreshType now only hase one case. Evaluate if it needs to be removed
-                case ComicWorkItem.RequestingRefreshType.Remove:
-                    _ = this.comicWorkItems.Remove(sender.Comic.UniqueIdentifier);
-                    break;
-
-                default:
-                    throw new ProgrammerError("Unhandled switch case");
-            }
+                ComicWorkItem.RequestingRefreshType.Remove => this.comicWorkItems.Remove(sender.Comic.UniqueIdentifier),
+                _ => throw new ProgrammerError("Unhandled switch case"),
+            };
         }
 
         #endregion
@@ -880,7 +872,7 @@ namespace ComicsViewer.ViewModels.Pages {
         }
 
         public async Task RenameCategoryAsync(string oldName, string newName) {
-            if (!this.Profile.RootPaths.TryGetValue(oldName, out var category)) { 
+            if (!this.Profile.RootPaths.TryGetValue(oldName, out var category)) {
                 throw new ProgrammerError($"category {oldName} does not exist");
             }
 
@@ -941,7 +933,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
             var manager = await this.GetComicsManagerAsync();
             await manager.RemovePlaylistAsync(playlist.Name);
-            
+
         }
 
         public async Task CreatePlaylistAsync(string name, IEnumerable<Comic>? comics = null, bool updateDatabase = true) {
@@ -950,7 +942,7 @@ namespace ComicsViewer.ViewModels.Pages {
             }
 
             var uniqueIds = comics is null ? new string[] { } : comics.Select(comic => comic.UniqueIdentifier);
-            var playlist = Playlist.Make(this.Comics, name, uniqueIds);
+            var playlist = Playlist.Make(this.ComicView, name, uniqueIds);
             this.Playlists.AddCollection(playlist);
             this.PlaylistChanged?.Invoke(this, new PlaylistChangedArguments(PlaylistChangeType.Add, playlist));
 
@@ -986,7 +978,7 @@ namespace ComicsViewer.ViewModels.Pages {
 
 
         public string GetProposedPlaylistName() {
-            return GetProposedPlaylistNames().Where(name => !this.Playlists.ContainsKey(name)).First();
+            return GetProposedPlaylistNames().First(name => !this.Playlists.ContainsKey(name));
         }
 
         private static IEnumerable<string> GetProposedPlaylistNames() {

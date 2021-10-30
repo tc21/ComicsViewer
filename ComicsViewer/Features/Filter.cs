@@ -37,7 +37,7 @@ namespace ComicsViewer.Features {
 
         public Func<Comic, bool>? GeneratedFilter {
             get => this._generatedFilter;
-            set { 
+            set {
                 if (this._generatedFilter == value) {
                     return;
                 }
