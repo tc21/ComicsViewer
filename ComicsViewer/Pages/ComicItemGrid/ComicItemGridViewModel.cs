@@ -64,7 +64,7 @@ namespace ComicsViewer.ViewModels.Pages {
         // Due to page caching, MainViewModel.ActiveNavigationTag might change throughout my lifecycle
         // Note: this is actually the page that contains this grid/viewmodel, not a parent page or anything. 
         // Think of a better name.
-        private readonly IMainPageContent parent;
+        internal readonly IMainPageContent parent;
         internal NavigationTag NavigationTag => this.parent.NavigationTag;
         internal NavigationPageType NavigationPageType => this.parent.NavigationPageType;
 

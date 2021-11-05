@@ -73,7 +73,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     return;
                 }
 
-                await Startup.OpenComicSubitemAsync(subitems.First(), this.MainViewModel.Profile);
+                await Startup.OpenComicSubitemAsync(subitems.First(), this.MainViewModel.Profile, this.parent.Page);
             }
         }
 
@@ -119,7 +119,7 @@ namespace ComicsViewer.ViewModels.Pages {
                     }
 
                     if (this.ComicItems.Count == 0 && this.NavigationPageType is not NavigationPageType.Root) {
-                        this.MainViewModel.TryNavigateOut();
+                        this.parent.NavigateOut();
                     }
 
                     break;

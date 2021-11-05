@@ -215,6 +215,11 @@
                           ItemContainerStyle="{StaticResource ComicItemContainerStyle}"
                           ItemsPanel="{StaticResource HorizontalItemsWrapGridTemplate}"/>
 
+                <Frame x:Name="ComicsOverlayFrame"
+                       Visibility="Collapsed"
+                       IsNavigationStackEnabled="False"
+                       />
+                
                 <Border Grid.Column="1" Background="{ThemeResource SystemChromeLowColor}">
                     <ScrollViewer>
                         <TextBlock x:Name="InfoTextBlock"

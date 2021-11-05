@@ -3,6 +3,7 @@ using ComicsViewer.Common;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
@@ -17,7 +18,8 @@ namespace ComicsViewer.Pages {
         private ComicNavigationItem? _comicItem;
         public ComicNavigationItem ComicItem => this._comicItem ?? throw ProgrammerError.Unwrapped();
 
-        private ComicWorkItemGridViewModel? viewModel;
+        private ComicWorkItemGridViewModel? _viewModel;
+        private ComicWorkItemGridViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicNavigationItemPageNavigationArguments args) {
@@ -33,14 +35,14 @@ namespace ComicsViewer.Pages {
                 _ => throw new ProgrammerError("Unexpected switch case"),
             };
 
-            this.viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, savedState);
-            this.ComicsCount = viewModel.TotalItemCount;
+            this._viewModel = ComicItemGridViewModel.ForSecondLevelNavigationTag(this, args.MainViewModel, args.ComicItem.Comics, args.Properties, savedState);
+            this.ComicsCount = this.ViewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
 
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments { 
-                    ViewModel = viewModel, 
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments {
+                    ViewModel = ViewModel,
                     HighlightedComicItem = args.ComicItem,
                     OnNavigatedTo = (grid, e) => {
                         this.ComicItemGrid = grid;
@@ -60,7 +62,7 @@ namespace ComicsViewer.Pages {
             }
 
             // Ideally this should be automated
-            this.viewModel!.RemoveEventHandlers();
+            this.ViewModel.RemoveEventHandlers();
             this.ComicItemGrid.DisposeAndInvalidate();
         }
 
@@ -74,6 +76,7 @@ namespace ComicsViewer.Pages {
         public string PageName => this.ComicItem.Title;
 
         public event Action<IMainPageContent>? Initialized;
+        public Action NavigateOut => this.ViewModel.MainViewModel.TryNavigateOut;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {
             throw new ProgrammerError("ComicNavigationItemPage: Navigation failed");

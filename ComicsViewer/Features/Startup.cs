@@ -5,12 +5,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using ComicsLibrary;
 using ComicsViewer.Common;
+using ComicsViewer.Pages;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.Uwp.Common.Win32Interop;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System;
+using Windows.UI.Xaml.Controls;
 
 #nullable enable
 
@@ -21,7 +24,7 @@ namespace ComicsViewer.Features {
     }
 
     public static class Startup {
-        public static async Task OpenComicSubitemAsync(ComicSubitem subitem, UserProfile profile) {
+        public static async Task OpenComicSubitemAsync(ComicSubitem subitem, UserProfile profile, Page originatingFrom) {
             switch (profile.StartupApplicationType) {
                 case StartupApplicationType.OpenFirstFile:
                     // The if statement checks that the return value is not null
@@ -62,6 +65,16 @@ namespace ComicsViewer.Features {
 
                             description += desc.Content;
                             description += "\n";
+                        }
+
+                        if (originatingFrom is ComicWorkItemPage page) {
+                            var arguments = new ProtocolFilenamesActivatedArguments(files) {
+                                Description = description
+                            };
+
+                            if (page.TryLaunchOverlayViewer<MusicPlayer.MainPage>(arguments)) {
+                                return;
+                            }
                         }
 
                         await LaunchBuiltinViewerWithFilenamesAsync("e0dd0f61-b687-4419-81a3-3369df63b72f_jh3a8zm8ky434", "comics-musicplayer:///filenames", files, description);

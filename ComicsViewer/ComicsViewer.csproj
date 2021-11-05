@@ -404,6 +404,10 @@
       <Project>{2f382e6a-e7da-4c71-ad65-161488d57978}</Project>
       <Name>ComicsViewer.Uwp.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MusicPlayerShared\MusicPlayerShared.csproj">
+      <Project>{69c315ff-231e-4a33-9820-a89904193500}</Project>
+      <Name>MusicPlayerShared</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
 using Windows.ApplicationModel.Core;
@@ -15,7 +16,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace MusicPlayer {
-    public sealed partial class MainPage {
+    public sealed partial class MainPage : IPortablePage {
         private ViewModel ViewModel { get; } = new();
 
         public MainPage() {
@@ -143,6 +144,11 @@ namespace MusicPlayer {
             this.RightPaddingColumn.Width = new GridLength(sender.SystemOverlayRightInset);
 
             this.AppTitleBar.Height = sender.Height;
+        }
+
+        public async void PrepareUnload() {
+            this.Player.MediaPlayer.Pause();
+            await this.ViewModel.OpenFilesAsync(Array.Empty<StorageFile>());
         }
     }
 

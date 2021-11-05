@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using ComicsViewer.Common;
 using ComicsViewer.Controls;
 using ComicsViewer.Features;
 using ComicsViewer.Support;
+using ComicsViewer.Uwp.Common;
 using ComicsViewer.ViewModels;
 using ComicsViewer.ViewModels.Pages;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -12,7 +15,7 @@ using Windows.UI.Xaml.Navigation;
 #nullable enable
 
 namespace ComicsViewer.Pages {
-    public sealed partial class ComicWorkItemPage : Page {
+    public sealed partial class ComicWorkItemPage : Page, IMainPageContent {
         /* TODO
          *  - we should implement more commands in the 'more' menu, similar to the right click menu
          *  - we should implement scroll position saving/loading via the ComicItemGridCache */
@@ -24,10 +27,24 @@ namespace ComicsViewer.Pages {
         private ComicWorkItemPageViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
         private MainViewModel MainViewModel => this.ViewModel.MainViewModel;
 
-        private NavigationTag NavigationTag => this.MainViewModel.ActiveNavigationTag;
-        private string PageName => this.ViewModel.ComicItem.Title;
+        public NavigationTag NavigationTag => this.MainViewModel.ActiveNavigationTag;
+        public string PageName => this.ViewModel.ComicItem.Title;
+
+        public NavigationPageType NavigationPageType => this.MainViewModel.ActiveNavigationPageType;
+        public Page Page => this;
+        public ComicItemGrid? ComicItemGrid => null;
+
+        public Action NavigateOut => () => {
+            if (TryClosePortablePage(this.ComicsOverlayFrame)) {
+                return;
+            }
+
+            this.MainViewModel.TryNavigateOut();
+        };
 
         private bool useThumbnails = false;
+
+        public event Action<IMainPageContent>? Initialized;
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicWorkItemPageNavigationArguments args) {
@@ -60,6 +77,8 @@ namespace ComicsViewer.Pages {
                 }
             }
 
+            this.Initialized?.Invoke(this);
+
             switch (e.NavigationMode) {
                 case NavigationMode.New:
                     // Note: We may change the HighlightedComicItem's thumbnail size by setting visual manager state,
@@ -86,6 +105,50 @@ namespace ComicsViewer.Pages {
             }
         }
 
+        // TODO: maybe move this elsewhere
+        private static bool TryOpenPortablePage<T>(Frame frame, ProtocolActivatedArguments arguments) where T : IPortablePage {
+            if (frame.IsNavigationStackEnabled) {
+                throw new ProgrammerError("A portable page can only be opened in a frame without a navigation stack");
+            }
+
+            if (frame.Content is IPortablePage page) {
+                page.PrepareUnload();
+            }
+
+            frame.Navigated += Frame_Navigated;
+            frame.Visibility = Visibility.Visible;
+
+            if (!frame.Navigate(typeof(T), arguments)) {
+                return false;
+            }
+
+            return true;
+
+            void Frame_Navigated(object sender, NavigationEventArgs e) {
+                if (e.Content is not T content) {
+                    throw new ProgrammerError("Unexpected frame conetnt");
+                }
+
+                frame.Navigated -= Frame_Navigated;
+            }
+        }
+
+        private static bool TryClosePortablePage(Frame frame) {
+            if (frame.Content is IPortablePage page) {
+                page.PrepareUnload();
+                frame.Content = null;
+                frame.Visibility = Visibility.Collapsed;
+                return true;
+            }
+
+            return false;
+
+        }
+
+        public bool TryLaunchOverlayViewer<T>(ProtocolActivatedArguments arguments) where T : IPortablePage {
+            return TryOpenPortablePage<MusicPlayer.MainPage>(this.ComicsOverlayFrame, arguments);
+        }
+
         private void ComicItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
             if (e.PropertyName is nameof(ComicItem.IsLoved) or "") {
                 this.SynchronizeLovedStatusToUI();
@@ -103,7 +166,7 @@ namespace ComicsViewer.Pages {
         }
 
         private async void OpenButton_Click(object sender, RoutedEventArgs e) {
-            await this.ViewModel.OpenComicItemAsync();
+            await this.ViewModel.OpenComicItemAsync(this);
         }
 
         private async void EditButton_Click(object sender, RoutedEventArgs e) {
@@ -152,7 +215,7 @@ namespace ComicsViewer.Pages {
                 throw new ProgrammerError("ComicSubitemGrid should only contain ComicSubitemContainer objects.");
             }
 
-            await this.ViewModel.OpenComicItemAsync(container.Subitem);
+            await this.ViewModel.OpenComicItemAsync(this, container.Subitem);
         }
 
         private void ComicSubitemGrid_SizeChanged(object sender, SizeChangedEventArgs e) {

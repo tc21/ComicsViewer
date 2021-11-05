@@ -15,5 +15,6 @@ namespace ComicsViewer {
         string? PageName { get; }
 
         event Action<IMainPageContent>? Initialized;
+        Action NavigateOut { get; }
     }
 }

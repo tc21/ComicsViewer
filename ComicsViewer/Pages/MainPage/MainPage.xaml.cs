@@ -200,7 +200,7 @@ namespace ComicsViewer {
         }
 
         private void CurrentView_BackRequested(object sender, BackRequestedEventArgs e) {
-            this.ViewModel.TryNavigateOut();
+            this.page?.NavigateOut();
         }
 
         private void ContentFrame_NavigationFailed(object _, NavigationFailedEventArgs e) {
@@ -301,7 +301,7 @@ namespace ComicsViewer {
                 return;
             }
 
-            this.ViewModel.TryNavigateOut();
+            this.page?.NavigateOut();
         }
     }
 }

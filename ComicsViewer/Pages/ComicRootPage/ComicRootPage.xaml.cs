@@ -2,6 +2,7 @@
 using ComicsViewer.Common;
 using ComicsViewer.Support;
 using ComicsViewer.ViewModels.Pages;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
@@ -14,7 +15,8 @@ namespace ComicsViewer.Pages {
             this.InitializeComponent();
         }
 
-        private ComicItemGridViewModel? viewModel;
+        private ComicItemGridViewModel? _viewModel;
+        private ComicItemGridViewModel ViewModel => this._viewModel ?? throw ProgrammerError.Unwrapped();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter is not ComicRootPageNavigationArguments args) {
@@ -30,14 +32,14 @@ namespace ComicsViewer.Pages {
                 savedState.ScrollOffset = 0;
             }
 
-            this.viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
-            this.ComicsCount = this.viewModel.TotalItemCount;
+            this._viewModel = ComicItemGridViewModel.ForTopLevelNavigationTag(this, args.MainViewModel, savedState);
+            this.ComicsCount = this.ViewModel.TotalItemCount;
 
             this.Initialized?.Invoke(this);
 
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 this.InnerContentFrame.Navigate(typeof(ComicItemGrid), new ComicItemGridNavigationArguments {
-                    ViewModel = viewModel,
+                    ViewModel = ViewModel,
                     OnNavigatedTo = (grid, _) => this.ComicItemGrid = grid
                 }));
         }
@@ -50,7 +52,7 @@ namespace ComicsViewer.Pages {
             ComicItemGridCache.PutRoot(this.NavigationTag, this.ComicItemGrid.GetSaveState());
 
             // Ideally this should be automated
-            this.viewModel!.RemoveEventHandlers();
+            this.ViewModel.RemoveEventHandlers();
             this.ComicItemGrid.DisposeAndInvalidate();
         }
 
@@ -64,6 +66,9 @@ namespace ComicsViewer.Pages {
         public string? PageName => null;
 
         public event Action<IMainPageContent>? Initialized;
+        public EventHandler<BackRequestedEventArgs>? BackRequested => null;
+
+        public Action NavigateOut => this.ViewModel.MainViewModel.TryNavigateOut;
 
         private void InnerContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e) {
             throw new ProgrammerError("ComicRootPage: Navigation failed");

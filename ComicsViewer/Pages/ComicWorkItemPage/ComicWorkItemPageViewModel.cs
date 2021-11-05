@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ComicsViewer.ClassExtensions;
 using ComicsViewer.Common;
 using ComicsViewer.Features;
+using ComicsViewer.Pages;
 using ComicsViewer.Support;
 using Windows.Storage;
 using Windows.UI.Xaml.Controls;
@@ -82,14 +83,14 @@ namespace ComicsViewer.ViewModels.Pages {
             }
         }
 
-        public async Task OpenComicItemAsync(ComicSubitem? subitem = null) {
+        public async Task OpenComicItemAsync(ComicWorkItemPage page, ComicSubitem? subitem = null) {
             var item = subitem ?? this.PrimarySubitem;
 
             if (!await item.VerifyExistsOnDiskAsync()) {
                 return;
             }
 
-            await Startup.OpenComicSubitemAsync(item, this.MainViewModel.Profile);
+            await Startup.OpenComicSubitemAsync(item, this.MainViewModel.Profile, page);
         }
 
         private void MainViewModel_ProfileChanged(MainViewModel sender, ProfileChangedEventArgs e) {
