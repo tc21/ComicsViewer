@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ComicsViewer.Common;
 using ComicsViewer.Uwp.Common;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
 using Windows.UI.Xaml.Media.Imaging;
@@ -14,7 +15,7 @@ using Windows.UI.Xaml.Media.Imaging;
 namespace ImageViewer {
     public class ViewModel : ViewModelBase {
         private static readonly string[] ImageExtensions = {
-            ".bmp", ".gif", ".heic", ".heif", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
+            ".bmp", ".gif", ".heic", ".heif", ".ico", ".j2k", ".jfi", ".jfif", ".jif", ".jp2", ".jpe", ".jpeg", ".jpf",
             ".jpg", ".jpm", ".jpx", ".mj2", ".png", ".tif", ".tiff", ".webp"
         };
 
@@ -71,8 +72,8 @@ namespace ImageViewer {
             this.Title = title;
         }
 
-        private BitmapSource? _currentImageSource;
-        public BitmapSource? CurrentImageSource {
+        private SoftwareBitmapSource? _currentImageSource;
+        public SoftwareBitmapSource? CurrentImageSource {
             get => this._currentImageSource;
             private set {
                 this._currentImageSource = value;
@@ -253,10 +254,13 @@ namespace ImageViewer {
             this.UpdateTitle();
         }
 
+        private BitmapDecoder? _currentImageDecoder = null;
+
         private async Task SetCurrentImageSourceAsync(AbstractStorageFile? file, int? decodePixelHeight) {
             if (file == null) {
                 this.CurrentImageSource = null;
                 this.CurrentImageMetadata = null;
+                _currentImageDecoder = null;
                 return;
             }
 
@@ -267,10 +271,31 @@ namespace ImageViewer {
                     image.DecodePixelHeight = height;
                 }
 
-                await image.SetSourceAsync(stream);
+                _currentImageDecoder = await BitmapDecoder.CreateAsync(stream);
             }
 
-            this.CurrentImageSource = image;
+            // If we are zoomed in past 100% (of the image size, not the window size),
+            // Render the picture larger so we always have pixel-perfect zoom
+            var decodeImageHeight = (uint?)this.DecodeImageHeight ?? _currentImageDecoder.PixelHeight;
+            var transform = new BitmapTransform();
+            if (decodeImageHeight > _currentImageDecoder.PixelWidth) {
+                transform.InterpolationMode = BitmapInterpolationMode.NearestNeighbor;
+                transform.ScaledHeight = decodeImageHeight;
+                transform.ScaledWidth = decodeImageHeight * _currentImageDecoder.PixelWidth / _currentImageDecoder.PixelHeight;
+            } else {
+                transform.InterpolationMode = BitmapInterpolationMode.Fant;
+            }
+
+            using var bmp = await _currentImageDecoder.GetSoftwareBitmapAsync(
+                BitmapPixelFormat.Bgra8, 
+                BitmapAlphaMode.Premultiplied, 
+                transform, 
+                ExifOrientationMode.RespectExifOrientation, 
+                ColorManagementMode.ColorManageToSRgb
+            );
+            var source = new SoftwareBitmapSource();
+            await source.SetBitmapAsync(bmp);
+            this.CurrentImageSource = source;
 
             await this.UpdateBitmapMetadataAsync(file);
         }
@@ -345,10 +370,12 @@ namespace ImageViewer {
 
             var description = $"File size: {FormatFileSize(basicProperties.Size)}\nLast modified: {FormatDate(basicProperties.DateModified, true)}";
 
-            try {
-                description += $"\nDimensions: {this.CurrentImageSource.PixelWidth}x{this.CurrentImageSource.PixelHeight}";
-            } catch (NotSupportedException) {
-                /* do nothing */
+            if (_currentImageDecoder != null) {
+                try {
+                    description += $"\nDimensions: {_currentImageDecoder.PixelWidth}x{_currentImageDecoder.PixelHeight}";
+                } catch (NotSupportedException) {
+                    /* do nothing */
+                }
             }
 
             if (metadata is not null) {
