@@ -116,7 +116,9 @@
                         </MenuFlyoutItem>
                     </MenuFlyoutSubItem>
 
-                    <ToggleMenuFlyoutItem x:Name="ToggleScalingFlyoutItem" Text="Reduce moiré" Command="{x:Bind ToggleScalingCommand}">
+                    <!-- this is a horrible name but i've accidently tied reduce moire and pixel-perfect zoom to the same feature 
+                         TODO split these two features into two independently configurable ones -->
+                    <ToggleMenuFlyoutItem x:Name="ToggleScalingFlyoutItem" Text="Improve image quality" Command="{x:Bind ToggleScalingCommand}">
                         <MenuFlyoutItem.KeyboardAccelerators>
                             <KeyboardAccelerator Key="M" Modifiers="Control"/>
                         </MenuFlyoutItem.KeyboardAccelerators>

@@ -51,7 +51,8 @@ namespace ImageViewer {
         }
 
         private void ImageContainer_Loaded(object sender, RoutedEventArgs e) {
-            // Reduce moire
+            // Turn on DecodeImageHeight, which tells the program to render the image to screen size
+            // before displaying; this reduces moire when zoomed out, and prevents bluriness when zoomed in
             if (Settings.Get(Settings.ScalingEnabledProperty, true)) {
                 this.ToggleScalingFlyoutItem.IsChecked = true;
                 this.ToggleScalingCommand.Execute(null);

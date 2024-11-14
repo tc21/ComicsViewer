@@ -277,11 +277,13 @@ namespace ImageViewer {
             // If we are zoomed in past 100% (of the image size, not the window size),
             // Render the picture larger so we always have pixel-perfect zoom
             var decodeImageHeight = (uint?)this.DecodeImageHeight ?? _currentImageDecoder.PixelHeight;
-            var transform = new BitmapTransform();
-            if (decodeImageHeight > _currentImageDecoder.PixelWidth) {
+            var transform = new BitmapTransform {
+                ScaledHeight = decodeImageHeight,
+                ScaledWidth = decodeImageHeight * _currentImageDecoder.PixelWidth / _currentImageDecoder.PixelHeight
+            };
+
+            if (decodeImageHeight > _currentImageDecoder.PixelWidth * 2) {
                 transform.InterpolationMode = BitmapInterpolationMode.NearestNeighbor;
-                transform.ScaledHeight = decodeImageHeight;
-                transform.ScaledWidth = decodeImageHeight * _currentImageDecoder.PixelWidth / _currentImageDecoder.PixelHeight;
             } else {
                 transform.InterpolationMode = BitmapInterpolationMode.Fant;
             }
